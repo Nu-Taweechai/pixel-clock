@@ -1,1 +1,48 @@
+name: Update Forex Factory news
 
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/15 * * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  update-news:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download Forex Factory calendar
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 2 --retry-delay 3 \
+            'https://nfs.faireconomy.media/ff_calendar_thisweek.json' \
+            -o thisweek.json
+          if curl -fsSL --retry 1 --retry-delay 2 \
+            'https://nfs.faireconomy.media/ff_calendar_nextweek.json' \
+            -o nextweek.json; then
+            :
+          else
+            echo '[]' > nextweek.json
+          fi
+          jq -s 'add | unique_by([.date, .country, .title])' \
+            thisweek.json nextweek.json > news.json
+          rm -f thisweek.json nextweek.json
+
+      - name: Commit updated news file
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add news.json
+          if git diff --cached --quiet; then
+            echo 'News data has not changed.'
+          else
+            git commit -m 'Update Forex Factory news data'
+            git push
+          fi
