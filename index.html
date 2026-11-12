@@ -353,7 +353,11 @@ var CONFIG = {
   newsCurrencies: {USD:1},            // สกุลที่สนใจ เช่น {USD:1, EUR:1, GBP:1, JPY:1}
   newsImpacts: {High:1},              // ระดับข่าว: High = แดง, Medium = ส้ม ({High:1, Medium:1})
   alertMinutes: 15,                   // เตือนล่วงหน้ากี่นาที (และเตือนอีกครั้งตอนข่าวออก)
-  corsProxy: 'https://api.allorigins.win/raw?url='  // ใช้สำรองถ้าดึงตรงไม่ได้ (ใส่ '' เพื่อปิด)
+  corsProxies: [                      // ตัวกลางสำรอง ลองไล่ทีละตัวถ้าดึงตรงไม่ได้ (ใส่ [] เพื่อปิด)
+    'https://corsproxy.io/?url=',
+    'https://api.allorigins.win/raw?url=',
+    'https://api.codetabs.com/v1/proxy?quest='
+  ]
 };
 /* ===== */
 
@@ -794,11 +798,16 @@ function parseFF(str){
   return t;
 }
 function fetchNewsOne(url, cb){
-  get(url, function(j){ cb(j); }, function(r1){
-    newsDiag = 'direct:' + r1;
-    if (CONFIG.corsProxy) get(CONFIG.corsProxy + encodeURIComponent(url), cb, function(r2){ if (newsDiag.indexOf('proxy:' + r2) < 0) newsDiag += ' proxy:' + r2; cb(null); });
-    else cb(null);
-  });
+  var tries = [url], px = CONFIG.corsProxies || [], diag = [], n = 0, i;
+  for (i = 0; i < px.length; i++) tries.push(px[i] + encodeURIComponent(url));
+  (function next(){
+    if (n >= tries.length){ newsDiag += (newsDiag ? ' ' : '') + diag.join(' '); cb(null); return; }
+    var k = n++;
+    get(tries[k], function(j){
+      if (j && j.length !== undefined) cb(j);
+      else { diag.push((k ? 'p' + k : 'd') + ':fmt'); next(); }
+    }, function(r){ diag.push((k ? 'p' + k : 'd') + ':' + r); next(); });
+  })();
 }
 function loadNews(){
   newsDiag = '';
@@ -815,7 +824,7 @@ function loadNews(){
     }
     showStatus();
   }
-  function one(url){
+  function one(url, after){
     fetchNewsOne(url, function(j){
       if (j && j.length !== undefined){
         anyOk = true;
@@ -829,9 +838,11 @@ function loadNews(){
         }
       }
       done();
+      if (after) after();
     });
   }
-  for (i = 0; i < NEWS_URLS.length; i++) one(NEWS_URLS[i]);
+  /* ดึงทีละไฟล์ เว้นช่วง กันโดนจำกัดความถี่ */
+  one(NEWS_URLS[0], function(){ setTimeout(function(){ one(NEWS_URLS[1]); }, 2000); });
 }
 function impCol(i){ return i === 'High' ? '#ff5f6d' : '#ff9d57'; }
 function hhmm(t){ var d = new Date(t); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
