@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>Pixel Clock</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pixel Clock">
+<link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+<style>
+:root{
+  --ink:#14102b; --panel:#1f1a45; --edge:#6d5bd0; --lite:#9d8cff;
+  --text:#f4f0ff; --dim:#9a93c9; --gold:#ffcf3a; --gold2:#c98a12;
+  --up:#4cf08a; --down:#ff5f6d; --sky1:#14102b; --sky2:#251c5e; --sky3:#3a2a86;
+  --ground:#2f9e44; --ground2:#1f6b2e; --dirt:#7a4a21;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--ink);color:var(--text);
+  font-family:'Press Start 2P',ui-monospace,Menlo,monospace;
+  -webkit-text-size-adjust:100%;-webkit-font-smoothing:none}
+body{
+  background:
+    linear-gradient(to bottom,
+      var(--sky1) 0,var(--sky1) 18%,
+      var(--sky2) 18%,var(--sky2) 36%,
+      var(--sky3) 36%,var(--sky3) 54%,
+      #4b36a8 54%,#4b36a8 100%);
+  padding:env(safe-area-inset-top) 10px calc(env(safe-area-inset-bottom) + 70px);
+  overflow-x:hidden; position:relative;
+}
+body.day{
+  --sky1:#2a6fdb;--sky2:#3f86ee;--sky3:#63a4f5;--ink:#10224d;
+  background:linear-gradient(to bottom,#2a6fdb 0,#2a6fdb 18%,#3f86ee 18%,#3f86ee 36%,#63a4f5 36%,#63a4f5 54%,#8cc1fa 54%,#8cc1fa 100%);
+}
+body.dim{filter:brightness(.55)}
+
+#stars{position:absolute;left:0;top:0;width:100%;height:50%;pointer-events:none}
+.star{position:absolute;width:4px;height:4px;background:#fff;opacity:.8}
+body.day .star{display:none}
+.cloud{position:absolute;left:-120px;pointer-events:none;opacity:.9;
+  -webkit-animation:drift linear infinite;animation:drift linear infinite}
+body:not(.day) .cloud{opacity:.18}
+@-webkit-keyframes drift{from{-webkit-transform:translateX(0)}to{-webkit-transform:translateX(130vw)}}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(130vw)}}
+
+.wrap{position:relative;max-width:560px;margin:0 auto;padding-top:10px}
+.hud{display:-webkit-flex;display:flex;-webkit-justify-content:space-between;justify-content:space-between;
+  font-size:9px;line-height:1.6;color:var(--text);text-shadow:2px 2px 0 #000;margin-bottom:10px}
+.hud .r{text-align:right}
+.sprite{display:block;shape-rendering:crispEdges;image-rendering:pixelated}
+
+.clockbox{text-align:center;position:relative;margin:6px 0 14px}
+#sun{position:absolute;right:2px;top:-4px}
+#time{font-size:17vw;line-height:1.1;letter-spacing:-.04em;color:#fff;
+  text-shadow:4px 4px 0 #000,-2px -2px 0 var(--edge)}
+#time .c{color:var(--gold)}
+#sec{font-size:4.2vw;color:var(--gold);text-shadow:3px 3px 0 #000;margin-left:.3em}
+#date{font-size:10px;margin-top:8px;color:var(--text);text-shadow:2px 2px 0 #000;line-height:1.8}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;grid-gap:10px}
+.panel{background:var(--panel);padding:10px;position:relative;
+  border:4px solid #000;
+  box-shadow:inset 4px 4px 0 var(--edge),inset -4px -4px 0 #0e0a24,6px 6px 0 rgba(0,0,0,.45)}
+.panel.wide{grid-column:1 / span 2}
+.lab{font-size:9px;color:var(--dim);margin-bottom:8px;line-height:1.5;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center}
+.lab svg{margin-right:8px}
+.val{font-size:6.6vw;line-height:1.3;color:var(--gold);text-shadow:3px 3px 0 #000;word-break:break-all}
+.val.sm{font-size:5vw}
+.sub{font-size:9px;margin-top:8px;color:var(--dim);line-height:1.7}
+.chg.up{color:var(--up)} .chg.down{color:var(--down)}
+.temp{color:#ff9d57}
+.hp{display:-webkit-flex;display:flex;margin:10px 0 6px;border:3px solid #000;padding:3px;background:#0b0820}
+.seg{-webkit-flex:1;flex:1;height:14px;margin-right:2px;background:#2a2457}
+.seg:last-child{margin-right:0}
+.seg.on{box-shadow:inset 0 3px 0 rgba(255,255,255,.35)}
+.status{position:fixed;left:0;right:0;bottom:0;padding:8px 10px calc(env(safe-area-inset-bottom) + 8px);
+  background:#000;font-size:8px;color:var(--dim);text-align:center;line-height:1.6;z-index:5}
+.status b{color:var(--gold);font-weight:normal}
+.ground{position:fixed;left:0;right:0;bottom:0;height:60px;z-index:1;pointer-events:none;
+  background:linear-gradient(to bottom,var(--ground) 0,var(--ground) 14px,var(--ground2) 14px,var(--ground2) 20px,var(--dirt) 20px)}
+.blink{-webkit-animation:bl 1s steps(1) infinite;animation:bl 1s steps(1) infinite}
+@-webkit-keyframes bl{50%{opacity:0}} @keyframes bl{50%{opacity:0}}
+.coinspin{-webkit-animation:spin 1.6s steps(4) infinite;animation:spin 1.6s steps(4) infinite}
+@-webkit-keyframes spin{0%{-webkit-transform:scaleX(1)}25%{-webkit-transform:scaleX(.6)}50%{-webkit-transform:scaleX(.2)}75%{-webkit-transform:scaleX(.6)}100%{-webkit-transform:scaleX(1)}}
+@keyframes spin{0%{transform:scaleX(1)}25%{transform:scaleX(.6)}50%{transform:scaleX(.2)}75%{transform:scaleX(.6)}100%{transform:scaleX(1)}}
+.panel,.wrap{z-index:2}
+.panel{z-index:2}
+
+#snd{margin-left:auto;font-family:inherit;font-size:7px;background:#000;color:var(--dim);
+  border:2px solid var(--edge);padding:5px 7px;cursor:pointer;-webkit-appearance:none;border-radius:0}
+#snd.on{color:var(--up);border-color:var(--up)}
+.imp{display:inline-block;width:9px;height:9px;margin-right:6px;border:2px solid #000}
+.ev{margin-top:8px;font-size:9px;line-height:1.7;color:var(--text)}
+.ev .tm{color:var(--gold)}
+#nCount.hot{color:var(--down)}
+#nTitle{color:var(--text)}
+.alert{position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top) + 8px);z-index:20;
+  background:#000;border:4px solid var(--gold);padding:10px;font-size:9px;line-height:1.8;text-align:center;
+  box-shadow:6px 6px 0 rgba(0,0,0,.5);display:none}
+.alert.now{border-color:var(--down);background:#3a0a14}
+.alert b{color:var(--gold);font-weight:normal}
+.alert.now b{color:var(--down)}
+
+@media (min-width:600px){
+  #time{font-size:96px} #sec{font-size:24px}
+  .val{font-size:30px} .val.sm{font-size:24px}
+  .hud,.lab,.sub{font-size:11px} #date{font-size:12px}
+  .ev,.alert{font-size:11px} #snd{font-size:9px}
+}
+@media (orientation:landscape) and (max-height:500px){
+  body{padding:6px 12px 44px}
+  .wrap{max-width:none;padding-top:0;display:grid;
+    grid-template-columns:5fr 6fr;grid-template-rows:auto 1fr;grid-gap:0 14px}
+  .hud{grid-column:1;grid-row:1;font-size:8px;margin-bottom:0}
+  .clockbox{grid-column:1;grid-row:2;margin:0;
+    display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;
+    -webkit-justify-content:center;justify-content:center}
+  .grid{grid-column:2;grid-row:1 / span 2;grid-gap:8px;-webkit-align-content:center;align-content:center}
+  #sun{right:auto;left:0;top:0}
+  #time{font-size:13vh} #sec{font-size:4vh;margin-left:0;display:block;margin-top:4px}
+  #date{font-size:8px;margin-top:6px}
+  .panel{padding:7px}
+  .lab{font-size:7px;margin-bottom:5px} .lab svg{margin-right:5px;width:20px;height:auto}
+  .val{font-size:19px;line-height:1.2} .val.sm{font-size:15px}
+  .sub{font-size:7px;margin-top:5px;line-height:1.5}
+  .note{display:none}
+  .ev{font-size:7px;margin-top:4px} .alert{font-size:7px;padding:6px} #snd{font-size:6px;padding:3px 5px}
+  .hp{margin:6px 0 3px} .seg{height:9px}
+  .ground{height:30px}
+  .status{padding:6px 10px calc(env(safe-area-inset-bottom) + 6px);font-size:7px}
+}
+.sess{display:flex}
+.sc{flex:1;text-align:center;border:3px solid #000;padding:6px 2px;margin-right:4px;background:#0b0820;
+  font-size:8px;line-height:1.8;color:var(--dim)}
+.sc:last-child{margin-right:0}
+.sc b{display:block;font-weight:normal;color:var(--text)}
+.sc.on{background:#103a24;color:var(--up)} .sc.on b{color:var(--up)}
+.val.xs{font-size:4vw;line-height:1.5}
+.btn{font-family:inherit;font-size:8px;background:#000;color:var(--text);border:2px solid var(--edge);
+  padding:6px 8px;border-radius:0;-webkit-appearance:none;cursor:pointer}
+.lab .btn{margin-left:auto}
+.btn.x{padding:3px 5px;margin-left:6px;color:var(--down);border-color:var(--down)}
+.num{font-family:inherit;font-size:16px;background:#0b0820;color:var(--gold);border:2px solid var(--edge);
+  padding:6px;border-radius:0;-webkit-appearance:none;margin:0 4px 6px 0;max-width:100%}
+input.num{width:120px}
+#aForm{display:none;margin-bottom:6px}
+@media (min-width:600px){ .val.xs{font-size:20px} .sc{font-size:10px} .btn{font-size:9px} }
+@media (orientation:landscape) and (max-height:500px){
+  .val.xs{font-size:12px} .sc{font-size:6px;padding:4px 1px;line-height:1.6} .btn{font-size:6px;padding:4px 5px}
+}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<div class="alert" id="alert"></div>
+<div class="wrap">
+  <div class="hud">
+    <div>WORLD 1-1<br><span id="city"></span></div>
+    <div class="r">1UP<br><span id="clk2" class="blink">READY</span></div>
+  </div>
+
+  <div class="clockbox">
+    <div id="sun"></div>
+    <div id="time">--<span class="c">:</span>--</div><span id="sec">--</span>
+    <div id="date">&nbsp;</div>
+  </div>
+
+  <div class="grid">
+    <div class="panel wide">
+      <div class="lab"><span id="icoBtc" class="coinspin"></span>BITCOIN (BTC/USD)</div>
+      <div class="val" id="btcUsd">$ ---</div>
+      <div class="sub"><span id="btcThb">฿ ---</span>&nbsp; <span id="btcChg" class="chg"></span></div>
+    </div>
+
+    <div class="panel wide">
+      <div class="lab"><span id="icoGold"></span>GOLD (XAU/USD ต่อออนซ์)</div>
+      <div class="val" id="goldUsd">$ ---</div>
+      <div class="sub"><span id="goldThb">฿ ---</span> /บาททอง&nbsp; <span id="goldChg" class="chg"></span><span class="note"><br>ราคาทองไทยประมาณจากราคาทองโลก ไม่ใช่ราคาสมาคมฯ</span></div>
+    </div>
+
+    <div class="panel wide">
+      <div class="lab"><span id="icoNews"></span>NEWS (FOREX FACTORY)<button id="snd" type="button">SOUND OFF</button></div>
+      <div class="val sm" id="nCount">--</div>
+      <div class="sub" id="nTitle">LOADING...</div>
+      <div id="nList"></div>
+    </div>
+
+    <div class="panel wide">
+      <div class="lab"><span id="icoSess"></span>MARKET SESSIONS</div>
+      <div class="sess" id="sess"></div>
+      <div class="sub" id="sessTxt">&nbsp;</div>
+    </div>
+
+    <div class="panel">
+      <div class="lab"><span id="icoTemp"></span>TEMP</div>
+      <div class="val temp" id="temp">--°</div>
+      <div class="sub" id="feel">&nbsp;</div>
+      <div class="sub" id="wx2">&nbsp;</div>
+    </div>
+
+    <div class="panel">
+      <div class="lab"><span id="icoHeart"></span>PM2.5 HP</div>
+      <div class="val sm" id="pm">--</div>
+      <div class="hp" id="hp"></div>
+      <div class="sub" id="pmTxt">&nbsp;</div>
+    </div>
+
+    <div class="panel">
+      <div class="lab"><span id="icoFx"></span>USD/THB</div>
+      <div class="val sm" id="fxv">฿ --</div>
+      <div class="sub">เรตจาก BTC</div>
+    </div>
+
+    <div class="panel">
+      <div class="lab"><span id="icoHl"></span>GOLD H/L</div>
+      <div class="val xs chg up" id="hlH">H --</div>
+      <div class="val xs chg down" id="hlL">L --</div>
+      <div class="sub">นับตั้งแต่เปิดเครื่องวันนี้</div>
+    </div>
+
+    <div class="panel wide">
+      <div class="lab"><span id="icoAlert"></span>PRICE ALERTS<button id="aToggle" class="btn" type="button">+ ADD</button></div>
+      <div id="aForm">
+        <select id="aAsset" class="num"><option value="gold">GOLD</option><option value="btc">BTC</option></select>
+        <select id="aDir" class="num"><option value="up">เหนือ</option><option value="down">ต่ำกว่า</option></select>
+        <input id="aPrice" class="num" type="number" step="any" inputmode="decimal" placeholder="ราคา $">
+        <button id="aAdd" class="btn" type="button">SAVE</button>
+      </div>
+      <div id="aList"></div>
+    </div>
+  </div>
+</div>
+<div class="ground"></div>
+<div class="status" id="status">LOADING...</div>
+
+<script>
+/* ===== ตั้งค่า (แก้ตรงนี้) ===== */
+var CONFIG = {
+  city: 'BANGKOK',
+  lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
+  useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
+  gpsEverySec: 1800,     // เช็กตำแหน่งใหม่ทุกกี่วินาที
+  goldSpotUrl: 'https://xaus.com/api/v1/spot?compact=1',  // ราคา XAU/USD spot (ฟรี ไม่ต้องใช้ key) ใส่ '' เพื่อปิด
+  goldSpotEverySec: 60,  // เซิร์ฟเวอร์แคชไว้ 60 วิ ดึงถี่กว่านี้ไม่ได้ข้อมูลใหม่ (ลิมิต 60 ครั้ง/นาที)
+  liveWS: true,          // ราคา BTC/ทอง realtime ผ่าน WebSocket (Binance) ตั้ง false ถ้าอยากใช้แบบดึงทุก priceEverySec เท่านั้น
+  priceEverySec: 90,     // ดึงราคาสำรอง + อัตราแลกเปลี่ยน USD/THB (ใช้คำนวณราคาบาท)
+  weatherEverySec: 900,  // อัปเดตอุณหภูมิ/PM2.5
+
+  /* --- เตือนราคา / ช่วงเงียบ / รีโหลด --- */
+  moveAlerts: {                       // เตือนเมื่อราคาขยับแรง: ขยับเกิน usd ดอลลาร์ ภายใน minutes นาที
+    gold: {usd: 10, minutes: 5},
+    btc:  {usd: 500, minutes: 5}
+  },
+  quietHours: true, quietStart: 23, quietEnd: 7,   // ช่วงเงียบ: ไม่มีเสียง/สั่น เหลือแต่แบนเนอร์
+  autoReloadHour: 4,                  // รีโหลดหน้าเองวันละครั้งตอนตี 4 กันเบราว์เซอร์ค้าง (-1 = ปิด)
+
+  /* --- ข่าว Forex Factory --- */
+  newsEverySec: 1800,                 // ดึงปฏิทินข่าวทุกกี่วินาที (อย่าถี่เกินไป ไม่งั้นโดน rate limit)
+  newsCurrencies: {USD:1},            // สกุลที่สนใจ เช่น {USD:1, EUR:1, GBP:1, JPY:1}
+  newsImpacts: {High:1},              // ระดับข่าว: High = แดง, Medium = ส้ม ({High:1, Medium:1})
+  alertMinutes: 15,                   // เตือนล่วงหน้ากี่นาที (และเตือนอีกครั้งตอนข่าวออก)
+  corsProxy: 'https://api.allorigins.win/raw?url='  // ใช้สำรองถ้าดึงตรงไม่ได้ (ใส่ '' เพื่อปิด)
+};
+/* ===== */
+
+var PAL = {k:'#000',y:'#ffcf3a',w:'#fff6b8',o:'#c98a12',r:'#e8403f',R:'#ff8a8a',s:'#ff9d57',t:'#ffe0a8',g:'#4cf08a',b:'#6ac3ff',W:'#ffffff',d:'#3a2a86'};
+var SPR = {
+  coin:[
+    "...kkkk...",
+    "..kyyyyk..",
+    ".kywwyyok.",
+    "kywyyyyyok",
+    "kywyykyyok",
+    "kyyyykyyok",
+    "kyyyyyyyok",
+    ".kyyyyyok.",
+    "..kooook..",
+    "...kkkk..."],
+  bar:[
+    "...kkkkkkkkk.",
+    "..kwwwwwwwyyk",
+    ".kwyyyyyyyyok",
+    "kkkkkkkkkkkkk",
+    "kyyyyyyyyyyok",
+    "kyyyyyyyyyook",
+    "kooooooooooook"],
+  heart:[
+    ".kk...kk.",
+    "krRrkkrrk",
+    "krRrrrrrk",
+    "krrrrrrrk",
+    ".krrrrrk.",
+    "..krrrk..",
+    "...krk...",
+    "....k...."],
+  therm:[
+    "..kkk..",
+    ".kWWWk.",
+    ".kWrWk.",
+    ".kWrWk.",
+    ".kWrWk.",
+    ".kWrWk.",
+    "kWWrrWk",
+    "kWrrrrk",
+    "kWrrrWk",
+    ".kkkkk."],
+  sun:[
+    "....y.y....",
+    "...y.y.y...",
+    "..kkkkkkk..",
+    ".kyyyyyyyk.",
+    "ykyyyyyyyky",
+    ".kyyyyyyyk.",
+    "ykyyyyyyyky",
+    ".kyyyyyyyk.",
+    "..kkkkkkk..",
+    "...y.y.y...",
+    "....y.y...."],
+  moon:[
+    "..kkkk...",
+    ".kWWWk...",
+    "kWWWk....",
+    "kWWk.....",
+    "kWWk.....",
+    "kWWWk....",
+    ".kWWWkkk.",
+    "..kkWWWWk",
+    "....kkkk."],
+  cloud:[
+    "....WWWW......",
+    "..WWWWWWWW.WW.",
+    ".WWWWWWWWWWWWW",
+    "WWWWWWWWWWWWWW"],
+  bell:[
+    "...kk...",
+    "..kyyk..",
+    ".kyywyk.",
+    ".kyyyyk.",
+    ".kyyyyk.",
+    "kyyyyyyk",
+    "kkkkkkkk",
+    "..kkkk.."]
+};
+function sprite(name, px){
+  var m = SPR[name], h = m.length, w = m[0].length, out = '';
+  for (var y = 0; y < h; y++){
+    for (var x = 0; x < w; x++){
+      var c = m[y].charAt(x);
+      if (c !== '.' && PAL[c]) out += '<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+PAL[c]+'"/>';
+    }
+  }
+  return '<svg class="sprite" width="'+(w*px)+'" height="'+(h*px)+'" viewBox="0 0 '+w+' '+h+'" shape-rendering="crispEdges">'+out+'</svg>';
+}
+function $(id){return document.getElementById(id)}
+function pad(n){return n<10?'0'+n:''+n}
+function fmt(n, d){
+  if (n === null || isNaN(n)) return '---';
+  return Number(n).toLocaleString('en-US',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});
+}
+function get(url, ok, fail){
+  var x = new XMLHttpRequest();
+  x.open('GET', url, true);
+  x.timeout = 15000;
+  x.onreadystatechange = function(){
+    if (x.readyState !== 4) return;
+    if (x.status === 200){ try { ok(JSON.parse(x.responseText)); } catch(e){ fail(); } }
+    else fail();
+  };
+  x.ontimeout = fail;
+  x.send();
+}
+
+/* ---- ตกแต่งฉาก ---- */
+var loc = (CONFIG.useGPS && lsGet('pc_loc')) || {lat: CONFIG.lat, lon: CONFIG.lon, name: CONFIG.city, named: false};
+function setCity(){ $('city').textContent = String(loc.name || '').toUpperCase().substring(0, 18); }
+setCity();
+$('icoBtc').innerHTML = sprite('coin', 3);
+$('icoGold').innerHTML = sprite('bar', 3);
+$('icoTemp').innerHTML = sprite('therm', 3);
+$('icoHeart').innerHTML = sprite('heart', 3);
+$('icoNews').innerHTML = sprite('bell', 3);
+$('icoAlert').innerHTML = sprite('bell', 3);
+$('icoSess').innerHTML = sprite('sun', 2);
+$('icoFx').innerHTML = sprite('coin', 3);
+$('icoHl').innerHTML = sprite('bar', 3);
+(function(){
+  var s = '';
+  for (var i = 0; i < 28; i++){
+    s += '<div class="star" style="left:'+Math.floor(Math.random()*98)+'%;top:'+Math.floor(Math.random()*95)+'%;opacity:'+(0.3+Math.random()*0.6)+'"></div>';
+  }
+  $('stars').innerHTML = s;
+  var c = '', tops = [60, 130, 210], durs = [70, 100, 85], dels = [0, -40, -20];
+  for (var j = 0; j < 3; j++){
+    c += '<div class="cloud" style="top:'+tops[j]+'px;-webkit-animation-duration:'+durs[j]+'s;animation-duration:'+durs[j]+'s;-webkit-animation-delay:'+dels[j]+'s;animation-delay:'+dels[j]+'s">'+sprite('cloud', 6)+'</div>';
+  }
+  $('stars').insertAdjacentHTML('beforeend', c);
+})();
+
+/* ---- นาฬิกา ---- */
+var DAYS = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+var MON = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+var lastMode = '', loadedAt = Date.now(), reloading = false;
+function tick(){
+  var d = new Date(), h = d.getHours();
+  $('time').innerHTML = pad(h) + '<span class="c">' + (d.getSeconds()%2 ? ':' : ' ') + '</span>' + pad(d.getMinutes());
+  $('sec').textContent = pad(d.getSeconds());
+  $('date').textContent = 'วัน' + DAYS[d.getDay()] + ' ' + d.getDate() + ' ' + MON[d.getMonth()] + ' ' + (d.getFullYear()+543);
+  var isDay = h >= 6 && h < 18, mode = (isDay ? 'day' : 'night');
+  if (mode !== lastMode){
+    lastMode = mode;
+    document.body.className = (isDay ? 'day' : '') + ((h >= 23 || h < 5) ? ' dim' : '');
+    $('sun').innerHTML = sprite(isDay ? 'sun' : 'moon', 4);
+  }
+  document.body.className = (isDay ? 'day' : '') + ((h >= 23 || h < 5) ? ' dim' : '');
+  if (news){ renderNews(); checkAlerts(); }
+  if (SESS && d.getSeconds() % 20 === 0) renderSess();
+  if (CONFIG.autoReloadHour >= 0 && h === CONFIG.autoReloadHour && d.getMinutes() === 0 && !reloading &&
+      Date.now() - loadedAt > 120000 && navigator.onLine !== false){ reloading = true; location.reload(); }
+}
+tick(); setInterval(tick, 1000);
+
+/* ---- ราคา BTC + ทอง ---- */
+var OZ = 31.1035, BAHT_G = 15.244, PURITY = 0.965;
+var lastPrice = null, lastWeather = null, priceOk = true, wxOk = true;
+function chg(el, v){
+  if (v === null || v === undefined || isNaN(v)){ el.textContent = ''; return; }
+  el.className = 'chg ' + (v >= 0 ? 'up' : 'down');
+  el.textContent = (v >= 0 ? '▲ +' : '▼ ') + v.toFixed(2) + '% 24H';
+}
+/* ---- ที่เก็บค่า (localStorage) ---- */
+function lsGet(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }
+function lsSet(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+
+/* ---- ช่วงเงียบ ---- */
+function isQuiet(){
+  if (!CONFIG.quietHours) return false;
+  var h = new Date().getHours(), a = CONFIG.quietStart, b = CONFIG.quietEnd;
+  return a > b ? (h >= a || h < b) : (h >= a && h < b);
+}
+
+/* ---- เซสชันตลาด (เวลาท้องถิ่นของแต่ละเมือง คิด DST ให้อัตโนมัติ) ---- */
+var SESS = [
+  {n: 'SYD', tz: 'Australia/Sydney', o: 7, c: 16},
+  {n: 'TKY', tz: 'Asia/Tokyo', o: 9, c: 18},
+  {n: 'LDN', tz: 'Europe/London', o: 8, c: 17},
+  {n: 'NYC', tz: 'America/New_York', o: 8, c: 17}
+];
+var WD = {Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6};
+function localParts(tz, d){
+  var f = new Intl.DateTimeFormat('en-US', {timeZone: tz, hour12: false, weekday: 'short', hour: 'numeric', minute: 'numeric'});
+  var p = f.formatToParts(d), r = {}, i;
+  for (i = 0; i < p.length; i++) r[p[i].type] = p[i].value;
+  var h = parseInt(r.hour, 10); if (h === 24) h = 0;
+  return {wd: WD[r.weekday], min: h * 60 + parseInt(r.minute, 10)};
+}
+function sessState(s, d){
+  var lp = localParts(s.tz, d), o = s.o * 60, c = s.c * 60;
+  if (lp.wd >= 1 && lp.wd <= 5 && lp.min >= o && lp.min < c) return {open: true, mins: c - lp.min};
+  for (var k = 0; k <= 7; k++){
+    var wd = (lp.wd + k) % 7, m = k * 1440 + o - lp.min;
+    if (m > 0 && wd >= 1 && wd <= 5) return {open: false, mins: m};
+  }
+  return {open: false, mins: 0};
+}
+function fmtM(m){ return Math.floor(m / 60) + ':' + pad(m % 60); }
+function renderSess(){
+  var d = new Date(), h = '', st = {}, i, names = [];
+  try {
+    for (i = 0; i < SESS.length; i++){
+      var r = sessState(SESS[i], d); st[SESS[i].n] = r;
+      if (r.open) names.push(SESS[i].n);
+      h += '<div class="sc ' + (r.open ? 'on' : '') + '"><b>' + SESS[i].n + '</b>' + (r.open ? 'ON' : 'OFF') + '<br>' +
+           (r.open ? 'ปิดใน ' : 'เปิดใน ') + fmtM(r.mins) + '</div>';
+    }
+    $('sess').innerHTML = h;
+    $('sessTxt').textContent = (st.LDN.open && st.NYC.open) ? 'OVERLAP LDN+NYC ช่วงผันผวนสูง' :
+      (names.length ? 'เปิดอยู่: ' + names.join(' ') : 'ตลาดปิดทั้งหมด (สุดสัปดาห์)');
+  } catch(e){ $('sessTxt').textContent = 'เบราว์เซอร์ไม่รองรับเวลาเขตอื่น'; }
+}
+
+/* ---- GOLD H/L ของวัน ---- */
+var hl = lsGet('pc_hl');
+function todayStr(){ var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function trackHL(v){
+  var t = todayStr(), ch = false;
+  if (!hl || hl.d !== t){ hl = {d: t, h: v, l: v}; ch = true; }
+  if (v > hl.h){ hl.h = v; ch = true; }
+  if (v < hl.l){ hl.l = v; ch = true; }
+  $('hlH').textContent = 'H $' + fmt(hl.h, 2);
+  $('hlL').textContent = 'L $' + fmt(hl.l, 2);
+  if (ch) lsSet('pc_hl', hl);
+}
+
+/* ---- เตือนราคา ---- */
+var alerts = lsGet('pc_alerts') || [], pAlert = null, hist = {gold: [], btc: []}, lastMove = {gold: 0, btc: 0};
+function nameOf(k){ return k === 'gold' ? 'GOLD' : 'BTC'; }
+function dec(k){ return k === 'gold' ? 2 : 0; }
+function saveAlerts(){ lsSet('pc_alerts', alerts); }
+function renderAlerts(){
+  var h = '', i, a, k, mv = [];
+  for (i = 0; i < alerts.length; i++){
+    a = alerts[i];
+    h += '<div class="ev">' + nameOf(a.a) + (a.dir === 'up' ? ' เหนือ $' : ' ต่ำกว่า $') + fmt(a.p, dec(a.a)) +
+         '<button class="btn x" type="button" data-i="' + i + '">DEL</button></div>';
+  }
+  for (k in CONFIG.moveAlerts){
+    if (CONFIG.moveAlerts[k]) mv.push(nameOf(k) + ' $' + CONFIG.moveAlerts[k].usd + '/' + CONFIG.moveAlerts[k].minutes + 'น.');
+  }
+  if (!alerts.length) h = '<div class="sub">ยังไม่ได้ตั้งเตือนราคา</div>';
+  if (mv.length) h += '<div class="sub">เตือนขยับแรงอัตโนมัติ: ' + mv.join('  ') + '</div>';
+  $('aList').innerHTML = h;
+}
+function pushHist(){
+  var now = Date.now(), k, arr, v;
+  for (k in hist){
+    v = curP[k]; arr = hist[k];
+    if (v === null || v === undefined) continue;
+    if (!arr.length || now - arr[arr.length - 1].t >= 1000) arr.push({t: now, p: v});
+    while (arr.length && now - arr[0].t > 15 * 60000) arr.shift();
+  }
+}
+function checkPriceAlerts(){
+  var now = Date.now(), i, a, v, hit, fired = false, k, cfg, arr, lo, hi, j, win, up, dn;
+  for (i = alerts.length - 1; i >= 0; i--){
+    a = alerts[i]; v = curP[a.a];
+    if (v === null || v === undefined) continue;
+    hit = a.dir === 'up' ? v >= a.p : v <= a.p;
+    if (hit){
+      alerts.splice(i, 1); fired = true;
+      pAlert = {key: 'p' + now + i, exp: now + 600000,
+        text: nameOf(a.a) + (a.dir === 'up' ? ' ขึ้นถึง $' : ' ลงถึง $') + fmt(a.p, dec(a.a)) + '  (ตอนนี้ $' + fmt(v, dec(a.a)) + ')'};
+    }
+  }
+  if (fired){ saveAlerts(); renderAlerts(); beep(3); }
+  for (k in CONFIG.moveAlerts){
+    cfg = CONFIG.moveAlerts[k]; v = curP[k];
+    if (!cfg || v === null || v === undefined || !(now - lastMove[k] >= 600000 || lastMove[k] === undefined)) continue;
+    win = cfg.minutes * 60000; lo = v; hi = v; arr = hist[k];
+    for (j = 0; j < arr.length; j++){
+      if (now - arr[j].t <= win){ if (arr[j].p < lo) lo = arr[j].p; if (arr[j].p > hi) hi = arr[j].p; }
+    }
+    up = v - lo; dn = hi - v;
+    if (up >= cfg.usd || dn >= cfg.usd){
+      lastMove[k] = now;
+      pAlert = {key: 'm' + now + k, exp: now + 600000,
+        text: nameOf(k) + (up >= dn ? ' พุ่ง +$' + fmt(up, dec(k)) : ' ร่วง -$' + fmt(dn, dec(k))) +
+              ' ใน ' + cfg.minutes + ' นาที (ตอนนี้ $' + fmt(v, dec(k)) + ')'};
+      beep(3);
+    }
+  }
+}
+$('aToggle').onclick = function(){
+  var f = $('aForm'), open = f.style.display !== 'block';
+  f.style.display = open ? 'block' : 'none';
+  this.textContent = open ? 'CLOSE' : '+ ADD';
+};
+$('aAdd').onclick = function(){
+  var p = parseFloat($('aPrice').value);
+  if (isNaN(p) || p <= 0) return;
+  alerts.push({id: Date.now(), a: $('aAsset').value, dir: $('aDir').value, p: p});
+  saveAlerts(); $('aPrice').value = ''; renderAlerts(); checkPriceAlerts();
+};
+$('aList').onclick = function(e){
+  var t = e.target || e.srcElement;
+  if (t && t.getAttribute && t.getAttribute('data-i') !== null){
+    alerts.splice(parseInt(t.getAttribute('data-i'), 10), 1); saveAlerts(); renderAlerts();
+  }
+};
+
+var fx = null, prevP = {btc: null, gold: null}, curP = {btc: null, gold: null};
+
+/* ---- ทอง XAU/USD spot (xaus.com) + ขยับตาม PAXG realtime ระหว่างรอบดึง ---- */
+var paxg = null, spotGold = null, spotOff = null, lastSpot = null;
+function marketClosed(){   // ตลาดทอง spot ปิดประมาณ ศุกร์ 22:00 UTC ถึง อาทิตย์ 22:00 UTC
+  var d = new Date(), w = d.getUTCDay(), h = d.getUTCHours();
+  return w === 6 || (w === 5 && h >= 22) || (w === 0 && h < 22);
+}
+function goldCalc(){
+  if (spotGold === null) return paxg;                 // ยังไม่มี spot -> ใช้ PAXG ล้วน
+  if (marketClosed() || paxg === null) return spotGold; // ตลาดปิด/ไม่มี live -> ราคา spot นิ่ง
+  if (spotOff === null) spotOff = spotGold - paxg;
+  return paxg + spotOff;                              // spot ล่าสุด + การเปลี่ยนแปลงของ PAXG
+}
+function loadSpot(){
+  if (!CONFIG.goldSpotUrl) return;
+  get(CONFIG.goldSpotUrl, function(j){
+    var v = parseFloat(j && j.spot_usd_oz);
+    if (isNaN(v) || v <= 0 || (j.stale && !marketClosed())) return;
+    if (spotGold === null) hist.gold = [];   // เริ่มประวัติใหม่ ไม่ให้ราคา PAXG ก่อนปรับเป็น spot ทำให้เตือนผิด
+    spotGold = v;
+    spotOff = (paxg !== null) ? v - paxg : null;
+    lastSpot = new Date();
+    applyPrices(null, null, null, null);
+    showStatus();
+  }, function(){});
+}
+function flash(el, up){
+  el.style.color = up ? '#4cf08a' : '#ff5f6d';
+  clearTimeout(el._t);
+  el._t = setTimeout(function(){ el.style.color = ''; }, 350);
+}
+function applyPrices(bu, gu, bc, gc){
+  if (bu !== null && bu !== undefined && !isNaN(bu)){
+    if (curP.btc !== null && bu !== curP.btc) flash($('btcUsd'), bu > curP.btc);
+    curP.btc = bu;
+    $('btcUsd').textContent = '$ ' + fmt(bu);
+    if (bc !== null && bc !== undefined) chg($('btcChg'), bc);
+  }
+  if (gu !== null && gu !== undefined && !isNaN(gu)) paxg = gu;
+  if (gc !== null && gc !== undefined) chg($('goldChg'), gc);
+  var gd = goldCalc();
+  if (gd !== null){
+    if (curP.gold !== null && gd !== curP.gold) flash($('goldUsd'), gd > curP.gold);
+    curP.gold = gd;
+    $('goldUsd').textContent = '$ ' + fmt(gd, 2);
+  }
+  if (fx){
+    if (curP.btc !== null) $('btcThb').textContent = '฿ ' + fmt(curP.btc * fx);
+    if (curP.gold !== null) $('goldThb').textContent = '฿ ' + fmt(curP.gold * fx * (BAHT_G / OZ) * PURITY);
+    $('fxv').textContent = '฿ ' + fx.toFixed(2);
+  }
+  if (curP.gold !== null && (spotGold !== null || !CONFIG.goldSpotUrl)) trackHL(curP.gold);
+  pushHist();
+  checkPriceAlerts();
+}
+
+/* ---- realtime: Binance WebSocket (BTCUSDT + PAXGUSDT) ---- */
+var WS_URL = 'wss://stream.binance.com:9443/stream?streams=btcusdt@miniTicker/paxgusdt@miniTicker';
+var ws = null, wsDelay = 2000, wsAlive = 0, lastTick = 0, live = {btc: null, gold: null, btcC: null, goldC: null};
+function isLive(){ return lastTick > 0 && Date.now() - lastTick < 15000; }
+function connectWS(){
+  if (!CONFIG.liveWS || !window.WebSocket) return;
+  var w;
+  try { w = new WebSocket(WS_URL); } catch(e){ setTimeout(connectWS, wsDelay); return; }
+  ws = w; wsAlive = Date.now();
+  w.onopen = function(){ wsDelay = 2000; wsAlive = Date.now(); };
+  w.onmessage = function(ev){
+    var m, d;
+    try { m = JSON.parse(ev.data); } catch(e){ return; }
+    d = m.data;
+    if (!d || !d.s) return;
+    var c = parseFloat(d.c), o = parseFloat(d.o), pc = o ? (c - o) / o * 100 : null;
+    if (isNaN(c)) return;
+    if (d.s === 'BTCUSDT'){ live.btc = c; live.btcC = pc; }
+    else if (d.s === 'PAXGUSDT'){ live.gold = c; live.goldC = pc; }
+    else return;
+    var was = isLive();
+    wsAlive = lastTick = Date.now();
+    applyPrices(d.s === 'BTCUSDT' ? c : null, d.s === 'PAXGUSDT' ? c : null,
+                d.s === 'BTCUSDT' ? pc : null, d.s === 'PAXGUSDT' ? pc : null);
+    if (!was) showStatus();
+  };
+  w.onclose = function(){
+    if (ws === w) ws = null;
+    setTimeout(connectWS, wsDelay); wsDelay = Math.min(wsDelay * 2, 30000);
+    showStatus();
+  };
+  w.onerror = function(){ try { w.close(); } catch(e){} };
+}
+/* watchdog: iOS มักตัด socket เงียบๆ ตอนจอหลับ/สลับแอป */
+setInterval(function(){
+  if (CONFIG.liveWS && ws && Date.now() - wsAlive > 20000){
+    var w = ws; ws = null; w.onclose = null;
+    try { w.close(); } catch(e){}
+    connectWS();
+  }
+  showStatus();
+}, 5000);
+
+function loadPrice(){
+  get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,pax-gold&vs_currencies=thb,usd&include_24hr_change=true',
+    function(j){
+      var b = j.bitcoin, g = j['pax-gold'];
+      if (!b || !g) { priceOk = false; showStatus(); return; }
+      if (b.usd && b.thb) fx = b.thb / b.usd;
+      if (!isLive()) applyPrices(b.usd, g.usd,
+        b.usd_24h_change !== undefined ? b.usd_24h_change : b.thb_24h_change, g.usd_24h_change);
+      else applyPrices(null, null, null, null);   // live อยู่แล้ว แค่คำนวณราคาบาทใหม่ตามเรตล่าสุด
+      lastPrice = new Date(); priceOk = true; showStatus();
+    },
+    function(){ priceOk = false; showStatus(); });
+}
+
+/* ---- ข่าวเศรษฐกิจ (Forex Factory calendar) ---- */
+var NEWS_URLS = ['https://nfs.faireconomy.media/ff_calendar_thisweek.json',
+                 'https://nfs.faireconomy.media/ff_calendar_nextweek.json'];
+var news = [], newsOk = true, lastNews = null, soundOn = false, audioCtx = null, fired = {}, dismissed = {};
+function parseFF(str){
+  var m = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(?:\.\d+)?(Z|([+-])(\d\d):?(\d\d))?$/.exec(str || '');
+  if (!m) return null;
+  var t = Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +m[6]);
+  if (m[8]){ var off = (+m[9] * 60 + +m[10]) * 60000; t += (m[8] === '+' ? -off : off); }
+  return t;
+}
+function fetchNewsOne(url, cb){
+  get(url, function(j){ cb(j); }, function(){
+    if (CONFIG.corsProxy) get(CONFIG.corsProxy + encodeURIComponent(url), cb, function(){ cb(null); });
+    else cb(null);
+  });
+}
+function loadNews(){
+  var pending = NEWS_URLS.length, all = [], seen = {}, anyOk = false, i;
+  function done(){
+    if (--pending > 0) return;
+    if (anyOk){
+      all.sort(function(a, b){ return a.t - b.t; });
+      news = all; newsOk = true; lastNews = new Date();
+    } else newsOk = false;
+    showStatus();
+  }
+  function one(url){
+    fetchNewsOne(url, function(j){
+      if (j && j.length !== undefined){
+        anyOk = true;
+        for (var k = 0; k < j.length; k++){
+          var e = j[k], t = parseFF(e.date);
+          if (t === null || !CONFIG.newsCurrencies[e.country] || !CONFIG.newsImpacts[e.impact]) continue;
+          var key = t + '|' + e.country + '|' + e.title;
+          if (seen[key]) continue;
+          seen[key] = 1;
+          all.push({t: t, key: key, cur: e.country, title: e.title, impact: e.impact, fc: e.forecast, pv: e.previous});
+        }
+      }
+      done();
+    });
+  }
+  for (i = 0; i < NEWS_URLS.length; i++) one(NEWS_URLS[i]);
+}
+function impCol(i){ return i === 'High' ? '#ff5f6d' : '#ff9d57'; }
+function hhmm(t){ var d = new Date(t); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function cd(ms){
+  var s = Math.floor(ms / 1000), d = Math.floor(s / 86400); s -= d * 86400;
+  var h = Math.floor(s / 3600); s -= h * 3600;
+  var m = Math.floor(s / 60); s -= m * 60;
+  return (d > 0 ? d + 'd ' : '') + pad(h) + ':' + pad(m) + ':' + pad(s);
+}
+function upcoming(now){
+  var out = [];
+  for (var i = 0; i < news.length && out.length < 4; i++){
+    if (news[i].t > now - 5 * 60000) out.push(news[i]);
+  }
+  return out;
+}
+function renderNews(){
+  var now = Date.now(), up = upcoming(now);
+  if (!up.length){
+    $('nCount').textContent = '--';
+    $('nCount').className = 'val sm';
+    $('nTitle').textContent = newsOk ? 'ไม่มีข่าวแรงในช่วงนี้' : 'โหลดข่าวไม่ได้ ลองใหม่อัตโนมัติ';
+    $('nList').innerHTML = '';
+    return;
+  }
+  var n = up[0], diff = n.t - now, hot = diff <= CONFIG.alertMinutes * 60000;
+  $('nCount').textContent = diff <= 0 ? 'NOW!' : cd(diff);
+  $('nCount').className = 'val sm' + (hot ? ' hot' : '') + (diff <= 0 ? ' blink' : '');
+  $('nTitle').innerHTML = '<span class="imp" style="background:' + impCol(n.impact) + '"></span><b style="font-weight:normal;color:#ffcf3a">' +
+    n.cur + '</b> ' + hhmm(n.t) + ' ' + esc(n.title) +
+    ((n.fc || n.pv) ? '<br>FC ' + esc(n.fc || '-') + '  PV ' + esc(n.pv || '-') : '');
+  var h = '';
+  for (var i = 1; i < up.length; i++){
+    h += '<div class="ev"><span class="imp" style="background:' + impCol(up[i].impact) + '"></span><span class="tm">' +
+      hhmm(up[i].t) + '</span> ' + up[i].cur + ' ' + esc(up[i].title) + '</div>';
+  }
+  $('nList').innerHTML = h;
+}
+function beep(times){
+  if (!soundOn || !audioCtx || isQuiet()) return;
+  try {
+    for (var i = 0; i < times; i++){
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain(), t0 = audioCtx.currentTime + i * 0.28;
+      o.type = 'square'; o.frequency.value = i % 2 ? 1175 : 880;
+      g.gain.setValueAtTime(0.08, t0); g.gain.setValueAtTime(0, t0 + 0.18);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0); o.stop(t0 + 0.2);
+    }
+  } catch(e){}
+  try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch(e){}
+}
+function checkAlerts(){
+  var now = Date.now(), pre = CONFIG.alertMinutes * 60000, show = null, i, e, d;
+  for (i = 0; i < news.length; i++){
+    e = news[i]; d = e.t - now;
+    if (d > pre) break;
+    if (d <= -5 * 60000) continue;
+    if (d > 0 && !fired[e.key + 'p']){ fired[e.key + 'p'] = 1; beep(2); }
+    if (d <= 0 && !fired[e.key + 'n']){ fired[e.key + 'n'] = 1; beep(4); }
+    if (!show && !dismissed[e.key]) show = e;
+  }
+  var box = $('alert');
+  if (!show){
+    if (pAlert && pAlert.exp > now && !dismissed[pAlert.key]){
+      box.className = 'alert now'; box.style.display = 'block'; box.setAttribute('data-key', pAlert.key);
+      box.innerHTML = '<b>!! PRICE ALERT !!</b><br>' + esc(pAlert.text) + '<br><span style="color:#9a93c9">แตะเพื่อปิด</span>';
+      return;
+    }
+    box.style.display = 'none'; return;
+  }
+  d = show.t - now;
+  box.className = 'alert' + (d <= 0 ? ' now' : '');
+  box.style.display = 'block';
+  box.setAttribute('data-key', show.key);
+  box.innerHTML = '<b>' + (d <= 0 ? '!! NEWS NOW !!' : '! NEWS ALERT !') + '</b><br>' +
+    '<span class="imp" style="background:' + impCol(show.impact) + '"></span>' + show.cur + ' ' + hhmm(show.t) + ' ' + esc(show.title) +
+    '<br>' + (d <= 0 ? 'ข่าวออกแล้ว' : 'อีก ' + cd(d)) + '<br><span style="color:#9a93c9">แตะเพื่อปิด</span>';
+}
+$('alert').onclick = function(){ dismissed[this.getAttribute('data-key')] = 1; this.style.display = 'none'; };
+$('snd').onclick = function(){
+  if (!soundOn){
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC){ if (!audioCtx) audioCtx = new AC(); if (audioCtx.resume) audioCtx.resume(); }
+    } catch(e){}
+    soundOn = true; this.textContent = 'SOUND ON'; this.className = 'on';
+    beep(1);
+  } else {
+    soundOn = false; this.textContent = 'SOUND OFF'; this.className = '';
+  }
+};
+
+/* ---- อุณหภูมิ + PM2.5 ---- */
+var LV = [
+  {max:15,   col:'#6ac3ff', txt:'ดีมาก  LV1'},
+  {max:25,   col:'#4cf08a', txt:'ดี  LV2'},
+  {max:37.5, col:'#ffe14a', txt:'ปานกลาง  LV3'},
+  {max:75,   col:'#ff9d57', txt:'เริ่มกระทบสุขภาพ  LV4'},
+  {max:9999, col:'#ff5f6d', txt:'อันตราย ใส่หน้ากาก!  LV5'}
+];
+/* ---- ตำแหน่งจาก GPS ---- */
+var gpsState = '';
+function distKm(a1, o1, a2, o2){
+  var R = 6371, r = Math.PI / 180, dA = (a2 - a1) * r, dO = (o2 - o1) * r;
+  var x = Math.sin(dA / 2) * Math.sin(dA / 2) + Math.cos(a1 * r) * Math.cos(a2 * r) * Math.sin(dO / 2) * Math.sin(dO / 2);
+  return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+}
+function locate(){
+  if (!CONFIG.useGPS) return;
+  if (!navigator.geolocation){ gpsState = 'NO GPS'; showStatus(); return; }
+  navigator.geolocation.getCurrentPosition(function(p){
+    var la = p.coords.latitude, lo = p.coords.longitude;
+    var moved = distKm(loc.lat, loc.lon, la, lo);
+    loc.lat = la; loc.lon = lo; gpsState = 'GPS';
+    if (moved > 3 || !loc.named){
+      /* ใช้พิกัดสดจาก GPS เท่านั้นในการหาชื่อเมือง (ตามเงื่อนไขของ BigDataCloud) */
+      get('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + la + '&longitude=' + lo + '&localityLanguage=en',
+        function(j){
+          var n = (j && (j.city || j.locality || j.principalSubdivision)) || '';
+          loc.name = n || (la.toFixed(2) + ',' + lo.toFixed(2)); loc.named = !!n;
+          lsSet('pc_loc', loc); setCity();
+        },
+        function(){ loc.name = la.toFixed(2) + ',' + lo.toFixed(2); loc.named = false; lsSet('pc_loc', loc); setCity(); });
+    } else lsSet('pc_loc', loc);
+    if (moved > 1) loadWeather();
+    showStatus();
+  }, function(){
+    gpsState = 'NO GPS'; showStatus();   // ไม่อนุญาต/หาไม่เจอ -> ใช้ตำแหน่งที่จำไว้ล่าสุดหรือพิกัดสำรอง
+  }, {enableHighAccuracy: false, timeout: 20000, maximumAge: 600000});
+}
+
+function loadWeather(){
+  var q = 'latitude=' + loc.lat + '&longitude=' + loc.lon;
+  get('https://api.open-meteo.com/v1/forecast?' + q + '&current=temperature_2m,apparent_temperature&daily=sunrise,sunset,precipitation_probability_max&timezone=auto',
+    function(j){
+      var c = j.current;
+      $('temp').textContent = Math.round(c.temperature_2m) + '°C';
+      $('feel').textContent = 'รู้สึกเหมือน ' + Math.round(c.apparent_temperature) + '°C';
+      var dl = j.daily;
+      if (dl && dl.sunrise && dl.sunrise[0] && dl.sunset && dl.sunset[0]){
+        var pp = dl.precipitation_probability_max ? dl.precipitation_probability_max[0] : null;
+        $('wx2').textContent = (pp !== null && pp !== undefined ? 'ฝน ' + pp + '%  ' : '') +
+          'ขึ้น ' + dl.sunrise[0].substring(11, 16) + ' ตก ' + dl.sunset[0].substring(11, 16);
+      }
+      lastWeather = new Date(); wxOk = true; showStatus();
+    }, function(){ wxOk = false; showStatus(); });
+  get('https://air-quality-api.open-meteo.com/v1/air-quality?' + q + '&current=pm2_5&timezone=auto',
+    function(j){
+      var v = j.current.pm2_5, lv = LV[LV.length-1], idx = LV.length-1, i;
+      for (i = 0; i < LV.length; i++){ if (v <= LV[i].max){ lv = LV[i]; idx = i; break; } }
+      $('pm').textContent = Math.round(v) + ' µg';
+      $('pm').style.color = lv.col;
+      $('pmTxt').textContent = lv.txt;
+      var segs = '', full = 10 - idx * 2;
+      for (i = 0; i < 10; i++){
+        segs += i < full ? '<div class="seg on" style="background:'+lv.col+'"></div>' : '<div class="seg"></div>';
+      }
+      $('hp').innerHTML = segs;
+      wxOk = true; showStatus();
+    }, function(){ wxOk = false; showStatus(); });
+}
+
+function showStatus(){
+  var s = '';
+  if (!priceOk || !wxOk) s += '<b>OFFLINE</b> ลองใหม่อัตโนมัติ  ';
+  if (lastSpot) s += (marketClosed() ? '<b>XAU CLOSED</b>  ' : 'XAU ' + pad(lastSpot.getHours()) + ':' + pad(lastSpot.getMinutes()) + '  ');
+  if (isLive()) s += '<b>LIVE</b>  ';
+  if (isQuiet()) s += 'QUIET  ';
+  if (gpsState) s += (gpsState === 'GPS' ? gpsState : '<b>' + gpsState + '</b>') + '  ';
+  else if (lastPrice) s += 'PRICE ' + pad(lastPrice.getHours()) + ':' + pad(lastPrice.getMinutes()) + '  ';
+  if (lastWeather) s += 'AIR ' + pad(lastWeather.getHours()) + ':' + pad(lastWeather.getMinutes()) + '  ';
+  if (!newsOk) s += '<b>NEWS ERR</b>';
+  else if (lastNews) s += 'NEWS ' + pad(lastNews.getHours()) + ':' + pad(lastNews.getMinutes());
+  $('status').innerHTML = s || 'LOADING...';
+  $('clk2').className = (priceOk && wxOk && lastPrice) ? '' : 'blink';
+  $('clk2').textContent = (priceOk && wxOk && lastPrice) ? 'ONLINE' : 'WAIT';
+}
+
+renderAlerts(); renderSess();
+loadPrice(); loadWeather(); loadNews(); connectWS(); loadSpot(); locate();
+setInterval(loadPrice, CONFIG.priceEverySec * 1000);
+setInterval(loadWeather, CONFIG.weatherEverySec * 1000);
+setInterval(loadNews, CONFIG.newsEverySec * 1000);
+setInterval(loadSpot, CONFIG.goldSpotEverySec * 1000);
+setInterval(locate, CONFIG.gpsEverySec * 1000);
+</script>
+</body>
+</html>
