@@ -3,7 +3,7 @@ name: Update Forex Factory news
 on:
   workflow_dispatch:
   schedule:
-    - cron: '7,22,37,52 * * * *'
+    - cron: '17,47 * * * *'
 
 permissions:
   contents: write
