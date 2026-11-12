@@ -353,11 +353,11 @@ var CONFIG = {
   newsCurrencies: {USD:1},            // สกุลที่สนใจ เช่น {USD:1, EUR:1, GBP:1, JPY:1}
   newsImpacts: {High:1},              // ระดับข่าว: High = แดง, Medium = ส้ม ({High:1, Medium:1})
   alertMinutes: 15,                   // เตือนล่วงหน้ากี่นาที (และเตือนอีกครั้งตอนข่าวออก)
-  corsProxies: [                      // ตัวกลางสำรอง ลองไล่ทีละตัวถ้าดึงตรงไม่ได้ (ใส่ [] เพื่อปิด)
+  corsProxies: [
     'https://corsproxy.io/?url=',
     'https://api.allorigins.win/raw?url=',
     'https://api.codetabs.com/v1/proxy?quest='
-  ]
+  ]  // Proxy สำรองหลายตัว เผื่อบางบริการล่มหรือถูกบล็อก
 };
 /* ===== */
 
@@ -784,8 +784,9 @@ function loadPrice(){
 }
 
 /* ---- ข่าวเศรษฐกิจ (Forex Factory calendar) ---- */
-var NEWS_URLS = ['https://nfs.faireconomy.media/ff_calendar_thisweek.json',
-                 'https://nfs.faireconomy.media/ff_calendar_nextweek.json'];
+/* โหลดข่าวจากไฟล์ news.json บน GitHub Pages โดเมนเดียวกัน
+   ใช้ GitHub Actions อัปเดตไฟล์นี้จาก Forex Factory แทน public CORS proxy */
+var NEWS_URLS = [new URL('news.json', window.location.href).toString()];
 var newsDiag = '', newsRetry = null;
 var news = [], newsOk = true, lastNews = null, soundOn = false, audioCtx = null, fired = {}, dismissed = {};
 var nc = lsGet('pc_news');   /* ข่าวที่เก็บไว้ในเครื่อง กันโดน rate limit เวลาเปิด/รีโหลดบ่อย */
@@ -798,16 +799,13 @@ function parseFF(str){
   return t;
 }
 function fetchNewsOne(url, cb){
-  var tries = [url], px = CONFIG.corsProxies || [], diag = [], n = 0, i;
-  for (i = 0; i < px.length; i++) tries.push(px[i] + encodeURIComponent(url));
-  (function next(){
-    if (n >= tries.length){ newsDiag += (newsDiag ? ' ' : '') + diag.join(' '); cb(null); return; }
-    var k = n++;
-    get(tries[k], function(j){
-      if (j && j.length !== undefined) cb(j);
-      else { diag.push((k ? 'p' + k : 'd') + ':fmt'); next(); }
-    }, function(r){ diag.push((k ? 'p' + k : 'd') + ':' + r); next(); });
-  })();
+  get(url, function(j){
+    newsDiag = 'news.json:OK';
+    cb(j);
+  }, function(err){
+    newsDiag = 'news.json:' + err;
+    cb(null);
+  });
 }
 function loadNews(){
   newsDiag = '';
@@ -819,12 +817,12 @@ function loadNews(){
       news = all; newsOk = true; lastNews = new Date();
       lsSet('pc_news', {at: lastNews.getTime(), news: all});
     } else {
-      newsOk = false;   /* ลองใหม่ใน 5 นาที (ไม่ต้องรอรอบ 30 นาที) ระหว่างนั้นใช้ข่าวที่เก็บไว้ถ้ามี */
+      newsOk = false;   /* ลองใหม่ใน 5 นาที ระหว่างนั้นใช้ข่าวที่เก็บไว้ถ้ามี */
       if (!newsRetry) newsRetry = setTimeout(function(){ newsRetry = null; loadNews(); }, 300000);
     }
     showStatus();
   }
-  function one(url, after){
+  function one(url){
     fetchNewsOne(url, function(j){
       if (j && j.length !== undefined){
         anyOk = true;
@@ -838,11 +836,9 @@ function loadNews(){
         }
       }
       done();
-      if (after) after();
     });
   }
-  /* ดึงทีละไฟล์ เว้นช่วง กันโดนจำกัดความถี่ */
-  one(NEWS_URLS[0], function(){ setTimeout(function(){ one(NEWS_URLS[1]); }, 2000); });
+  for (i = 0; i < NEWS_URLS.length; i++) one(NEWS_URLS[i]);
 }
 function impCol(i){ return i === 'High' ? '#ff5f6d' : '#ff9d57'; }
 function hhmm(t){ var d = new Date(t); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
