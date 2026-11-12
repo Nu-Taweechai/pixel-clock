@@ -149,6 +149,20 @@ input.num{width:120px}
 @media (orientation:landscape) and (max-height:500px){
   .val.xs{font-size:12px} .sc{font-size:6px;padding:4px 1px;line-height:1.6} .btn{font-size:6px;padding:4px 5px}
 }
+/* แนวนอน: คอลัมน์ซ้ายนาฬิกาอยู่กลางจอ คอลัมน์ขวาเลื่อนขึ้นลงได้ในตัวเอง */
+@media (orientation:landscape) and (max-height:500px){
+  html,body{height:100%}
+  body{padding:calc(env(safe-area-inset-top) + 6px) 12px 34px;overflow:hidden}
+  .wrap{height:100%}
+  .grid{height:100%;min-height:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    -webkit-align-content:start;align-content:start;grid-gap:6px;padding:0 8px 8px 0}
+  .panel{padding:5px 7px}
+  .lab{margin-bottom:3px} .sub{margin-top:3px}
+  #nList{display:none}
+  #time{font-size:15vh} #sec{font-size:5vh} #date{font-size:9px}
+  .sc{font-size:7px}
+  .ground{height:26px}
+}
 </style>
 </head>
 <body>
@@ -359,15 +373,19 @@ function fmt(n, d){
   return Number(n).toLocaleString('en-US',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});
 }
 function get(url, ok, fail){
-  var x = new XMLHttpRequest();
+  var x = new XMLHttpRequest(), fin = false;
+  function bad(r){ if (fin) return; fin = true; fail(r); }
   x.open('GET', url, true);
   x.timeout = 15000;
   x.onreadystatechange = function(){
-    if (x.readyState !== 4) return;
-    if (x.status === 200){ try { ok(JSON.parse(x.responseText)); } catch(e){ fail(); } }
-    else fail();
+    if (x.readyState !== 4 || fin) return;
+    if (x.status === 200){
+      var j;
+      try { j = JSON.parse(x.responseText); } catch(e){ bad('parse'); return; }
+      fin = true; ok(j);
+    } else bad(x.status);
   };
-  x.ontimeout = fail;
+  x.ontimeout = function(){ bad('timeout'); };
   x.send();
 }
 
@@ -685,7 +703,10 @@ function loadPrice(){
 /* ---- ข่าวเศรษฐกิจ (Forex Factory calendar) ---- */
 var NEWS_URLS = ['https://nfs.faireconomy.media/ff_calendar_thisweek.json',
                  'https://nfs.faireconomy.media/ff_calendar_nextweek.json'];
+var newsDiag = '', newsRetry = null;
 var news = [], newsOk = true, lastNews = null, soundOn = false, audioCtx = null, fired = {}, dismissed = {};
+var nc = lsGet('pc_news');   /* ข่าวที่เก็บไว้ในเครื่อง กันโดน rate limit เวลาเปิด/รีโหลดบ่อย */
+if (nc && nc.news && nc.news.length !== undefined){ news = nc.news; lastNews = new Date(nc.at); }
 function parseFF(str){
   var m = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(?:\.\d+)?(Z|([+-])(\d\d):?(\d\d))?$/.exec(str || '');
   if (!m) return null;
@@ -694,19 +715,25 @@ function parseFF(str){
   return t;
 }
 function fetchNewsOne(url, cb){
-  get(url, function(j){ cb(j); }, function(){
-    if (CONFIG.corsProxy) get(CONFIG.corsProxy + encodeURIComponent(url), cb, function(){ cb(null); });
+  get(url, function(j){ cb(j); }, function(r1){
+    newsDiag = 'direct:' + r1;
+    if (CONFIG.corsProxy) get(CONFIG.corsProxy + encodeURIComponent(url), cb, function(r2){ if (newsDiag.indexOf('proxy:' + r2) < 0) newsDiag += ' proxy:' + r2; cb(null); });
     else cb(null);
   });
 }
 function loadNews(){
+  newsDiag = '';
   var pending = NEWS_URLS.length, all = [], seen = {}, anyOk = false, i;
   function done(){
     if (--pending > 0) return;
     if (anyOk){
       all.sort(function(a, b){ return a.t - b.t; });
       news = all; newsOk = true; lastNews = new Date();
-    } else newsOk = false;
+      lsSet('pc_news', {at: lastNews.getTime(), news: all});
+    } else {
+      newsOk = false;   /* ลองใหม่ใน 5 นาที (ไม่ต้องรอรอบ 30 นาที) ระหว่างนั้นใช้ข่าวที่เก็บไว้ถ้ามี */
+      if (!newsRetry) newsRetry = setTimeout(function(){ newsRetry = null; loadNews(); }, 300000);
+    }
     showStatus();
   }
   function one(url){
@@ -748,7 +775,7 @@ function renderNews(){
   if (!up.length){
     $('nCount').textContent = '--';
     $('nCount').className = 'val sm';
-    $('nTitle').textContent = newsOk ? 'ไม่มีข่าวแรงในช่วงนี้' : 'โหลดข่าวไม่ได้ ลองใหม่อัตโนมัติ';
+    $('nTitle').textContent = newsOk ? 'ไม่มีข่าวแรงในช่วงนี้' : 'โหลดข่าวไม่ได้ ลองใหม่อัตโนมัติ (' + newsDiag + ')';
     $('nList').innerHTML = '';
     return;
   }
@@ -828,7 +855,7 @@ var LV = [
   {max:9999, col:'#ff5f6d', txt:'อันตราย ใส่หน้ากาก!  LV5'}
 ];
 /* ---- ตำแหน่งจาก GPS ---- */
-var gpsState = '';
+var gpsState = '', gpsTries = 0;
 function distKm(a1, o1, a2, o2){
   var R = 6371, r = Math.PI / 180, dA = (a2 - a1) * r, dO = (o2 - o1) * r;
   var x = Math.sin(dA / 2) * Math.sin(dA / 2) + Math.cos(a1 * r) * Math.cos(a2 * r) * Math.sin(dO / 2) * Math.sin(dO / 2);
@@ -837,10 +864,11 @@ function distKm(a1, o1, a2, o2){
 function locate(){
   if (!CONFIG.useGPS) return;
   if (!navigator.geolocation){ gpsState = 'NO GPS'; showStatus(); return; }
+  if (gpsState !== 'GPS'){ gpsState = 'GPS...'; showStatus(); }
   navigator.geolocation.getCurrentPosition(function(p){
     var la = p.coords.latitude, lo = p.coords.longitude;
     var moved = distKm(loc.lat, loc.lon, la, lo);
-    loc.lat = la; loc.lon = lo; gpsState = 'GPS';
+    loc.lat = la; loc.lon = lo; gpsState = 'GPS'; gpsTries = 0;
     if (moved > 3 || !loc.named){
       /* ใช้พิกัดสดจาก GPS เท่านั้นในการหาชื่อเมือง (ตามเงื่อนไขของ BigDataCloud) */
       get('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + la + '&longitude=' + lo + '&localityLanguage=en',
@@ -853,10 +881,14 @@ function locate(){
     } else lsSet('pc_loc', loc);
     if (moved > 1) loadWeather();
     showStatus();
-  }, function(){
-    gpsState = 'NO GPS'; showStatus();   // ไม่อนุญาต/หาไม่เจอ -> ใช้ตำแหน่งที่จำไว้ล่าสุดหรือพิกัดสำรอง
-  }, {enableHighAccuracy: false, timeout: 20000, maximumAge: 600000});
+  }, function(err){
+    /* code 1 = ผู้ใช้/ระบบไม่อนุญาต, 2 = หาตำแหน่งไม่ได้, 3 = หมดเวลา (รวมถึงกรณียังไม่ได้กดตอบหน้าต่างขออนุญาต) */
+    if (err && err.code === 1) gpsState = 'GPS DENIED';
+    else { gpsState = 'GPS WAIT'; if (gpsTries++ < 6) setTimeout(locate, 30000); }
+    showStatus();   // ระหว่างนี้ใช้ตำแหน่งที่จำไว้ล่าสุดหรือพิกัดสำรอง
+  }, {enableHighAccuracy: false, timeout: 30000, maximumAge: 600000});
 }
+$('city').onclick = function(){ gpsTries = 0; gpsState = ''; locate(); };   // แตะชื่อเมืองเพื่อลองหาตำแหน่งใหม่
 
 function loadWeather(){
   var q = 'latitude=' + loc.lat + '&longitude=' + loc.lon;
@@ -906,7 +938,8 @@ function showStatus(){
 }
 
 renderAlerts(); renderSess();
-loadPrice(); loadWeather(); loadNews(); connectWS(); loadSpot(); locate();
+loadPrice(); loadWeather(); connectWS(); loadSpot(); locate();
+if (!nc || Date.now() - nc.at > CONFIG.newsEverySec * 1000) loadNews(); else showStatus();
 setInterval(loadPrice, CONFIG.priceEverySec * 1000);
 setInterval(loadWeather, CONFIG.weatherEverySec * 1000);
 setInterval(loadNews, CONFIG.newsEverySec * 1000);
