@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pixel Clock">
+<meta name="theme-color" content="#14102b">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
 <style>
 :root{
@@ -33,7 +35,7 @@ body.day{
   --sky1:#2a6fdb;--sky2:#3f86ee;--sky3:#63a4f5;--ink:#10224d;
   background:linear-gradient(to bottom,#2a6fdb 0,#2a6fdb 18%,#3f86ee 18%,#3f86ee 36%,#63a4f5 36%,#63a4f5 54%,#8cc1fa 54%,#8cc1fa 100%);
 }
-body.dim{filter:brightness(.55)}
+body.dim::after{content:"";position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);pointer-events:none;z-index:15}
 
 #stars{position:absolute;left:0;top:0;width:100%;height:50%;pointer-events:none}
 .star{position:absolute;width:4px;height:4px;background:#fff;opacity:.8}
@@ -85,7 +87,6 @@ body:not(.day) .cloud{opacity:.18}
 @-webkit-keyframes spin{0%{-webkit-transform:scaleX(1)}25%{-webkit-transform:scaleX(.6)}50%{-webkit-transform:scaleX(.2)}75%{-webkit-transform:scaleX(.6)}100%{-webkit-transform:scaleX(1)}}
 @keyframes spin{0%{transform:scaleX(1)}25%{transform:scaleX(.6)}50%{transform:scaleX(.2)}75%{transform:scaleX(.6)}100%{transform:scaleX(1)}}
 .panel,.wrap{z-index:2}
-.panel{z-index:2}
 
 #snd{margin-left:auto;font-family:inherit;font-size:7px;background:#000;color:var(--dim);
   border:2px solid var(--edge);padding:5px 7px;cursor:pointer;-webkit-appearance:none;border-radius:0}
@@ -346,6 +347,8 @@ var CONFIG = {
     btc:  {usd: 500, minutes: 5}
   },
   quietHours: true, quietStart: 23, quietEnd: 7,   // ช่วงเงียบ: ไม่มีเสียง/สั่น เหลือแต่แบนเนอร์
+  moveAlertShowSec: 10,               // ป้ายเตือน 'ราคาขยับแรง' ปิดเองหลังกี่วินาที (ป้ายเตือนราคาถึงเป้าที่ตั้งเองยังต้องแตะปิด)
+  keepAwake: true,                    // กันจอดับ (ใช้ได้เฉพาะ iOS 16.4+/Chrome; iPhone 7 ต้องตั้ง Auto-Lock เป็น Never เอง)
   autoReloadHour: 4,                  // รีโหลดหน้าเองวันละครั้งตอนตี 4 กันเบราว์เซอร์ค้าง (-1 = ปิด)
 
   /* --- ข่าว Forex Factory --- */
@@ -353,11 +356,7 @@ var CONFIG = {
   newsCurrencies: {USD:1},            // สกุลที่สนใจ เช่น {USD:1, EUR:1, GBP:1, JPY:1}
   newsImpacts: {High:1},              // ระดับข่าว: High = แดง, Medium = ส้ม ({High:1, Medium:1})
   alertMinutes: 15,                   // เตือนล่วงหน้ากี่นาที (และเตือนอีกครั้งตอนข่าวออก)
-  corsProxies: [
-    'https://corsproxy.io/?url=',
-    'https://api.allorigins.win/raw?url=',
-    'https://api.codetabs.com/v1/proxy?quest='
-  ]  // Proxy สำรองหลายตัว เผื่อบางบริการล่มหรือถูกบล็อก
+  newsStaleDays: 2                    // ถ้าข่าวล่าสุดในไฟล์เก่ากว่านี้ (วัน) ให้ขึ้นเตือนว่าข้อมูลค้าง
 };
 /* ===== */
 
@@ -501,7 +500,7 @@ $('icoHl').innerHTML = sprite('bar', 3);
 /* ---- นาฬิกา ---- */
 var DAYS = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
 var MON = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-var lastMode = '', loadedAt = Date.now(), reloading = false;
+var lastMode = '', lastCls = null, loadedAt = Date.now(), reloading = false;
 function tick(){
   var d = new Date(), h = d.getHours();
   $('time').innerHTML = pad(h) + '<span class="c">' + (d.getSeconds()%2 ? ':' : ' ') + '</span>' + pad(d.getMinutes());
@@ -510,10 +509,10 @@ function tick(){
   var isDay = h >= 6 && h < 18, mode = (isDay ? 'day' : 'night');
   if (mode !== lastMode){
     lastMode = mode;
-    document.body.className = (isDay ? 'day' : '') + ((h >= 23 || h < 5) ? ' dim' : '');
     $('sun').innerHTML = sprite(isDay ? 'sun' : 'moon', 4);
   }
-  document.body.className = (isDay ? 'day' : '') + ((h >= 23 || h < 5) ? ' dim' : '');
+  var cls = (isDay ? 'day' : '') + ((h >= 23 || h < 5) ? ' dim' : '');
+  if (cls !== lastCls){ lastCls = cls; document.body.className = cls; }
   if (news){ renderNews(); checkAlerts(); }
   if (SESS && d.getSeconds() % 20 === 0) renderSess();
   if (CONFIG.autoReloadHour >= 0 && h === CONFIG.autoReloadHour && d.getMinutes() === 0 && !reloading &&
@@ -644,7 +643,7 @@ function checkPriceAlerts(){
     up = v - lo; dn = hi - v;
     if (up >= cfg.usd || dn >= cfg.usd){
       lastMove[k] = now;
-      pAlert = {key: 'm' + now + k, exp: now + 600000,
+      pAlert = {key: 'm' + now + k, exp: now + CONFIG.moveAlertShowSec * 1000, auto: true,
         text: nameOf(k) + (up >= dn ? ' พุ่ง +$' + fmt(up, dec(k)) : ' ร่วง -$' + fmt(dn, dec(k))) +
               ' ใน ' + cfg.minutes + ' นาที (ตอนนี้ $' + fmt(v, dec(k)) + ')'};
       beep(3);
@@ -788,9 +787,9 @@ function loadPrice(){
    ใช้ GitHub Actions อัปเดตไฟล์นี้จาก Forex Factory แทน public CORS proxy */
 var NEWS_URLS = [new URL('news.json', window.location.href).toString()];
 var newsDiag = '', newsRetry = null;
-var news = [], newsOk = true, lastNews = null, soundOn = false, audioCtx = null, fired = {}, dismissed = {};
+var newsMax = 0, news = [], newsOk = true, lastNews = null, soundOn = false, audioCtx = null, fired = {}, dismissed = {};
 var nc = lsGet('pc_news');   /* ข่าวที่เก็บไว้ในเครื่อง กันโดน rate limit เวลาเปิด/รีโหลดบ่อย */
-if (nc && nc.news && nc.news.length !== undefined){ news = nc.news; lastNews = new Date(nc.at); }
+if (nc && nc.news && nc.news.length !== undefined){ news = nc.news; lastNews = new Date(nc.at); newsMax = nc.max || 0; }
 function parseFF(str){
   var m = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(?:\.\d+)?(Z|([+-])(\d\d):?(\d\d))?$/.exec(str || '');
   if (!m) return null;
@@ -799,7 +798,8 @@ function parseFF(str){
   return t;
 }
 function fetchNewsOne(url, cb){
-  get(url, function(j){
+  /* ต่อเลขทุก 5 นาที กัน GitHub Pages/เบราว์เซอร์ cache ไฟล์เก่า */
+  get(url + (url.indexOf('?') < 0 ? '?' : '&') + 'v=' + Math.floor(Date.now() / 300000), function(j){
     newsDiag = 'news.json:OK';
     cb(j);
   }, function(err){
@@ -809,13 +809,13 @@ function fetchNewsOne(url, cb){
 }
 function loadNews(){
   newsDiag = '';
-  var pending = NEWS_URLS.length, all = [], seen = {}, anyOk = false, i;
+  var pending = NEWS_URLS.length, all = [], seen = {}, anyOk = false, maxT = 0, i;
   function done(){
     if (--pending > 0) return;
     if (anyOk){
       all.sort(function(a, b){ return a.t - b.t; });
-      news = all; newsOk = true; lastNews = new Date();
-      lsSet('pc_news', {at: lastNews.getTime(), news: all});
+      news = all; newsMax = maxT; newsOk = true; lastNews = new Date();
+      lsSet('pc_news', {at: lastNews.getTime(), news: all, max: maxT});
     } else {
       newsOk = false;   /* ลองใหม่ใน 5 นาที ระหว่างนั้นใช้ข่าวที่เก็บไว้ถ้ามี */
       if (!newsRetry) newsRetry = setTimeout(function(){ newsRetry = null; loadNews(); }, 300000);
@@ -828,6 +828,7 @@ function loadNews(){
         anyOk = true;
         for (var k = 0; k < j.length; k++){
           var e = j[k], t = parseFF(e.date);
+          if (t !== null && t > maxT) maxT = t;
           if (t === null || !CONFIG.newsCurrencies[e.country] || !CONFIG.newsImpacts[e.impact]) continue;
           var key = t + '|' + e.country + '|' + e.title;
           if (seen[key]) continue;
@@ -839,6 +840,9 @@ function loadNews(){
     });
   }
   for (i = 0; i < NEWS_URLS.length; i++) one(NEWS_URLS[i]);
+}
+function newsStale(){
+  return newsMax > 0 && Date.now() - newsMax > CONFIG.newsStaleDays * 86400000;
 }
 function impCol(i){ return i === 'High' ? '#ff5f6d' : '#ff9d57'; }
 function hhmm(t){ var d = new Date(t); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
@@ -861,7 +865,10 @@ function renderNews(){
   if (!up.length){
     $('nCount').textContent = '--';
     $('nCount').className = 'val sm';
-    $('nTitle').textContent = newsOk ? 'ไม่มีข่าวแรงในช่วงนี้' : 'โหลดข่าวไม่ได้ ลองใหม่อัตโนมัติ (' + newsDiag + ')';
+    var ld = new Date(newsMax);
+    $('nTitle').textContent = !newsOk ? 'โหลดข่าวไม่ได้ ลองใหม่อัตโนมัติ (' + newsDiag + ')' :
+      newsStale() ? 'ข้อมูลข่าวค้าง! ล่าสุดในไฟล์ ' + ld.getDate() + ' ' + MON[ld.getMonth()] + ' ' + hhmm(newsMax) + ' ตรวจ GitHub Actions' :
+      'ไม่มีข่าวแรงในช่วงนี้';
     $('nList').innerHTML = '';
     return;
   }
@@ -905,7 +912,8 @@ function checkAlerts(){
   if (!show){
     if (pAlert && pAlert.exp > now && !dismissed[pAlert.key]){
       box.className = 'alert now'; box.style.display = 'block'; box.setAttribute('data-key', pAlert.key);
-      box.innerHTML = '<b>!! PRICE ALERT !!</b><br>' + esc(pAlert.text) + '<br><span style="color:#9a93c9">แตะเพื่อปิด</span>';
+      box.innerHTML = '<b>!! PRICE ALERT !!</b><br>' + esc(pAlert.text) + '<br><span style="color:#9a93c9">' +
+        (pAlert.auto ? 'ปิดเองใน ' + Math.ceil((pAlert.exp - now) / 1000) + ' วิ' : 'แตะเพื่อปิด') + '</span>';
       return;
     }
     box.style.display = 'none'; return;
@@ -1017,11 +1025,27 @@ function showStatus(){
   else if (lastPrice) s += 'PRICE ' + pad(lastPrice.getHours()) + ':' + pad(lastPrice.getMinutes()) + '  ';
   if (lastWeather) s += 'AIR ' + pad(lastWeather.getHours()) + ':' + pad(lastWeather.getMinutes()) + '  ';
   if (!newsOk) s += '<b>NEWS ERR</b>';
+  else if (newsStale()) s += '<b>NEWS OLD</b>';
   else if (lastNews) s += 'NEWS ' + pad(lastNews.getHours()) + ':' + pad(lastNews.getMinutes());
   $('status').innerHTML = s || 'LOADING...';
   $('clk2').className = (priceOk && wxOk && lastPrice) ? '' : 'blink';
   $('clk2').textContent = (priceOk && wxOk && lastPrice) ? 'ONLINE' : 'WAIT';
 }
+
+/* ---- กันจอดับ (เฉพาะเบราว์เซอร์ที่รองรับ Wake Lock) ---- */
+var wakeLock = null;
+function keepAwake(){
+  if (!CONFIG.keepAwake || wakeLock || !navigator.wakeLock || document.visibilityState !== 'visible') return;
+  try {
+    navigator.wakeLock.request('screen').then(function(l){
+      wakeLock = l;
+      l.addEventListener('release', function(){ wakeLock = null; });
+    }, function(){});
+  } catch(e){}
+}
+document.addEventListener('visibilitychange', keepAwake);
+document.addEventListener('click', keepAwake);
+keepAwake();
 
 renderAlerts(); renderSess();
 loadPrice(); loadWeather(); connectWS(); loadSpot(); locate();
