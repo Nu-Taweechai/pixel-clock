@@ -331,6 +331,7 @@ input.num{width:120px}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
+  version: 'v1.1',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -505,7 +506,7 @@ function tick(){
   var d = new Date(), h = d.getHours();
   $('time').innerHTML = pad(h) + '<span class="c">' + (d.getSeconds()%2 ? ':' : ' ') + '</span>' + pad(d.getMinutes());
   $('sec').textContent = pad(d.getSeconds());
-  $('date').textContent = 'วัน' + DAYS[d.getDay()] + ' ' + d.getDate() + ' ' + MON[d.getMonth()] + ' ' + (d.getFullYear()+543);
+  $('date').textContent = 'วัน' + DAYS[d.getDay()] + ' ' + d.getDate() + ' ' + MON[d.getMonth()] + ' ' + (d.getFullYear()+543) + ' ' + CONFIG.version;
   var isDay = h >= 6 && h < 18, mode = (isDay ? 'day' : 'night');
   if (mode !== lastMode){
     lastMode = mode;
