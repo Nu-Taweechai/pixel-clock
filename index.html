@@ -262,6 +262,49 @@ input.num{width:120px}
   #cvBox{margin:4px 0 2px} .axis{font-size:7px}
   .cr,.dr{font-size:8px;margin-top:4px;padding:3px 5px;border-width:2px} .dh{font-size:8px;margin-top:6px} .hc{font-size:7px;border-width:2px}
 }
+
+/* ===== v2.0 ความมีชีวิต: เหรียญเด้ง / LEVEL UP / ตัวเดินได้ / โหมดนาฬิกาล้วน ===== */
+#coins{position:fixed;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:19;overflow:hidden}
+.cp{position:absolute;bottom:28%;opacity:0;-webkit-animation:cup 1.2s steps(10) both;animation:cup 1.2s steps(10) both}
+@-webkit-keyframes cup{0%{opacity:1;-webkit-transform:translateY(0)}45%{opacity:1;-webkit-transform:translateY(-34vh)}100%{opacity:0;-webkit-transform:translateY(-4vh)}}
+@keyframes cup{0%{opacity:1;transform:translateY(0)}45%{opacity:1;transform:translateY(-34vh)}100%{opacity:0;transform:translateY(-4vh)}}
+#lvl{position:fixed;left:0;right:0;top:30%;text-align:center;z-index:19;pointer-events:none;display:none}
+#lvl .box{display:inline-block;background:#000;border:4px solid var(--gold);padding:12px 18px;box-shadow:6px 6px 0 rgba(0,0,0,.5);
+  -webkit-animation:lvin .5s steps(5);animation:lvin .5s steps(5)}
+@-webkit-keyframes lvin{from{opacity:0;-webkit-transform:translateY(24px)}to{opacity:1;-webkit-transform:translateY(0)}}
+@keyframes lvin{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.lvt{font-size:clamp(18px,7vw,40px);color:var(--gold);text-shadow:4px 4px 0 #000,-2px -2px 0 var(--gold2)}
+.lvs{margin-top:10px;font-size:clamp(9px,3vw,14px);line-height:1.8;color:#fff;text-shadow:2px 2px 0 #000}
+#walker{position:fixed;left:0;bottom:30px;z-index:6;pointer-events:none;line-height:0}
+#walker.jump{-webkit-animation:wj .6s steps(6);animation:wj .6s steps(6)}
+@-webkit-keyframes wj{40%,60%{-webkit-transform:translateY(-34px)}}
+@keyframes wj{40%,60%{transform:translateY(-34px)}}
+.clockbox{cursor:pointer;-webkit-tap-highlight-color:transparent}
+html.zen #pagerbox{display:none}
+html.zen .wrap{max-width:none;height:100%;min-height:calc(100vh - 110px);display:-webkit-flex;display:flex;
+  -webkit-flex-direction:column;flex-direction:column;-webkit-justify-content:center;justify-content:center}
+html.zen #time{font-size:clamp(40px,17vw,200px)}
+html.zen #sec{font-size:clamp(14px,4.5vw,40px)}
+html.zen #date{font-size:clamp(9px,2.6vw,20px)}
+
+/* แมงมุมเกาะใยลงมาเมื่อไม่แตะจอนาน */
+#spider{position:fixed;top:0;left:50%;width:33px;height:0;z-index:14;pointer-events:none;line-height:0;display:none}
+#spThread{position:absolute;left:15px;top:0;width:3px;height:0;background:#d9d4ff;opacity:.85}
+#spBody{position:absolute;left:0;top:0}
+
+/* ป้ายเตือนข้อมูลเก่า / เน็ตหลุด */
+#netwarn{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 6px);-webkit-transform:translateX(-50%);transform:translateX(-50%);
+  z-index:16;display:none;background:#3a0a14;border:3px solid var(--down);color:var(--down);font-size:8px;line-height:1.7;
+  padding:6px 9px;text-align:center;pointer-events:none;white-space:nowrap;box-shadow:4px 4px 0 rgba(0,0,0,.5)}
+#netwarn small{display:block;font-size:inherit;color:var(--text)}
+/* โหมดนาฬิกาล้วน: บรรทัดอุณหภูมิ + PM2.5 ใต้วันที่ */
+#zenwx{display:none;margin-top:10px;line-height:1.8;color:var(--text);text-shadow:2px 2px 0 #000;font-size:clamp(10px,3vw,24px)}
+#zenwx .sprite{display:inline-block;vertical-align:middle;margin-right:8px}
+#zenwx .sep{color:var(--dim);margin:0 .6em}
+html.zen #zenwx{display:block}
+html.zen #zenwx:empty{display:none}
+/* โหมดนาฬิกาล้วน: ขยับช้าๆ ให้ไม่สังเกตเห็น */
+html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:transform 4s ease-in-out}
 </style>
 </head>
 <body>
@@ -277,6 +320,7 @@ input.num{width:120px}
     <div id="sun"></div>
     <div id="time">--<span class="c">:</span>--</div><span id="sec">--</span>
     <div id="date">&nbsp;</div>
+    <div id="zenwx"></div>
   </div>
 
   <div id="pagerbox">
@@ -428,13 +472,18 @@ input.num{width:120px}
   </div></div>
   </div>
 </div>
+<div id="coins"></div>
+<div id="lvl"></div>
+<div id="netwarn"></div>
+<div id="walker"><div id="wk"></div></div>
+<div id="spider"><div id="spThread"></div><div id="spBody"></div></div>
 <div class="ground"></div>
 <div class="status" id="status">LOADING...</div>
 
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v1.9',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.4',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -444,6 +493,10 @@ var CONFIG = {
   liveWS: true,          // ราคา BTC/ทอง realtime ผ่าน WebSocket (Binance) ตั้ง false ถ้าอยากใช้แบบดึงทุก priceEverySec เท่านั้น
   priceEverySec: 90,     // ดึงราคาสำรอง + อัตราแลกเปลี่ยน USD/THB (ใช้คำนวณราคาบาท)
   weatherEverySec: 900,  // อัปเดตอุณหภูมิ/PM2.5
+  staleSec: 300,         // ราคาไม่อัปเดตเกินกี่วินาที (หรือเน็ตหลุด) ให้ขึ้นป้ายแดงเตือนบนจอ (0 = ปิด)
+  shiftEverySec: 120,    // โหมดนาฬิกาล้วน: ขยับตำแหน่งทั้งหน้าจอทุกกี่วินาที กันภาพค้างจอ OLED (0 = ปิด)
+  shiftPx: 10,           // ขยับห่างจากตำแหน่งกลางได้สูงสุดกี่พิกเซล
+  spiderAfterSec: 300,   // ไม่แตะหน้าจอเกินกี่วินาที แมงมุมจะเกาะใยลงมา (0 = ปิด) แตะจอเมื่อไหร่ก็ไต่กลับขึ้นไป
 
   /* --- เตือนราคา / ช่วงเงียบ / รีโหลด --- */
   moveAlerts: {                       // เตือนเมื่อราคาขยับแรง: ขยับเกิน usd ดอลลาร์ ภายใน minutes นาที
@@ -690,8 +743,8 @@ var hl = lsGet('pc_hl');
 function todayStr(){ var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
 function trackHL(v){
   var t = todayStr(), ch = false;
-  if (!hl || hl.d !== t){ hl = {d: t, h: v, l: v}; ch = true; }
-  if (v > hl.h){ hl.h = v; ch = true; }
+  if (!hl || hl.d !== t){ hl = {d: t, h: v, l: v, s: Date.now()}; ch = true; }
+  if (v > hl.h){ hl.h = v; ch = true; levelCheck('gold', v, hl.s); }
   if (v < hl.l){ hl.l = v; ch = true; }
   $('hlH').textContent = 'H $' + fmt(hl.h, 2);
   $('hlL').textContent = 'L $' + fmt(hl.l, 2);
@@ -738,7 +791,7 @@ function checkPriceAlerts(){
         text: nameOf(a.a) + (a.dir === 'up' ? ' ขึ้นถึง $' : ' ลงถึง $') + fmt(a.p, dec(a.a)) + '  (ตอนนี้ $' + fmt(v, dec(a.a)) + ')'};
     }
   }
-  if (fired){ saveAlerts(); renderAlerts(); beep(3); }
+  if (fired){ saveAlerts(); renderAlerts(); beep(3); coinPop(); }
   for (k in CONFIG.moveAlerts){
     cfg = CONFIG.moveAlerts[k]; v = curP[k];
     if (!cfg || v === null || v === undefined || !(now - lastMove[k] >= 600000 || lastMove[k] === undefined)) continue;
@@ -813,7 +866,7 @@ function flash(el, up){
 function applyPrices(bu, gu, bc, gc){
   if (bu !== null && bu !== undefined && !isNaN(bu)){
     if (curP.btc !== null && bu !== curP.btc) flash($('btcUsd'), bu > curP.btc);
-    curP.btc = bu;
+    curP.btc = bu; trackBtc(bu);
     $('btcUsd').textContent = '$ ' + fmt(bu);
     if (bc !== null && bc !== undefined) chg($('btcChg'), bc);
   }
@@ -1687,6 +1740,172 @@ setInterval(function(){   /* กะพริบตา */
 }, 3500);
 syncCtl(); relayout();
 setPage(1, false);   // เปิดมาที่หน้า MARKET ทุกครั้ง
+
+/* ---- v2.0 ความมีชีวิต ---- */
+/* เหรียญเด้ง (ตอนราคาถึงเป้าที่ตั้งเอง และตอน LEVEL UP) */
+function coinPop(){
+  var h = '', i, c = spr('coin', 3);
+  for (i = 0; i < 8; i++){
+    h += '<div class="cp" style="left:' + (8 + Math.floor(Math.random() * 80)) + '%;-webkit-animation-delay:' + (Math.random() * .5).toFixed(2) +
+         's;animation-delay:' + (Math.random() * .5).toFixed(2) + 's"><span class="coinspin" style="display:block">' + c + '</span></div>';
+  }
+  $('coins').innerHTML = h;
+  clearTimeout(coinPop._t); coinPop._t = setTimeout(function(){ $('coins').innerHTML = ''; }, 1900);
+  walkJump();
+}
+/* LEVEL UP: ราคาทำ high ใหม่ของวัน (ต้องเก็บสถิติวันนี้มาแล้ว 1 ชม. และเว้น 15 นาทีต่อสินทรัพย์ กันเด้งรัว) */
+var hb = lsGet('pc_hb'), lvAt = {gold: 0, btc: 0}, lvT = null;
+function trackBtc(v){
+  var t = todayStr();
+  if (!hb || hb.d !== t){ hb = {d: t, h: v, s: Date.now()}; lsSet('pc_hb', hb); return; }
+  if (v > hb.h){ hb.h = v; lsSet('pc_hb', hb); levelCheck('btc', v, hb.s); }
+}
+function levelCheck(k, v, st){
+  var now = Date.now();
+  if (now - (st || 0) < 3600000 || now - lvAt[k] < 900000) return;
+  lvAt[k] = now;
+  var el = $('lvl');
+  el.innerHTML = '<div class="box"><div class="lvt blink">LEVEL UP!</div><div class="lvs">' + nameOf(k) + ' NEW HIGH<br>$' + fmt(v, dec(k)) + '</div></div>';
+  el.style.display = 'block';
+  clearTimeout(lvT); lvT = setTimeout(function(){ el.style.display = 'none'; }, 4000);
+  coinPop(); beep(2);
+}
+/* แมวเดินบนขอบแถบสถานะ */
+SPR.walkA = [".........k..k.",".k.......ksssk",".ks......kgsgk",".kskkkkkkktptk",".ksssssssssk..",".ksossossosk..",".ktttttttttk..",".kkkkkkkkkkk..","..ss.....ss...","..kk.....kk..."];
+SPR.walkB = [".........k..k.",".k.......ksssk",".ks......kgsgk",".kskkkkkkktptk",".ksssssssssk..",".ksossossosk..",".ktttttttttk..",".kkkkkkkkkkk..","...ss...ss....","...kk...kk...."];
+var wk = {x: 20, dir: 1, f: 0, pause: 0};
+function walkPlace(){ $('walker').style.bottom = $('status').offsetHeight + 'px'; }
+function walkJump(){
+  var e = $('walker'); e.className = 'jump';
+  clearTimeout(walkJump._t); walkJump._t = setTimeout(function(){ e.className = ''; }, 650);
+}
+function walkStep(){
+  if (document.hidden) return;
+  if (wk.pause > 0){ wk.pause--; setH($('wk'), spr('walkA', 3)); return; }
+  if (Math.random() < 0.02){ wk.pause = 8; return; }
+  var W = window.innerWidth - 45, fl;
+  wk.f = 1 - wk.f; wk.x += wk.dir * 5;
+  if (wk.x >= W){ wk.x = W; wk.dir = -1; } else if (wk.x <= 0){ wk.x = 0; wk.dir = 1; }
+  fl = wk.dir < 0 ? 'scaleX(-1)' : 'none';
+  $('wk').style.webkitTransform = fl; $('wk').style.transform = fl;
+  $('walker').style.left = wk.x + 'px';
+  setH($('wk'), spr(wk.f ? 'walkA' : 'walkB', 3));
+}
+setH($('wk'), spr('walkA', 3)); walkPlace();
+setInterval(walkPlace, 2000);
+window.addEventListener('resize', walkPlace);
+if (!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) setInterval(walkStep, 250);
+
+/* ---- แมงมุมเกาะใย: ไม่แตะจอเกิน CONFIG.spiderAfterSec วินาที -> หย่อนลงมาทีละช่วง แตะเมื่อไหร่ -> ไต่กลับขึ้นไป ---- */
+SPR.spiderA = ["k.........k",".L.......L.","..LkkkkkL..",".kkWkkkWkk.","kkkaaaaakkk",".kaaaaaaak.","L..k...k..L","L.........L"];
+SPR.spiderB = [".L.......L.","L.........L","..LkkkkkL..",".kkWkkkWkk.","kkkaaaaakkk",".kaaaaaaak.",".L.k...k.L.","L..L...L..L"];
+PAL.a = '#ff8a2a'; PAL.L = '#c9c2f5';
+var sp = {mode: '', y: -30, target: 0, f: 0, t: 0, x: 0, last: Date.now()};
+function spDraw(){
+  var b = $('spBody');
+  $('spThread').style.height = Math.max(0, sp.y) + 'px';
+  b.style.top = (sp.y - 3) + 'px';
+  setH(b, spr(sp.f ? 'spiderA' : 'spiderB', 3));
+}
+function spStart(){
+  var sc = $('spider'), W = window.innerWidth || 320, H = window.innerHeight || 480;
+  sp.x = Math.round(W * (0.12 + Math.random() * 0.76));
+  sp.target = Math.round(H * (0.22 + Math.random() * 0.2));
+  sp.y = -30; sp.t = 0; sp.mode = 'down';
+  sc.style.left = sp.x + 'px'; sc.style.marginLeft = '-16px'; sc.style.display = 'block';
+  spDraw();
+}
+function spTick(){
+  if (!sp.mode) return;
+  sp.f = 1 - sp.f;
+  if (sp.mode === 'down'){
+    if (sp.t > 0) sp.t--; else {
+      sp.y += 6;
+      if (Math.random() < 0.22) sp.t = 3 + Math.floor(Math.random() * 5);   /* หยุดชะงักเป็นช่วงๆ เหมือนแมงมุมจริง */
+    }
+    if (sp.y >= sp.target){ sp.y = sp.target; sp.mode = 'idle'; sp.t = 0; }
+  } else if (sp.mode === 'idle'){
+    sp.t++;
+    if (sp.t % 4 === 0) sp.y = sp.target + (Math.floor(sp.t / 4) % 2 ? 6 : 0);   /* ห้อยโยกขึ้นลงเบาๆ */
+  } else if (sp.mode === 'up'){
+    sp.y -= 16;
+    if (sp.y <= -30){ sp.mode = ''; $('spider').style.display = 'none'; return; }
+  }
+  spDraw();
+}
+function spActive(){
+  sp.last = Date.now();
+  if (sp.mode === 'down' || sp.mode === 'idle') sp.mode = 'up';
+}
+function spCheck(){
+  var after = CONFIG.spiderAfterSec;
+  if (!after || document.hidden || sp.mode) return;
+  if (Date.now() - sp.last >= after * 1000) spStart();
+}
+if (CONFIG.spiderAfterSec && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)){
+  var spEv = ['touchstart', 'mousedown', 'keydown', 'wheel', 'scroll'], spi;
+  for (spi = 0; spi < spEv.length; spi++) window.addEventListener(spEv[spi], spActive, true);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) sp.last = Date.now(); });
+  setInterval(spCheck, 5000);
+  setInterval(spTick, 120);
+}
+
+
+/* ---- โหมดนาฬิกาล้วน: โชว์อุณหภูมิ + PM2.5 (ซ่อนถ้าข้อมูลอากาศเก่าเกิน 3 รอบอัปเดต) ---- */
+function zenWxRender(){
+  var el = $('zenwx'), c, v, lv, i, h = '';
+  if (!el) return;
+  if (!WX || (lastWeather && Date.now() - lastWeather.getTime() > CONFIG.weatherEverySec * 3000)){ setH(el, ''); return; }
+  c = WX.current;
+  h += spr(wxInfo(c.weather_code, wxDayAt(c.time)).s, 2) + '<span class="temp">' + rd(c.temperature_2m) + '°C</span>';
+  v = AQ ? AQ.pm2_5 : null;
+  if (v !== null && v !== undefined && !isNaN(v)){
+    lv = LV[LV.length - 1];
+    for (i = 0; i < LV.length; i++){ if (v <= LV[i].max){ lv = LV[i]; break; } }
+    h += '<span class="sep">|</span><span style="color:' + lv.col + '">PM2.5 ' + Math.round(v) + '</span>';
+  }
+  setH(el, h);
+}
+var _wr2 = wxRender, _aq2 = aqRender;
+wxRender = function(){ _wr2(); zenWxRender(); };
+aqRender = function(){ _aq2(); zenWxRender(); };
+setInterval(zenWxRender, 30000);
+zenWxRender();
+/* ---- ป้ายเตือนข้อมูลเก่า: เน็ตหลุด หรือไม่มีราคาใหม่เกิน CONFIG.staleSec วินาที ---- */
+var netBoot = Date.now();
+function netCheck(){
+  var el = $('netwarn'), lim = (CONFIG.staleSec || 0) * 1000, off, age, m;
+  if (!lim){ el.style.display = 'none'; return; }
+  off = navigator.onLine === false;
+  age = Date.now() - Math.max(lastTick || 0, lastPrice ? lastPrice.getTime() : 0, netBoot);
+  if (!off && age <= lim){ el.style.display = 'none'; return; }
+  m = Math.max(1, Math.floor(age / 60000));
+  setH(el, off ? '<span class="blink">OFFLINE</span><small>ไม่มีอินเทอร์เน็ต</small>' :
+    '<span class="blink">NO DATA ' + m + 'M</span><small>ราคาไม่อัปเดตแล้ว ' + m + ' นาที</small>');
+  el.style.display = 'block';
+}
+if (CONFIG.staleSec){
+  setInterval(netCheck, 5000);
+  window.addEventListener('offline', netCheck);
+  window.addEventListener('online', function(){ loadPrice(); loadWeather(); netCheck(); });
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden){ loadPrice(); setTimeout(netCheck, 3000); } });
+}
+/* ---- กันภาพค้างจอ: โหมดนาฬิกาล้วนขยับทั้งหน้าไปมาเล็กน้อยเป็นระยะ ---- */
+function shiftNow(move){
+  var w = document.querySelector('.wrap'), r = CONFIG.shiftPx || 0, dx = 0, dy = 0, v;
+  if (!w) return;
+  if (zenOn && move && r){
+    dx = Math.round((Math.random() * 2 - 1) * r); dy = Math.round((Math.random() * 2 - 1) * r);
+  }
+  v = (dx || dy) ? 'translate(' + dx + 'px,' + dy + 'px)' : '';   /* ว่างเมื่อไม่ขยับ จะได้ไม่กระทบเลย์เอาต์ปกติ */
+  w.style.webkitTransform = v; w.style.transform = v;
+}
+if (CONFIG.shiftEverySec) setInterval(function(){ if (zenOn) shiftNow(true); }, CONFIG.shiftEverySec * 1000);
+/* แตะที่นาฬิกา = สลับโหมดนาฬิกาล้วน (จำค่าไว้) */
+var zenOn = !!lsGet('pc_zen');
+function zenApply(){ document.documentElement.className = zenOn ? 'zen' : ''; if (!zenOn) relayout(); walkPlace(); shiftNow(false); }
+$('time').parentNode.onclick = function(){ zenOn = !zenOn; lsSet('pc_zen', zenOn); zenApply(); };
+zenApply();
 
 renderAlerts(); renderSess();
 loadPrice(); loadWeather(); connectWS(); loadSpot(); locate();
