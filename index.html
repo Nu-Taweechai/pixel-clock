@@ -68,6 +68,16 @@ body:not(.day) .cloud{opacity:.18}
   border:4px solid #000;
   box-shadow:inset 4px 4px 0 var(--edge),inset -4px -4px 0 #0e0a24,6px 6px 0 rgba(0,0,0,.45)}
 .panel.wide{grid-column:1 / span 2}
+.panel.arp{padding-right:62px}
+.far{position:absolute;right:14px;top:50%;margin-top:-24px;width:48px;height:48px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;pointer-events:none;filter:drop-shadow(0 0 6px currentColor)}
+.far svg{display:block;max-width:100%;max-height:100%}
+.far.ar-up{animation:arUp 1.2s steps(1,end) infinite}
+.far.ar-dn{animation:arDn 1.2s steps(1,end) infinite}
+.far.ar-rt{animation:arRt 1.2s steps(1,end) infinite}
+@keyframes arUp{0%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes arDn{0%{transform:translateY(0)}50%{transform:translateY(4px)}}
+@keyframes arRt{0%{transform:translateX(0)}50%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){.far{animation:none!important}}
 .lab{font-size:9px;color:var(--dim);margin-bottom:8px;line-height:1.5;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center}
 .lab svg{margin-right:8px}
 .val{font-size:6.6vw;line-height:1.3;color:var(--gold);text-shadow:3px 3px 0 #000;word-break:break-all}
@@ -379,13 +389,13 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
   </div>
   <div class="pg" id="pg1">
   <div class="grid">
-    <div class="panel wide">
+    <div class="panel wide arp" id="btcPanel"><span id="btcAr" class="far"></span>
       <div class="lab"><span id="icoBtc" class="coinspin"></span>BITCOIN (BTC/USD)</div>
       <div class="val" id="btcUsd">$ ---</div>
       <div class="sub"><span id="btcThb">฿ ---</span>&nbsp; <span id="btcChg" class="chg"></span></div>
     </div>
 
-    <div class="panel wide">
+    <div class="panel wide arp" id="goldPanel"><span id="goldAr" class="far"></span>
       <div class="lab"><span id="icoGold"></span>GOLD (XAU/USD ต่อออนซ์)</div>
       <div class="val" id="goldUsd">$ ---</div>
       <div class="sub"><span id="goldThb">฿ ---</span> /บาททอง&nbsp; <span id="goldChg" class="chg"></span><span class="note"><br>ราคาทองไทยประมาณจากราคาทองโลก ไม่ใช่ราคาสมาคมฯ</span></div>
@@ -431,7 +441,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
       <div class="sub">ตั้งแต่เที่ยงคืนวันนี้ (เวลาเครื่อง)</div>
     </div>
 
-    <div class="panel wide" id="fngPanel">
+    <div class="panel wide arp" id="fngPanel"><span id="fngAr" class="far"></span>
       <div class="lab"><span id="icoFng"></span><span id="fngName">FEAR &amp; GREED</span></div>
       <div class="ctl" id="fngSel"><button type="button" class="btn" data-m="crypto">CRYPTO</button><button type="button" class="btn" data-m="gold">GOLD</button></div>
       <div class="val sm" id="fngV">--</div>
@@ -822,18 +832,68 @@ function fngCol(v){ return v < 25 ? '#ff5f6d' : v < 45 ? '#ff9d57' : v < 55 ? '#
 function fngCls(v){ return v < 25 ? 'Extreme Fear' : v < 45 ? 'Fear' : v < 55 ? 'Neutral' : v < 75 ? 'Greed' : 'Extreme Greed'; }
 var fngM = lsGet('pc_fngm') === 'gold' ? 'gold' : 'crypto';
 var fngD = lsGet('pc_fng'), fngG = lsGet('pc_fngg');
+/* พื้นหลังกล่อง + ลูกศรตามอารมณ์ตลาด: กลัว = แดง/ส้ม ▼ | โลภ = เขียว ▲ | เป็นกลาง = เหลือง ► */
+var FNG_BG = {'Extreme Fear': '#4d1420', 'Fear': '#4a2812', 'Neutral': '#3f3a12', 'Greed': '#1f4115', 'Extreme Greed': '#0f4d2a'};
+var FNG_AR = {'Extreme Fear': '▼▼', 'Fear': '▼', 'Neutral': '►', 'Greed': '▲', 'Extreme Greed': '▲▲'};
+/* ลูกศรพิกเซล (SVG วาดจากช่องสี่เหลี่ยม) ชี้ตามอารมณ์ตลาด: กลัว = ลง | โลภ = ขึ้น | กลาง = ขวา | สุดขีด = หัวลูกศรสองชั้น */
+var ARW = {
+  up:  ['....#....', '...###...', '..#####..', '.#######.', '#########', '...###...', '...###...', '...###...'],
+  up2: ['....#....', '...###...', '..#####..', '.#######.', '.........', '....#....', '...###...', '..#####..', '.#######.', '...###...', '...###...']
+};
+function arGrid(k){
+  var m = k === 'up' ? ARW.up : k === 'up2' ? ARW.up2 : k === 'dn' ? ARW.up.slice().reverse() : k === 'dn2' ? ARW.up2.slice().reverse() : null, o = [], x, y;
+  if (!m){   /* rt = หมุน up ไปทางขวา */
+    m = ARW.up;
+    for (x = 0; x < m[0].length; x++){ var r = ''; for (y = m.length - 1; y >= 0; y--) r += m[y].charAt(x); o.push(r); }
+    return o;
+  }
+  return m;
+}
+function arSvg(k, col){
+  var m = arGrid(k), h = m.length, w = m[0].length, y, x, st, d = '';
+  for (y = 0; y < h; y++){
+    x = 0;
+    while (x < w){
+      if (m[y].charAt(x) !== '#'){ x++; continue; }
+      st = x; while (x < w && m[y].charAt(x) === '#') x++;
+      d += 'M' + st + ' ' + y + 'h' + (x - st) + 'v1h-' + (x - st) + 'z';
+    }
+  }
+  return '<svg viewBox="0 0 ' + (w + 1) + ' ' + (h + 1) + '" width="' + ((w + 1) * 4) + '" height="' + ((h + 1) * 4) + '" shape-rendering="crispEdges">' +
+    '<path d="' + d + '" transform="translate(1 1)" fill="rgba(0,0,0,.6)"/><path d="' + d + '" fill="' + col + '"/></svg>';
+}
+function fngArrow(id, d){
+  var el = $(id), c, k;
+  if (!el) return;
+  if (!d || isNaN(d.v)){ el.className = 'far'; el.innerHTML = ''; return; }
+  c = fngCls(d.v); k = c === 'Extreme Fear' ? 'dn2' : c === 'Fear' ? 'dn' : c === 'Neutral' ? 'rt' : c === 'Greed' ? 'up' : 'up2';
+  el.className = 'far ar-' + k.substr(0, 2);
+  el.style.color = fngCol(d.v);
+  el.innerHTML = arSvg(k, fngCol(d.v));
+}
+/* กล่องราคา BTC / GOLD: สีพื้น + ลูกศรตาม Fear & Greed ของสินทรัพย์นั้น (BTC = ดัชนีคริปโต, GOLD = ดัชนีทองที่คำนวณเอง) */
+function fngTint(pid, arId, d){
+  var pn = $(pid);
+  if (!pn) return;
+  pn.style.background = (d && !isNaN(d.v)) ? FNG_BG[fngCls(d.v)] : '';
+  fngArrow(arId, d);
+}
 function fngRender(){
+  fngTint('btcPanel', 'btcAr', fngD); fngTint('goldPanel', 'goldAr', fngG);
   var d = fngM === 'gold' ? fngG : fngD, b = $('fngSel').getElementsByTagName('button'), i, col, t;
   for (i = 0; i < b.length; i++) b[i].className = 'btn' + (b[i].getAttribute('data-m') === fngM ? ' on' : '');
   $('fngName').textContent = fngM === 'gold' ? 'GOLD MOOD (PAXG)' : 'FEAR & GREED (CRYPTO)';
   if (!d || isNaN(d.v)){
-    $('fngV').style.color = ''; $('fngV').textContent = '--'; setH($('fngHp'), '');
+    $('fngV').style.color = ''; $('fngV').textContent = '--'; setH($('fngHp'), ''); $('fngPanel').style.background = ''; fngArrow('fngAr', null);
     $('fngT').textContent = 'LOADING...'; $('fngN').textContent = '';
     return;
   }
   col = fngCol(d.v);
   $('fngV').style.color = col;
+  var fc = fngCls(d.v);
+  $('fngPanel').style.background = FNG_BG[fc];
   $('fngV').textContent = d.v + ' / 100';
+  fngArrow('fngAr', d);
   setH($('fngHp'), segs(Math.max(1, Math.round(d.v / 10)), col));
   if (fngM === 'gold'){
     t = (FNG_TH[fngCls(d.v)]) + '  RSI ' + Math.round(d.rsi) + '  30D ' + Math.round(d.pos) + '%';
