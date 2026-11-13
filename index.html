@@ -200,13 +200,13 @@ input.num{width:120px}
 
 /* ===== หน้าสลับ: MARKET / CHART (ปัดซ้าย-ขวา) ===== */
 .tabs{display:-webkit-flex;display:flex;margin:0 0 10px}
-.tb{-webkit-flex:1;flex:1;font-family:inherit;font-size:9px;line-height:1.4;padding:8px 4px;margin-right:4px;
+.tb{-webkit-flex:1;flex:1;min-width:0;font-family:inherit;font-size:8px;line-height:1.4;padding:8px 1px;margin-right:4px;
   background:#0b0820;color:var(--dim);border:3px solid #000;border-radius:0;-webkit-appearance:none;cursor:pointer}
 .tb:last-child{margin-right:0}
 .tb.on{background:#2a2457;color:var(--gold);box-shadow:inset 0 -4px 0 var(--gold)}
 #pager{overflow:hidden;position:relative;padding:0 8px 8px 0;-ms-touch-action:pan-y;touch-action:pan-y}
-#track{display:-webkit-flex;display:flex;-webkit-align-items:flex-start;align-items:flex-start;width:300%;will-change:transform}
-.pg{-webkit-flex:none;flex:none;width:33.3333%;min-width:0}
+#track{display:-webkit-flex;display:flex;-webkit-align-items:flex-start;align-items:flex-start;width:400%;will-change:transform}
+.pg{-webkit-flex:none;flex:none;width:25%;min-width:0}
 .pg.off{visibility:hidden;max-height:0;overflow:hidden}
 .ctl{display:-webkit-flex;display:flex;margin-bottom:6px}
 .ctl .btn{margin-right:4px}
@@ -224,8 +224,33 @@ input.num{width:120px}
 .cr.past{opacity:.45}
 .cr.nx{border-color:var(--gold);background:#2a2457}
 .dh{margin-top:10px;font-size:9px;line-height:1.6;color:var(--lite)}
-@media (max-width:599px){ .cr,.dh{font-size:8px} }
-@media (min-width:600px){ .cr,.dh{font-size:11px} }
+.herobox{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center}
+#hero{-webkit-flex:none;flex:none;-webkit-animation:bob 1s steps(1) infinite;animation:bob 1s steps(1) infinite}
+@-webkit-keyframes bob{0%{-webkit-transform:translateY(0)}50%{-webkit-transform:translateY(-4px)}}
+@keyframes bob{0%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){#hero{-webkit-animation:none;animation:none}}
+.herotxt{-webkit-flex:1;flex:1;min-width:0;margin-left:12px}
+.say{position:relative;background:#f4f0ff;color:#14102b;border:3px solid #000;padding:6px 7px;font-size:9px;line-height:1.7;box-shadow:3px 3px 0 rgba(0,0,0,.45)}
+.say:before{content:"";position:absolute;left:-12px;top:14px;border-style:solid;border-width:5px 8px 5px 0;border-color:transparent #000 transparent transparent}
+.herotxt .hp{margin:8px 0 4px}
+.wxnow{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center}
+.wxnow>span{margin-right:14px;display:block;min-width:56px}
+.hrs{display:-webkit-flex;display:flex}
+.hc{-webkit-flex:1;flex:1;min-width:0;text-align:center;background:#0b0820;border:3px solid #000;margin-right:4px;padding:5px 0 4px;
+  font-size:8px;line-height:1.6;color:#6ac3ff}
+.hc:last-child{margin-right:0}
+.hc b{display:block;font-weight:normal;color:var(--text)}
+.hc b.temp{color:#ff9d57}
+.hc .ic2{height:20px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;margin:2px 0}
+.rbar{height:4px;margin:3px 4px 0;background:#2a2457}
+.rbar i{display:block;height:4px;background:#6ac3ff}
+.dr{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;margin-top:6px;padding:5px 8px;background:#0b0820;border:3px solid #000;font-size:9px;line-height:1.6;color:var(--text)}
+.dr .dn{-webkit-flex:3;flex:3;min-width:0}
+.dr .ic{-webkit-flex:2;flex:2;display:-webkit-flex;display:flex;-webkit-justify-content:center;justify-content:center}
+.dr .tt{-webkit-flex:3;flex:3;text-align:center;color:#6ac3ff}
+.dr .rn{-webkit-flex:2;flex:2;text-align:right;color:#6ac3ff}
+@media (max-width:599px){ .cr,.dh,.dr{font-size:8px} .say{font-size:8px;line-height:1.6} }
+@media (min-width:600px){ .say{font-size:11px} .cr,.dh,.dr{font-size:11px} .hc{font-size:10px} .tb{font-size:10px} }
 @media (orientation:landscape) and (max-height:500px){
   #pagerbox{grid-column:2;grid-row:1 / span 2;min-width:0;min-height:0;height:100%;
     display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column}
@@ -233,9 +258,9 @@ input.num{width:120px}
   #track{height:100%}
   .pg{height:100%;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .grid{grid-column:auto;grid-row:auto;height:auto;overflow:visible;padding:0 6px 8px 0}
-  .tabs{margin-bottom:5px} .tb{font-size:7px;padding:4px 2px;border-width:2px}
+  .tabs{margin-bottom:5px} .tb{font-size:6px;padding:4px 1px;border-width:2px}
   #cvBox{margin:4px 0 2px} .axis{font-size:7px}
-  .cr{font-size:8px;margin-top:4px;padding:3px 5px;border-width:2px} .dh{font-size:8px;margin-top:6px}
+  .cr,.dr{font-size:8px;margin-top:4px;padding:3px 5px;border-width:2px} .dh{font-size:8px;margin-top:6px} .hc{font-size:7px;border-width:2px}
 }
 </style>
 </head>
@@ -255,9 +280,50 @@ input.num{width:120px}
   </div>
 
   <div id="pagerbox">
-  <div class="tabs" id="tabs"><button type="button" class="tb on" data-p="0">MARKET</button><button type="button" class="tb" data-p="1">CHART</button><button type="button" class="tb" data-p="2">NEWS</button></div>
+  <div class="tabs" id="tabs"><button type="button" class="tb" data-p="0">WEATHER</button><button type="button" class="tb on" data-p="1">MARKET</button><button type="button" class="tb" data-p="2">CHART</button><button type="button" class="tb" data-p="3">NEWS</button></div>
   <div id="pager"><div id="track">
-  <div class="pg" id="pg0">
+  <div class="pg off" id="pg0">
+  <div class="grid">
+    <div class="panel wide">
+      <div class="lab"><span id="icoHero"></span>PLAYER 1</div>
+      <div class="herobox"><div id="hero"></div>
+        <div class="herotxt"><div class="say" id="heroSay">กำลังโหลดข้อมูล...</div>
+          <div class="hp" id="heroHp"></div>
+          <div class="sub" id="heroEq">&nbsp;</div></div></div>
+    </div>
+    <div class="panel wide">
+      <div class="lab"><span id="icoWx"></span>WEATHER&nbsp;<span id="wxCity"></span></div>
+      <div class="wxnow"><span id="wxIc"></span><div><div class="val temp" id="wxT">--°</div><div class="sub" id="wxD">LOADING...</div></div></div>
+      <div class="sub" id="wxF">&nbsp;</div>
+      <div class="sub" id="wxH">&nbsp;</div>
+      <div class="sub" id="wxU">&nbsp;</div>
+    </div>
+    <div class="panel wide">
+      <div class="lab"><span id="icoHr"></span>NEXT 12H</div>
+      <div class="hrs" id="wxHrs"></div>
+      <div class="sub">เส้นฟ้า = โอกาสฝนตก</div>
+    </div>
+    <div class="panel wide">
+      <div class="lab"><span id="icoAq"></span>AIR HP</div>
+      <div class="val sm" id="aqV">--</div>
+      <div class="hp" id="aqHp"></div>
+      <div class="sub" id="aqT">&nbsp;</div>
+      <div class="sub" id="aqX">&nbsp;</div>
+      <div class="sub" id="aqA">&nbsp;</div>
+    </div>
+    <div class="panel wide">
+      <div class="lab"><span id="icoSun"></span>SUNLIGHT</div>
+      <div class="hp" id="sunHp"></div>
+      <div class="sub" id="sunT">&nbsp;</div>
+      <div class="sub" id="sunL">&nbsp;</div>
+    </div>
+    <div class="panel wide">
+      <div class="lab"><span id="icoDay"></span>3 DAYS</div>
+      <div id="wxDays"></div>
+    </div>
+  </div>
+  </div>
+  <div class="pg" id="pg1">
   <div class="grid">
     <div class="panel wide">
       <div class="lab"><span id="icoBtc" class="coinspin"></span>BITCOIN (BTC/USD)</div>
@@ -323,7 +389,7 @@ input.num{width:120px}
     </div>
   </div>
   </div>
-  <div class="pg off" id="pg1">
+  <div class="pg off" id="pg2">
   <div class="grid">
     <div class="panel wide">
       <div class="lab"><span id="icoCh"></span><span id="chName">BTC/USD</span></div>
@@ -347,7 +413,7 @@ input.num{width:120px}
     </div>
   </div>
   </div>
-  <div class="pg off" id="pg2">
+  <div class="pg off" id="pg3">
   <div class="grid">
     <div class="panel wide">
       <div class="lab"><span id="icoCal"></span>NEWS CALENDAR</div>
@@ -368,7 +434,7 @@ input.num{width:120px}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v1.6',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v1.9',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -398,7 +464,7 @@ var CONFIG = {
 };
 /* ===== */
 
-var PAL = {k:'#000',y:'#ffcf3a',w:'#fff6b8',o:'#c98a12',r:'#e8403f',R:'#ff8a8a',s:'#ff9d57',t:'#ffe0a8',g:'#4cf08a',b:'#6ac3ff',W:'#ffffff',d:'#3a2a86'};
+var PAL = {p:'#ff8fb1',k:'#000',y:'#ffcf3a',w:'#fff6b8',o:'#c98a12',r:'#e8403f',R:'#ff8a8a',s:'#ff9d57',t:'#ffe0a8',g:'#4cf08a',b:'#6ac3ff',W:'#ffffff',d:'#3a2a86'};
 var SPR = {
   coin:[
     "...kkkk...",
@@ -1119,8 +1185,8 @@ document.addEventListener('visibilitychange', keepAwake);
 document.addEventListener('click', keepAwake);
 keepAwake();
 
-/* ---- หน้าสลับ: ปัดซ้าย = หน้าถัดไป (MARKET > CHART > NEWS), ปัดขวา = ย้อนกลับ ---- */
-var NPG = 3, pg = 0, pgW = 0, drag = null, offT = null;
+/* ---- หน้าสลับ: ปัดซ้าย = หน้าถัดไป (WEATHER < MARKET > CHART > NEWS), ปัดขวา = ย้อนกลับ ---- */
+var NPG = 4, pg = 1, pgW = 0, drag = null, offT = null;
 function trk(x, anim){
   var st = $('track').style;
   st.webkitTransition = anim ? '-webkit-transform .24s steps(6,end)' : 'none';
@@ -1137,9 +1203,9 @@ function setPage(n, anim){
   clearTimeout(offT);
   offT = setTimeout(function(){ for (var j = 0; j < NPG; j++){ if (j !== n) pgEl(j).className = 'pg off'; } }, anim ? 300 : 0);   // หน้าที่ไม่ได้ดูหดความสูง ไม่ให้เลื่อนยาวเกินจริง
   lsSet('pc_page', n);
-  if (n === 1) chartOpen(); else if (n === 2) calOpen();
+  if (n === 2) chartOpen(); else if (n === 3) calOpen(); else if (n === 0) wxOpen();
 }
-function relayout(){ pgW = pageW(); trk(-pg * pgW, false); if (pg === 1) drawChart(); }
+function relayout(){ pgW = pageW(); trk(-pg * pgW, false); if (pg === 2) drawChart(); }
 (function(){
   var el = $('pager');
   el.addEventListener('touchstart', function(e){
@@ -1328,7 +1394,7 @@ function drawChart(){
 function chartOpen(){ syncCtl(); loadK(false); drawChart(); }
 function chartTick(){
   if (curP.btc && curP.gold) $('chRatio').textContent = fmt(curP.btc / curP.gold, 2) + ' oz';
-  if (pg !== 1 || (drag && drag.lock === 1)) return;
+  if (pg !== 2 || (drag && drag.lock === 1)) return;
   loadK(false); drawChart();
 }
 setInterval(chartTick, 1000);
@@ -1397,11 +1463,230 @@ function calRender(){
     'แดง=High ส้ม=Medium  เวลาตามเครื่อง  จางลง=ออกแล้ว'));
 }
 function calOpen(){ syncCal(); calRender(); }
-function calTick(){ if (pg !== 2 || (drag && drag.lock === 1)) return; calRender(); }
+function calTick(){ if (pg !== 3 || (drag && drag.lock === 1)) return; calRender(); }
 setInterval(calTick, 1000);
+SPR.pcloud = ["..y..y.........", "...kkk.........", ".ykyyyk.kkk....", "..kyyykkWWWk...", "...kkkWWWWWWk..", "....kWWWWWWWWk.", "....kkkkkkkkkk."];
+SPR.cloud2 = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk"];
+SPR.rain = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk", "..b..b..b..b..", ".b..b..b..b..."];
+SPR.storm = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk", "......yy......", ".....yy.......", "....yyyy......", ".....yy......."];
+SPR.snow = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk", "..W...W...W...", "....W...W.....", "..W...W...W..."];
+SPR.fog = ["..WWWWWWWWWW..", "..............", ".WWWWWWWWWWWW.", "..............", "...WWWWWWWW..."];
+
+/* ---- หน้า WEATHER: อากาศตอนนี้ + 12 ชม.ข้างหน้า + ฝุ่น + แสงแดด + 3 วัน (Open-Meteo) ---- */
+var WX = null, AQ = null, wxErr = false, wxRetry = null, spC = {};
+$('icoWx').innerHTML = sprite('sun', 2);
+$('icoHr').innerHTML = sprite('cloud2', 2);
+$('icoAq').innerHTML = sprite('heart', 3);
+$('icoSun').innerHTML = sprite('sun', 2);
+$('icoDay').innerHTML = sprite('pcloud', 2);
+function spr(n, px){ var k = n + px; return spC[k] || (spC[k] = sprite(n, px)); }
+function rd(v){ return (v === null || v === undefined || isNaN(v)) ? '--' : Math.round(v); }
+function wxInfo(c, day){
+  if (c === 0) return {t: 'ท้องฟ้าโปร่ง', s: day ? 'sun' : 'moon'};
+  if (c === 1) return {t: 'แจ่มใส', s: day ? 'sun' : 'moon'};
+  if (c === 2) return {t: 'มีเมฆบางส่วน', s: day ? 'pcloud' : 'cloud2'};
+  if (c === 3) return {t: 'เมฆมาก', s: 'cloud2'};
+  if (c === 45 || c === 48) return {t: 'หมอก', s: 'fog'};
+  if (c >= 51 && c <= 57) return {t: 'ฝนปรอย', s: 'rain'};
+  if (c >= 61 && c <= 67) return {t: 'ฝนตก', s: 'rain'};
+  if ((c >= 71 && c <= 77) || c === 85 || c === 86) return {t: 'หิมะ', s: 'snow'};
+  if (c >= 80 && c <= 82) return {t: 'ฝนซู่', s: 'rain'};
+  if (c >= 95) return {t: 'พายุฝนฟ้าคะนอง', s: 'storm'};
+  return {t: '--', s: 'cloud2'};
+}
+function hmin(str){ return parseInt(str.substring(11, 13), 10) * 60 + parseInt(str.substring(14, 16), 10); }
+function uvTxt(u){ return u < 3 ? 'ต่ำ' : (u < 6 ? 'ปานกลาง' : (u < 8 ? 'สูง' : (u < 11 ? 'สูงมาก' : 'รุนแรง'))); }
+function wxDayAt(str){   /* กลางวัน/กลางคืน ตามเวลาพระอาทิตย์ขึ้น-ตกของวันนั้นที่ตำแหน่งนี้ */
+  var D = WX.daily, i, di = 0, m = hmin(str);
+  for (i = 0; i < D.time.length; i++){ if (D.time[i] === str.substring(0, 10)){ di = i; break; } }
+  return m >= hmin(D.sunrise[di]) && m < hmin(D.sunset[di]);
+}
+function segs(n, col){
+  var h = '', i;
+  for (i = 0; i < 10; i++) h += i < n ? '<div class="seg on" style="background:' + col + '"></div>' : '<div class="seg"></div>';
+  return h;
+}
+function wxRender(){
+  $('wxCity').textContent = String(loc.name || '').toUpperCase().substring(0, 18);
+  if (!WX){
+    setT($('wxD'), wxErr ? 'โหลดสภาพอากาศไม่ได้ ลองใหม่อัตโนมัติ' : 'LOADING...');
+    return;
+  }
+  var c = WX.current, H = WX.hourly, D = WX.daily, inf, i, k, h = '', pp, key, i0 = 0, day, dt, nm, sr, ss, fr, full;
+  day = wxDayAt(c.time); inf = wxInfo(c.weather_code, day);
+  setH($('wxIc'), spr(inf.s, 5));
+  setT($('wxT'), rd(c.temperature_2m) + '°C');
+  setT($('wxD'), inf.t);
+  setT($('wxF'), 'รู้สึกเหมือน ' + rd(c.apparent_temperature) + '°C');
+  setT($('wxH'), 'ชื้น ' + rd(c.relative_humidity_2m) + '%  ลม ' + rd(c.wind_speed_10m) + ' กม./ชม.');
+  setT($('wxU'), 'UV สูงสุดวันนี้ ' + rd(D.uv_index_max[0]) + ' (' + uvTxt(D.uv_index_max[0]) + ')');
+  key = c.time.substring(0, 13);
+  for (i = 0; i < H.time.length; i++){ if (H.time[i].substring(0, 13) >= key){ i0 = i; break; } }
+  for (k = 0; k < 6; k++){
+    i = i0 + k * 2; if (i >= H.time.length) break;
+    inf = wxInfo(H.weather_code[i], wxDayAt(H.time[i])); pp = H.precipitation_probability[i];
+    h += '<div class="hc"><b>' + (k === 0 ? 'NOW' : H.time[i].substring(11, 16)) + '</b><div class="ic2">' + spr(inf.s, 2) + '</div>' +
+      '<b class="temp">' + rd(H.temperature_2m[i]) + '°</b>' + (pp === null || pp === undefined ? '--' : pp) + '%' +
+      '<div class="rbar"><i style="width:' + (pp || 0) + '%"></i></div></div>';
+  }
+  setH($('wxHrs'), h);
+  /* แสงแดด: เวลาปัจจุบันของพื้นที่ = เวลาตอนดึงข้อมูล + เวลาที่ผ่านไป */
+  nm = hmin(c.time) + (Date.now() - WX.at) / 60000; sr = hmin(D.sunrise[0]); ss = hmin(D.sunset[0]);
+  fr = Math.max(0, Math.min(1, (nm - sr) / (ss - sr))); full = Math.round(fr * 10);
+  setH($('sunHp'), segs(full, '#ffcf3a'));
+  setT($('sunT'), 'ขึ้น ' + D.sunrise[0].substring(11, 16) + '  ตก ' + D.sunset[0].substring(11, 16));
+  setT($('sunL'), nm < sr ? 'ดวงอาทิตย์ยังไม่ขึ้น อีก ' + fmtM(Math.round(sr - nm)) + ' ชม.' :
+    (nm >= ss ? 'ดวงอาทิตย์ตกแล้ว' : 'เหลือแสงแดดอีก ' + fmtM(Math.round(ss - nm)) + ' ชม.'));
+  h = '';
+  for (i = 0; i < D.time.length && i < 3; i++){
+    dt = new Date(+D.time[i].substring(0, 4), +D.time[i].substring(5, 7) - 1, +D.time[i].substring(8, 10));
+    inf = wxInfo(D.weather_code[i], true); pp = D.precipitation_probability_max[i];
+    h += '<div class="dr"><span class="dn">' + (i === 0 ? 'วันนี้' : (i === 1 ? 'พรุ่งนี้' : DAYS[dt.getDay()])) + '</span>' +
+      '<span class="ic">' + spr(inf.s, 2) + '</span>' +
+      '<span class="tt"><b class="temp" style="font-weight:normal">' + rd(D.temperature_2m_max[i]) + '°</b> ' + rd(D.temperature_2m_min[i]) + '°</span>' +
+      '<span class="rn">ฝน ' + (pp === null || pp === undefined ? '--' : pp) + '%</span></div>';
+  }
+  setH($('wxDays'), h);
+}
+function aqRender(){
+  if (!AQ){ setT($('aqV'), '--'); setT($('aqT'), wxErr ? 'โหลดข้อมูลฝุ่นไม่ได้ ลองใหม่อัตโนมัติ' : 'LOADING...'); return; }
+  var v = AQ.pm2_5, lv = LV[LV.length - 1], idx = LV.length - 1, i;
+  if (v === null || v === undefined || isNaN(v)){ setT($('aqV'), '--'); setT($('aqT'), 'ไม่มีข้อมูล'); return; }
+  for (i = 0; i < LV.length; i++){ if (v <= LV[i].max){ lv = LV[i]; idx = i; break; } }
+  setT($('aqV'), 'PM2.5 ' + Math.round(v) + ' µg'); $('aqV').style.color = lv.col;
+  setH($('aqHp'), segs(10 - idx * 2, lv.col));
+  setT($('aqT'), lv.txt);
+  setT($('aqX'), 'PM10 ' + rd(AQ.pm10) + '  US AQI ' + rd(AQ.us_aqi));
+  setT($('aqA'), idx <= 1 ? 'อากาศดี ออกกำลังกายกลางแจ้งได้' : (idx === 2 ? 'กลุ่มเสี่ยงควรลดกิจกรรมกลางแจ้ง' :
+    (idx === 3 ? 'ควรใส่หน้ากากเมื่ออยู่นอกอาคาร' : 'ใส่หน้ากาก N95 งดกิจกรรมกลางแจ้ง')));
+}
+function wxBad(){
+  wxErr = true; wxRender(); aqRender();
+  if (!wxRetry) wxRetry = setTimeout(function(){ wxRetry = null; loadWx2(); }, 60000);
+}
+function loadWx2(){
+  var q = 'latitude=' + loc.lat + '&longitude=' + loc.lon;
+  get('https://api.open-meteo.com/v1/forecast?' + q + '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m' +
+    '&hourly=temperature_2m,precipitation_probability,weather_code' +
+    '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,sunrise,sunset&forecast_days=3&timezone=auto',
+    function(j){
+      if (!j || !j.current || !j.hourly || !j.daily || !j.daily.sunrise || !j.daily.sunrise[0]){ wxBad(); return; }
+      j.at = Date.now(); WX = j; wxErr = false; wxRender();
+    }, wxBad);
+  get('https://air-quality-api.open-meteo.com/v1/air-quality?' + q + '&current=pm2_5,pm10,us_aqi&timezone=auto',
+    function(j){ if (j && j.current){ AQ = j.current; aqRender(); } else wxBad(); }, wxBad);
+}
+function wxOpen(){ wxRender(); aqRender(); if (!WX || Date.now() - WX.at > 20 * 60000) loadWx2(); }
+function wxTick(){ if (pg !== 0 || (drag && drag.lock === 1)) return; wxRender(); }
+setInterval(wxTick, 20000);
+var _lw = loadWeather;   /* ให้หน้านี้รีเฟรชตามรอบเดียวกับอุณหภูมิ/PM2.5 และตอนย้ายตำแหน่ง */
+loadWeather = function(){ _lw(); loadWx2(); };
+
+
+/* ---- ตัวละคร PLAYER 1: หน้าตา/ชุดเปลี่ยนตามฝุ่น PM2.5, ฝน, ความร้อน-หนาว, แดด UV, กลางวัน-กลางคืน ---- */
+var HR = {
+  body: ["....kkkkkkkk....","..kkyyyyyyyykk..",".kyyyyyyyyyyyyk.",".kyywwyyyyyyyyk.","kyyywyyyyyyyyyyk",
+    "kyyyyyyyyyyyyyyk","kyyyyyyyyyyyyyyk","kyyyyyyyyyyyyyyk","kyyyyyyyyyyyyyyk","kyyyyyyyyyyyyyyk",
+    ".kyyyyyyyyyyyyk.",".kooyyyyyyyyook.","..kkooooooookk..","...kkkkkkkkkk...","..kssk....kssk..","..kkkk....kkkk.."],
+  eyes: ["....kk....kk....","....kW....kW....","....kk....kk...."],
+  shut: ["................","...kkkk..kkkk...","................"],
+  dizzy: ["...k.k....k.k...","....k......k....","...k.k....k.k..."],
+  shades: ["...kkkkkkkkkk...","...kWkk..kWkk...","...kkkk..kkkk..."],
+  brows: ["...kkk....kkk..."],
+  cheeks: ["..pp........pp.."],
+  grin: ["......kkkk......","......krrk......"],
+  smile: ["......k..k......",".......kk......."],
+  flat: ["......kkkk......"],
+  mask: ["..kbbbbbbbbbbk..","..kbWWWWWWWWbk..","..kbbbbbbbbbbk..","...kbbbbbbbbk..."],
+  n95: ["..kkWWWWWWWWkk..","..kWWWWggWWWWk..","..kWWWWWWWWWWk..","...kkWWWWWWkk..."],
+  scarf: ["..kkrrrrrrrrkk..","...kkrrrrkkkk...","......krrk......","......kkkk......"],
+  umb: ["......kkkkkkkk......","....kkrrrrrrrrkk....","..kkrrrWrrrrWrrrkk..",".kkrrrrrrrrrrrrrrkk."],
+  sprout: ["........gggg........",".........gg........."],
+  drop: ["b.","bb","bb"], zzz: ["WWW","..W",".W.","WWW"], heart: ["r.r","rrr",".r."]
+};
+function heroRows(o){
+  var g = [], i, j, k;
+  for (i = 0; i < 20; i++){ g.push([]); for (j = 0; j < 20; j++) g[i].push('.'); }
+  function put(rows, dx, dy){
+    for (var y = 0; y < rows.length; y++) for (var x = 0; x < rows[y].length; x++){
+      var c = rows[y].charAt(x);
+      if (c !== '.' && g[y + dy] && x + dx < 20) g[y + dy][x + dx] = c;
+    }
+  }
+  var lv = o.lv, awake = !o.night || lv >= 3, calm = lv <= 2;
+  if (!o.rain) put(HR.sprout, 0, 2);
+  put(HR.body, 2, 4);
+  if (lv === 4) put(HR.dizzy, 2, 9);
+  else if (o.shade && calm) put(HR.shades, 2, 9);
+  else put(o.blink || !awake ? HR.shut : HR.eyes, 2, 9);
+  if (lv === 3 || lv === 4) put(HR.brows, 2, 8);
+  if (lv <= 2) put(HR.cheeks, 2, 12);
+  if (lv === 0) put(HR.grin, 2, 13);
+  else if (lv === 1) put(HR.smile, 2, 13);
+  else if (lv === 2) put(HR.flat, 2, 13);
+  else if (lv === 3) put(HR.mask, 2, 12);
+  else put(HR.n95, 2, 12);
+  if (o.cold) put(HR.scarf, 2, 16);
+  if (o.rain){
+    put(HR.umb, 0, 0);
+    put(['b','b'], 0, 5); put(['b','b'], 1, 9); put(['b','b'], 0, 13); put(['b','b'], 19, 7); put(['b','b'], 18, 11); put(['b','b'], 19, 15);
+  }
+  if (o.hot || lv === 4) put(HR.drop, 18, 5);
+  if (o.night && awake === false) put(HR.zzz, 15, 0);
+  if (lv === 0 && !o.night && !o.rain) put(HR.heart, 16, 1);
+  var out = [];
+  for (i = 0; i < 20; i++) out.push(g[i].join(''));
+  return out;
+}
+var heroBlink = false;
+function heroState(){
+  var o = {lv: 1, rain: false, rainNow: false, hot: false, cold: false, shade: false, night: false}, i, k, c, H, D, key, i0 = 0, day, code, t, ap;
+  if (AQ && AQ.pm2_5 !== null && AQ.pm2_5 !== undefined && !isNaN(AQ.pm2_5)){
+    o.lv = LV.length - 1;
+    for (i = 0; i < LV.length; i++){ if (AQ.pm2_5 <= LV[i].max){ o.lv = i; break; } }
+  }
+  if (WX){
+    c = WX.current; H = WX.hourly; D = WX.daily; day = wxDayAt(c.time); code = c.weather_code;
+    t = c.temperature_2m; ap = c.apparent_temperature;
+    o.night = !day; o.hot = t >= 35 || ap >= 38; o.cold = t <= 22;
+    o.rainNow = (code >= 51 && code <= 67) || (code >= 80 && code <= 82) || code >= 95;
+    key = c.time.substring(0, 13);
+    for (i = 0; i < H.time.length; i++){ if (H.time[i].substring(0, 13) >= key){ i0 = i; break; } }
+    o.rain = o.rainNow;
+    for (k = 0; k < 4 && i0 + k < H.time.length; k++){ if (H.precipitation_probability[i0 + k] >= 60) o.rain = true; }
+    o.shade = day && D.uv_index_max[0] >= 8 && !o.rain;
+  }
+  return o;
+}
+function heroRender(){
+  if (!WX && !AQ) return;
+  var o = heroState(), px = window.innerHeight < 500 ? 3 : 5, name = 'hero' + [o.lv, +o.rain, +o.hot, +o.cold, +o.shade, +o.night, +heroBlink].join('');
+  if (!SPR[name]) SPR[name] = heroRows({lv: o.lv, rain: o.rain, hot: o.hot, cold: o.cold, shade: o.shade, night: o.night, blink: heroBlink});
+  setH($('hero'), spr(name, px));
+  var say = o.lv === 4 ? 'อันตราย! ฝุ่นหนักมาก อยู่ในบ้านนะ' : o.lv === 3 ? 'ฝุ่นเยอะ ใส่หน้ากากก่อนออกไปนะ!' :
+    o.rainNow ? 'ฝนตกอยู่! อย่าลืมพกร่ม' : o.rain ? 'เดี๋ยวฝนอาจตก พกร่มไว้นะ' :
+    o.hot ? 'ร้อนจัง! ดื่มน้ำเยอะๆ นะ' : o.shade ? 'แดดจัดมาก! ใส่แว่นกันแดดหน่อย' :
+    o.cold ? 'หนาวจัง! ใส่ผ้าพันคอด้วยนะ' : o.lv === 2 ? 'ฝุ่นเริ่มมาแล้วนะ ระวังหน่อย' :
+    o.night ? 'ง่วงแล้ว... ราตรีสวัสดิ์' : o.lv === 1 ? 'วันนี้อากาศดี ไปเดินเล่นกัน!' : 'อากาศดีที่สุด! สดชื่นสุดๆ';
+  var eq = [];
+  if (o.lv === 3) eq.push('MASK'); if (o.lv === 4) eq.push('N95');
+  if (o.rain) eq.push('UMBRELLA'); if (o.shade && o.lv <= 2) eq.push('SHADES');
+  if (o.cold) eq.push('SCARF'); if (o.night && o.lv < 3) eq.push('SLEEP');
+  setT($('heroSay'), say);
+  setH($('heroHp'), segs(10 - o.lv * 2, LV[o.lv].col));
+  setT($('heroEq'), 'HP ' + LV[o.lv].txt.replace(/\s+/g, ' ') + '  EQUIP: ' + (eq.length ? eq.join(' ') : '-'));
+}
+$('icoHero').innerHTML = sprite('heart', 3);
+var _wr = wxRender, _aq = aqRender;
+wxRender = function(){ _wr(); heroRender(); };
+aqRender = function(){ _aq(); heroRender(); };
+setInterval(function(){   /* กะพริบตา */
+  if (pg !== 0 || heroBlink) return;
+  heroBlink = true; heroRender();
+  setTimeout(function(){ heroBlink = false; heroRender(); }, 180);
+}, 3500);
 syncCtl(); relayout();
-var sp0 = lsGet('pc_page');
-if (sp0 === 1 || sp0 === 2) setPage(sp0, false);
+setPage(1, false);   // เปิดมาที่หน้า MARKET ทุกครั้ง
 
 renderAlerts(); renderSess();
 loadPrice(); loadWeather(); connectWS(); loadSpot(); locate();
