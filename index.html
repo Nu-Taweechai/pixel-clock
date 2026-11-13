@@ -197,6 +197,46 @@ input.num{width:120px}
   .status{font-size:7px;line-height:1.4;padding:4px 6px calc(env(safe-area-inset-bottom) + 4px)}
   .alert{font-size:8px;line-height:1.5;padding:5px}
 }
+
+/* ===== หน้าสลับ: MARKET / CHART (ปัดซ้าย-ขวา) ===== */
+.tabs{display:-webkit-flex;display:flex;margin:0 0 10px}
+.tb{-webkit-flex:1;flex:1;font-family:inherit;font-size:9px;line-height:1.4;padding:8px 4px;margin-right:4px;
+  background:#0b0820;color:var(--dim);border:3px solid #000;border-radius:0;-webkit-appearance:none;cursor:pointer}
+.tb:last-child{margin-right:0}
+.tb.on{background:#2a2457;color:var(--gold);box-shadow:inset 0 -4px 0 var(--gold)}
+#pager{overflow:hidden;position:relative;padding:0 8px 8px 0;-ms-touch-action:pan-y;touch-action:pan-y}
+#track{display:-webkit-flex;display:flex;-webkit-align-items:flex-start;align-items:flex-start;width:300%;will-change:transform}
+.pg{-webkit-flex:none;flex:none;width:33.3333%;min-width:0}
+.pg.off{visibility:hidden;max-height:0;overflow:hidden}
+.ctl{display:-webkit-flex;display:flex;margin-bottom:6px}
+.ctl .btn{margin-right:4px}
+.btn.on{color:var(--gold);border-color:var(--gold)}
+#cvBox{position:relative;margin:8px 0 4px;background:#0b0820;border:3px solid #000;text-align:center;line-height:0;overflow:hidden}
+#cv{display:block;margin:0 auto;image-rendering:-webkit-optimize-contrast;image-rendering:pixelated;shape-rendering:crispEdges}
+#chHi,#chLo{position:absolute;left:5px;font-size:7px;line-height:1.2;color:var(--dim);text-shadow:1px 1px 0 #000;pointer-events:none}
+#chHi{top:3px} #chLo{bottom:3px}
+#chMsg{display:none;position:absolute;left:0;right:0;top:50%;margin-top:-8px;font-size:8px;line-height:1.6;color:var(--dim)}
+.axis{display:-webkit-flex;display:flex;-webkit-justify-content:space-between;justify-content:space-between;font-size:8px;color:var(--dim);margin-bottom:2px}
+.btn.gap{margin-left:8px}
+.cr{margin-top:6px;padding:6px 6px 6px 8px;background:#0b0820;border:3px solid #000;font-size:9px;line-height:1.7;color:var(--text);overflow-wrap:anywhere}
+.cr .tm{color:var(--gold)}
+.cr .cs{color:var(--dim);padding-left:15px}
+.cr.past{opacity:.45}
+.cr.nx{border-color:var(--gold);background:#2a2457}
+.dh{margin-top:10px;font-size:9px;line-height:1.6;color:var(--lite)}
+@media (max-width:599px){ .cr,.dh{font-size:8px} }
+@media (min-width:600px){ .cr,.dh{font-size:11px} }
+@media (orientation:landscape) and (max-height:500px){
+  #pagerbox{grid-column:2;grid-row:1 / span 2;min-width:0;min-height:0;height:100%;
+    display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column}
+  #pager{-webkit-flex:1;flex:1;min-height:0;padding-bottom:0}
+  #track{height:100%}
+  .pg{height:100%;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .grid{grid-column:auto;grid-row:auto;height:auto;overflow:visible;padding:0 6px 8px 0}
+  .tabs{margin-bottom:5px} .tb{font-size:7px;padding:4px 2px;border-width:2px}
+  #cvBox{margin:4px 0 2px} .axis{font-size:7px}
+  .cr{font-size:8px;margin-top:4px;padding:3px 5px;border-width:2px} .dh{font-size:8px;margin-top:6px}
+}
 </style>
 </head>
 <body>
@@ -214,6 +254,10 @@ input.num{width:120px}
     <div id="date">&nbsp;</div>
   </div>
 
+  <div id="pagerbox">
+  <div class="tabs" id="tabs"><button type="button" class="tb on" data-p="0">MARKET</button><button type="button" class="tb" data-p="1">CHART</button><button type="button" class="tb" data-p="2">NEWS</button></div>
+  <div id="pager"><div id="track">
+  <div class="pg" id="pg0">
   <div class="grid">
     <div class="panel wide">
       <div class="lab"><span id="icoBtc" class="coinspin"></span>BITCOIN (BTC/USD)</div>
@@ -278,6 +322,45 @@ input.num{width:120px}
       <div id="aList"></div>
     </div>
   </div>
+  </div>
+  <div class="pg off" id="pg1">
+  <div class="grid">
+    <div class="panel wide">
+      <div class="lab"><span id="icoCh"></span><span id="chName">BTC/USD</span></div>
+      <div class="ctl" id="chAst"><button type="button" class="btn" data-a="btc">BTC</button><button type="button" class="btn" data-a="gold">GOLD</button></div>
+      <div class="ctl" id="chRng"><button type="button" class="btn" data-r="1H">1H</button><button type="button" class="btn" data-r="24H">24H</button><button type="button" class="btn" data-r="7D">7D</button><button type="button" class="btn" data-r="30D">30D</button></div>
+      <div class="val" id="chPx">$ ---</div>
+      <div class="sub"><span id="chChg" class="chg"></span></div>
+      <div id="cvBox"><canvas id="cv" width="10" height="10"></canvas><span id="chHi"></span><span id="chLo"></span><div id="chMsg"></div></div>
+      <div class="axis"><span id="chL"></span><span>NOW</span></div>
+      <div class="sub" id="chNote">&nbsp;</div>
+    </div>
+    <div class="panel">
+      <div class="lab"><span id="icoRatio"></span>BTC/GOLD</div>
+      <div class="val sm" id="chRatio">--</div>
+      <div class="sub">1 BTC ซื้อทองได้</div>
+    </div>
+    <div class="panel">
+      <div class="lab"><span id="icoSwing"></span>SWING</div>
+      <div class="val sm" id="chSwing">--</div>
+      <div class="sub" id="chSwingT">&nbsp;</div>
+    </div>
+  </div>
+  </div>
+  <div class="pg off" id="pg2">
+  <div class="grid">
+    <div class="panel wide">
+      <div class="lab"><span id="icoCal"></span>NEWS CALENDAR</div>
+      <div class="ctl" id="calDay"><button type="button" class="btn" data-k="day" data-v="T">TODAY</button><button type="button" class="btn" data-k="day" data-v="N">TMRW</button><button type="button" class="btn" data-k="day" data-v="W">WEEK</button></div>
+      <div class="ctl" id="calFlt"><button type="button" class="btn" data-k="cur" data-v="USD">USD</button><button type="button" class="btn" data-k="cur" data-v="ALL">ALL</button><button type="button" class="btn gap" data-k="imp" data-v="H">HIGH</button><button type="button" class="btn" data-k="imp" data-v="HM">H+M</button></div>
+      <div class="sub" id="calSum">&nbsp;</div>
+      <div id="calList"></div>
+      <div class="sub" id="calNote">&nbsp;</div>
+    </div>
+  </div>
+  </div>
+  </div></div>
+  </div>
 </div>
 <div class="ground"></div>
 <div class="status" id="status">LOADING...</div>
@@ -285,7 +368,7 @@ input.num{width:120px}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v1.3',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v1.6',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -758,6 +841,7 @@ function saveState(){
 }
 var nc = lsGet('pc_news');   /* ข่าวที่เก็บไว้ในเครื่อง กันโดน rate limit เวลาเปิด/รีโหลดบ่อย */
 if (nc && nc.news && nc.news.length !== undefined){ news = nc.news; lastNews = new Date(nc.at); newsMax = nc.max || 0; }
+var allEv = (nc && nc.all && nc.all.length !== undefined) ? nc.all : [];   /* ข่าวทุกสกุล High+Medium สำหรับหน้า NEWS */
 function parseFF(str){
   var m = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(?:\.\d+)?(Z|([+-])(\d\d):?(\d\d))?$/.exec(str || '');
   if (!m) return null;
@@ -777,13 +861,14 @@ function fetchNewsOne(url, cb){
 }
 function loadNews(){
   newsDiag = '';
-  var pending = NEWS_URLS.length, all = [], seen = {}, anyOk = false, maxT = 0, i;
+  var pending = NEWS_URLS.length, all = [], seen = {}, allx = [], seenx = {}, anyOk = false, maxT = 0, i;
   function done(){
     if (--pending > 0) return;
     if (anyOk){
       all.sort(function(a, b){ return a.t - b.t; });
+      allx.sort(function(a, b){ return a.t - b.t; }); allEv = allx;
       news = all; newsMax = maxT; newsOk = true; lastNews = new Date();
-      lsSet('pc_news', {at: lastNews.getTime(), news: all, max: maxT});
+      lsSet('pc_news', {at: lastNews.getTime(), news: all, all: allx, max: maxT});
     } else {
       newsOk = false;   /* ลองใหม่ใน 5 นาที ระหว่างนั้นใช้ข่าวที่เก็บไว้ถ้ามี */
       if (!newsRetry) newsRetry = setTimeout(function(){ newsRetry = null; loadNews(); }, 300000);
@@ -797,6 +882,10 @@ function loadNews(){
         for (var k = 0; k < j.length; k++){
           var e = j[k], t = parseFF(e.date);
           if (t !== null && t > maxT) maxT = t;
+          if (t !== null && (e.impact === 'High' || e.impact === 'Medium')){
+            var kx = t + '|' + e.country + '|' + e.title;
+            if (!seenx[kx]){ seenx[kx] = 1; allx.push({t: t, key: kx, cur: e.country, title: e.title, impact: e.impact, fc: e.forecast, pv: e.previous}); }
+          }
           if (t === null || !CONFIG.newsCurrencies[e.country] || !CONFIG.newsImpacts[e.impact]) continue;
           var key = t + '|' + e.country + '|' + e.title;
           if (seen[key]) continue;
@@ -1030,9 +1119,293 @@ document.addEventListener('visibilitychange', keepAwake);
 document.addEventListener('click', keepAwake);
 keepAwake();
 
+/* ---- หน้าสลับ: ปัดซ้าย = หน้าถัดไป (MARKET > CHART > NEWS), ปัดขวา = ย้อนกลับ ---- */
+var NPG = 3, pg = 0, pgW = 0, drag = null, offT = null;
+function trk(x, anim){
+  var st = $('track').style;
+  st.webkitTransition = anim ? '-webkit-transform .24s steps(6,end)' : 'none';
+  st.transition = anim ? 'transform .24s steps(6,end)' : 'none';
+  st.webkitTransform = st.transform = 'translate3d(' + x + 'px,0,0)';
+}
+function pgEl(i){ return $('pg' + i); }
+function pageW(){ return pgEl(0).getBoundingClientRect().width; }
+function setPage(n, anim){
+  var i, b = $('tabs').getElementsByTagName('button');
+  pg = n; pgW = pageW();
+  for (i = 0; i < NPG; i++){ pgEl(i).className = 'pg'; b[i].className = 'tb' + (i === n ? ' on' : ''); }   // ให้เห็นทุกหน้าระหว่างเลื่อน
+  trk(-n * pgW, anim);
+  clearTimeout(offT);
+  offT = setTimeout(function(){ for (var j = 0; j < NPG; j++){ if (j !== n) pgEl(j).className = 'pg off'; } }, anim ? 300 : 0);   // หน้าที่ไม่ได้ดูหดความสูง ไม่ให้เลื่อนยาวเกินจริง
+  lsSet('pc_page', n);
+  if (n === 1) chartOpen(); else if (n === 2) calOpen();
+}
+function relayout(){ pgW = pageW(); trk(-pg * pgW, false); if (pg === 1) drawChart(); }
+(function(){
+  var el = $('pager');
+  el.addEventListener('touchstart', function(e){
+    if (e.touches.length !== 1){ drag = null; return; }
+    drag = {x: e.touches[0].clientX, y: e.touches[0].clientY, raw: 0, lock: 0, t: Date.now()};
+  }, false);
+  el.addEventListener('touchmove', function(e){
+    if (!drag) return;
+    var t = e.touches[0], dx = t.clientX - drag.x, dy = t.clientY - drag.y, i;
+    if (!drag.lock){
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      drag.lock = Math.abs(dx) > Math.abs(dy) * 1.2 ? 1 : 2;   // 1 = ปัดแนวนอน (สลับหน้า) | 2 = เลื่อนขึ้นลงตามปกติ
+      if (drag.lock === 1){
+        pgW = pageW(); clearTimeout(offT);
+        for (i = 0; i < NPG; i++) pgEl(i).className = 'pg';
+      }
+    }
+    if (drag.lock !== 1) return;
+    if (e.cancelable) e.preventDefault();
+    drag.raw = dx;
+    if ((pg === 0 && dx > 0) || (pg === NPG - 1 && dx < 0)) dx = dx / 4;   // ขอบสุด ลากได้นิดเดียว
+    trk(-pg * pgW + dx, false);
+  }, false);
+  function end(e){
+    var d = drag; drag = null;
+    if (!d || d.lock !== 1) return;
+    var go = e.type !== 'touchcancel' && (Math.abs(d.raw) > 50 || (Date.now() - d.t < 250 && Math.abs(d.raw) > 25));
+    if (go && d.raw < 0 && pg < NPG - 1) setPage(pg + 1, true);
+    else if (go && d.raw > 0 && pg > 0) setPage(pg - 1, true);
+    else setPage(pg, true);
+  }
+  el.addEventListener('touchend', end, false);
+  el.addEventListener('touchcancel', end, false);
+})();
+$('tabs').onclick = function(e){
+  var t = e.target || e.srcElement, p = t && t.getAttribute ? t.getAttribute('data-p') : null;
+  if (p !== null) setPage(parseInt(p, 10), true);
+};
+document.addEventListener('keydown', function(e){
+  var n = e.target && e.target.nodeName;
+  if (n === 'INPUT' || n === 'SELECT' || n === 'TEXTAREA') return;
+  if (e.keyCode === 37 && pg < NPG - 1) setPage(pg + 1, true);
+  else if (e.keyCode === 39 && pg > 0) setPage(pg - 1, true);
+});
+window.addEventListener('resize', relayout);
+window.addEventListener('orientationchange', function(){ setTimeout(relayout, 300); });
+
+/* ---- หน้า CHART: กราฟพิกเซลจากแท่งเทียน Binance (BTCUSDT / PAXGUSDT) ---- */
+var KSYM = {btc: 'BTCUSDT', gold: 'PAXGUSDT'};
+var KHOSTS = ['https://api.binance.com', 'https://data-api.binance.vision'];
+var RNG = {'1H': {i: '3m', n: 20, m: 3}, '24H': {i: '1h', n: 24, m: 60}, '7D': {i: '6h', n: 28, m: 360}, '30D': {i: '1d', n: 30, m: 1440}};   // m = นาทีต่อแท่ง
+var CH = {a: 'btc', r: '24H', d: {}, busy: false, fail: 0}, cs0 = lsGet('pc_chart');
+if (cs0 && KSYM[cs0.a]) CH.a = cs0.a;
+if (cs0 && RNG[cs0.r]) CH.r = cs0.r;
+$('icoCh').innerHTML = sprite('bar', 3);
+$('icoRatio').innerHTML = sprite('coin', 3);
+$('icoSwing').innerHTML = sprite('therm', 3);
+
+function syncCtl(){
+  var b = $('chAst').getElementsByTagName('button'), i;
+  for (i = 0; i < b.length; i++) b[i].className = 'btn' + (b[i].getAttribute('data-a') === CH.a ? ' on' : '');
+  b = $('chRng').getElementsByTagName('button');
+  for (i = 0; i < b.length; i++) b[i].className = 'btn' + (b[i].getAttribute('data-r') === CH.r ? ' on' : '');
+  $('chName').textContent = CH.a === 'btc' ? 'BITCOIN (BTC/USD)' : 'GOLD (XAU/USD)';
+  $('chSwingT').textContent = 'สูง-ต่ำ ' + CH.r;
+}
+function chPick(e){
+  var t = e.target || e.srcElement, a = t && t.getAttribute ? t.getAttribute('data-a') : null, r = t && t.getAttribute ? t.getAttribute('data-r') : null;
+  if (a === null && r === null) return;
+  if (a !== null) CH.a = a;
+  if (r !== null) CH.r = r;
+  lsSet('pc_chart', {a: CH.a, r: CH.r});
+  CH.fail = 0; syncCtl(); loadK(false); drawChart();
+}
+$('chAst').onclick = chPick; $('chRng').onclick = chPick;
+
+function fetchK(a, r, hi){
+  var R = RNG[r];
+  function bad(){
+    if (hi + 1 < KHOSTS.length) fetchK(a, r, hi + 1);
+    else { CH.busy = false; CH.fail = Date.now(); drawChart(); }
+  }
+  get(KHOSTS[hi] + '/api/v3/klines?symbol=' + KSYM[a] + '&interval=' + R.i + '&limit=' + R.n, function(j){
+    var ks = [], i, q, o, h, l, c;
+    if (j && j.length) for (i = 0; i < j.length; i++){
+      q = j[i]; o = parseFloat(q[1]); h = parseFloat(q[2]); l = parseFloat(q[3]); c = parseFloat(q[4]);
+      if (isNaN(o) || isNaN(h) || isNaN(l) || isNaN(c)) continue;
+      ks.push({o: o, h: h, l: l, c: c});
+    }
+    if (ks.length < 2){ bad(); return; }
+    CH.d[a + r] = {k: ks, t0: j[0][0], at: Date.now()};
+    CH.busy = false; CH.fail = 0; drawChart();
+  }, bad);
+}
+function loadK(force){
+  var e = CH.d[CH.a + CH.r];
+  if (CH.busy) return;
+  if (!force && e && Date.now() - e.at < 60000) return;
+  if (CH.fail && Date.now() - CH.fail < 15000) return;   // โหลดพลาด รอ 15 วิก่อนลองใหม่
+  CH.busy = true; fetchK(CH.a, CH.r, 0);
+}
+function chSeries(e){
+  /* ทอง: PAXG ปรับด้วยส่วนต่างจากราคา spot ให้ตรงกับตัวเลขหน้าแรก | แท่งล่าสุดใช้ราคาสดตัวเดียวกับหน้าแรก */
+  var off = (CH.a === 'gold' && spotOff !== null) ? spotOff : 0, live = curP[CH.a], k = [], i, q;
+  for (i = 0; i < e.k.length; i++){ q = e.k[i]; k.push({o: q.o + off, h: q.h + off, l: q.l + off, c: q.c + off}); }
+  if (live !== null && live !== undefined){
+    q = k[k.length - 1]; q.c = live;
+    if (live > q.h) q.h = live;
+    if (live < q.l) q.l = live;
+  }
+  return k;
+}
+function chAgg(k, max){   /* แท่งเยอะเกินจอ -> รวมทีละ b แท่ง (นับจากแท่งล่าสุดย้อนกลับ ให้แท่งปัจจุบันเต็มเสมอ) */
+  var b = Math.ceil(k.length / max), out = [], i, j, lo, g, q;
+  for (i = k.length; i > 0; i -= b){
+    lo = Math.max(0, i - b); g = {o: k[lo].o, c: k[i - 1].c, h: k[lo].h, l: k[lo].l};
+    for (j = lo; j < i; j++){ q = k[j]; if (q.h > g.h) g.h = q.h; if (q.l < g.l) g.l = q.l; }
+    out.unshift(g);
+  }
+  return {c: out, b: b, first: k.length - ((out.length - 1) * b + (k.length % b || b))};
+}
+function chTime(t){
+  var d = new Date(t);
+  return (CH.r === '7D' || CH.r === '30D') ? d.getDate() + ' ' + MON[d.getMonth()] : pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+function chDur(m){ return m < 60 ? m + ' นาที' : (m < 1440 ? (m / 60) + ' ชม.' : (m / 1440) + ' วัน'); }
+function drawChart(){
+  var cv = $('cv'), box = $('cvBox'), W = box.clientWidth, e = CH.d[CH.a + CH.r], msg = $('chMsg');
+  if (!cv.getContext || W < 40) return;
+  var CELL = 3, cols = Math.floor(W / CELL), rows = 64, ctx, x, y, g;
+  cv.width = cols; cv.height = rows;                      // 1 ช่องในแคนวาส = 3px บนจอ -> เม็ดพิกเซลชัด
+  cv.style.width = (cols * CELL) + 'px'; cv.style.height = (rows * CELL) + 'px';
+  ctx = cv.getContext('2d');
+  ctx.fillStyle = '#2a2457';
+  for (g = 1; g < 4; g++){ y = Math.round(rows * g / 4); for (x = 0; x < cols; x += 4) ctx.fillRect(x, y, 2, 1); }
+  if (!e){
+    msg.style.display = 'block';
+    msg.textContent = CH.fail ? 'โหลดกราฟไม่ได้ ลองใหม่อัตโนมัติ' : 'LOADING...';
+    $('chHi').textContent = ''; $('chLo').textContent = ''; $('chL').textContent = '';
+    return;
+  }
+  msg.style.display = 'none';
+  /* แท่งละ 4 ช่อง: ไส้ 1 + ตัวแท่ง 3 กว้าง + เว้น 1 | เหลือขวา 4 ช่องไว้ให้จุดราคาปัจจุบัน */
+  var raw = chSeries(e), ag = chAgg(raw, Math.floor((cols - 5) / 4)), K = ag.c, m = K.length, i, q;
+  var hi = -1e18, lo = 1e18;
+  for (i = 0; i < m; i++){ if (K[i].h > hi) hi = K[i].h; if (K[i].l < lo) lo = K[i].l; }
+  var H = hi, L = lo, pd = (hi - lo) * 0.08, first = K[0].o, last = K[m - 1].c;
+  if (pd < hi * 0.0005) pd = hi * 0.0005;
+  hi += pd; lo -= pd;
+  function Y(v){ return Math.round((hi - v) / (hi - lo) * (rows - 4)) + 1; }
+  var k, hasAl = false, py = Y(last);
+  ctx.fillStyle = '#ffcf3a';                               // เส้นประเหลือง = ราคาเตือนที่ตั้งไว้ของสินทรัพย์นี้
+  for (k = 0; k < alerts.length; k++){
+    if (alerts[k].a !== CH.a || alerts[k].p < lo || alerts[k].p > hi) continue;
+    y = Y(alerts[k].p); hasAl = true;
+    for (x = 0; x < cols; x += 4) ctx.fillRect(x, y, 2, 1);
+  }
+  ctx.fillStyle = '#9a93c9';                               // เส้นจุดเทา = ราคาปัจจุบัน
+  for (x = 0; x < cols; x += 2) ctx.fillRect(x, py, 1, 1);
+  var col, x0, yo, yc, top, bot, yh, yl;
+  for (i = 0; i < m; i++){
+    q = K[i]; x0 = 1 + i * 4;
+    col = q.c >= q.o ? '#4cf08a' : '#ff5f6d';              // เขียว = ปิดสูงกว่าเปิด | แดง = ปิดต่ำกว่าเปิด
+    yo = Y(q.o); yc = Y(q.c); yh = Y(q.h); yl = Y(q.l);
+    top = Math.min(yo, yc); bot = Math.max(yo, yc);
+    if (bot - top < 1) bot = top + 1;                       // โดจิ ให้เห็นเป็นขีดหนา 2 ช่อง
+    ctx.fillStyle = col;
+    ctx.fillRect(x0 + 1, yh, 1, yl - yh + 1);              // ไส้เทียน
+    ctx.fillRect(x0, top, 3, bot - top + 1);               // ตัวแท่ง
+    ctx.fillStyle = 'rgba(0,0,0,.35)';                      // เงาใต้ตัวแท่ง ให้ดูนูนแบบพิกเซล
+    ctx.fillRect(x0 + 2, top + 1, 1, bot - top);
+  }
+  ctx.fillStyle = (new Date().getSeconds() & 1) ? '#ffffff' : '#ffcf3a';   // เหรียญกะพริบที่ราคาปัจจุบัน
+  ctx.fillRect(cols - 3, py - 1, 3, 3);
+  var dc = dec(CH.a), pc = (last - first) / first * 100, ce = $('chChg'), mins = RNG[CH.r].m * ag.b;
+  $('chPx').textContent = '$ ' + fmt(last, dc);
+  ce.className = 'chg ' + (pc >= 0 ? 'up' : 'down');
+  ce.textContent = (pc >= 0 ? '▲ +' : '▼ ') + pc.toFixed(2) + '% ' + CH.r;
+  $('chHi').textContent = '$' + fmt(H, dc);
+  $('chLo').textContent = '$' + fmt(L, dc);
+  $('chL').textContent = chTime(e.t0 + ag.first * RNG[CH.r].m * 60000);
+  $('chSwing').textContent = ((H - L) / L * 100).toFixed(1) + '%';
+  $('chNote').textContent = 'แท่งละ ' + chDur(mins) + '  เขียว=ขึ้น แดง=ลง' +
+    (CH.a === 'gold' ? '  ทอง=PAXG ปรับตาม spot' : '') + (hasAl ? '  ประเหลือง=ราคาเตือน' : '');
+}
+function chartOpen(){ syncCtl(); loadK(false); drawChart(); }
+function chartTick(){
+  if (curP.btc && curP.gold) $('chRatio').textContent = fmt(curP.btc / curP.gold, 2) + ' oz';
+  if (pg !== 1 || (drag && drag.lock === 1)) return;
+  loadK(false); drawChart();
+}
+setInterval(chartTick, 1000);
+/* ---- หน้า NEWS: ปฏิทินข่าว Forex Factory ทั้งวัน/ทั้งสัปดาห์ (กรองสกุลเงิน/ระดับข่าวได้) ---- */
+var CAL = {day: 'T', cur: 'USD', imp: 'HM'}, cs1 = lsGet('pc_cal');
+if (cs1){
+  if (cs1.day === 'T' || cs1.day === 'N' || cs1.day === 'W') CAL.day = cs1.day;
+  if (cs1.cur === 'USD' || cs1.cur === 'ALL') CAL.cur = cs1.cur;
+  if (cs1.imp === 'H' || cs1.imp === 'HM') CAL.imp = cs1.imp;
+}
+$('icoCal').innerHTML = sprite('bell', 3);
+function dk(t){ var d = new Date(t); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function syncCal(){
+  var ids = ['calDay', 'calFlt'], i, j, b, k;
+  for (i = 0; i < ids.length; i++){
+    b = $(ids[i]).getElementsByTagName('button');
+    for (j = 0; j < b.length; j++){
+      k = b[j].getAttribute('data-k');
+      b[j].className = 'btn' + (b[j].getAttribute('data-v') === CAL[k] ? ' on' : '') + (j === 2 && i === 1 ? ' gap' : '');
+    }
+  }
+}
+function calPick(e){
+  var t = e.target || e.srcElement, k = t && t.getAttribute ? t.getAttribute('data-k') : null;
+  if (k === null) return;
+  CAL[k] = t.getAttribute('data-v');
+  lsSet('pc_cal', CAL); syncCal(); calRender();
+}
+$('calDay').onclick = calPick; $('calFlt').onclick = calPick;
+function calRender(){
+  var now = Date.now(), tk = todayStr(), t2 = new Date(), nk, list = [], i, e, key, pk = '', h = '', nx = null, past, d, cnt = 0, left = 0;
+  t2.setDate(t2.getDate() + 1); nk = dk(t2.getTime());
+  for (i = 0; i < allEv.length; i++){
+    e = allEv[i];
+    if (CAL.cur === 'USD' && e.cur !== 'USD') continue;
+    if (CAL.imp === 'H' && e.impact !== 'High') continue;
+    key = dk(e.t);
+    if (CAL.day === 'T' && key !== tk) continue;
+    if (CAL.day === 'N' && key !== nk) continue;
+    if (CAL.day === 'W' && key < tk) continue;
+    list.push(e);
+  }
+  for (i = 0; i < list.length; i++){
+    e = list[i]; past = e.t <= now - 5 * 60000;
+    if (!past){ left++; if (!nx) nx = e; }
+  }
+  for (i = 0; i < list.length; i++){
+    e = list[i]; key = dk(e.t); past = e.t <= now - 5 * 60000;
+    if (CAL.day === 'W' && key !== pk){
+      pk = key; d = new Date(e.t);
+      h += '<div class="dh">' + (key === tk ? 'วันนี้ ' : '') + DAYS[d.getDay()] + ' ' + d.getDate() + ' ' + MON[d.getMonth()] + '</div>';
+    }
+    h += '<div class="cr' + (past ? ' past' : (e === nx ? ' nx' : '')) + '"><span class="imp" style="background:' + impCol(e.impact) + '"></span>' +
+      '<span class="tm">' + hhmm(e.t) + '</span> ' + e.cur + ' ' + esc(e.title) +
+      ((e.fc || e.pv) ? '<div class="cs">FC ' + esc(e.fc || '-') + '  PV ' + esc(e.pv || '-') + '</div>' : '') + '</div>';
+  }
+  if (!list.length){
+    h = '<div class="sub">' + (!allEv.length ? (newsOk ? 'ยังไม่มีข้อมูลข่าว' : 'โหลดข่าวไม่ได้ ลองใหม่อัตโนมัติ') :
+      'ไม่มีข่าวตามตัวกรองนี้ ลองเปลี่ยนเป็น ALL หรือ H+M') + '</div>';
+  }
+  setH($('calList'), h);
+  var sum = list.length ? list.length + ' ข่าว' + (CAL.day === 'T' ? ' เหลือ ' + left : '') : '';
+  if (nx && CAL.day !== 'N') sum += '  ถัดไป ' + (nx.t - now <= 0 ? 'NOW!' : 'อีก ' + cd(nx.t - now));
+  setT($('calSum'), sum || '\u00a0');
+  setT($('calNote'), !newsOk ? 'โหลดข่าวไม่ได้ ใช้ข้อมูลที่เก็บไว้' : (newsStale() ? 'ข้อมูลข่าวค้าง ตรวจ GitHub Actions' :
+    'แดง=High ส้ม=Medium  เวลาตามเครื่อง  จางลง=ออกแล้ว'));
+}
+function calOpen(){ syncCal(); calRender(); }
+function calTick(){ if (pg !== 2 || (drag && drag.lock === 1)) return; calRender(); }
+setInterval(calTick, 1000);
+syncCtl(); relayout();
+var sp0 = lsGet('pc_page');
+if (sp0 === 1 || sp0 === 2) setPage(sp0, false);
+
 renderAlerts(); renderSess();
 loadPrice(); loadWeather(); connectWS(); loadSpot(); locate();
-if (!nc || Date.now() - nc.at > CONFIG.newsEverySec * 1000) loadNews(); else showStatus();
+if (!nc || !allEv.length || Date.now() - nc.at > CONFIG.newsEverySec * 1000) loadNews(); else showStatus();
 setInterval(loadPrice, CONFIG.priceEverySec * 1000);
 setInterval(loadWeather, CONFIG.weatherEverySec * 1000);
 setInterval(loadNews, CONFIG.newsEverySec * 1000);
