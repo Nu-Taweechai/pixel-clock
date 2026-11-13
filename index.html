@@ -297,6 +297,16 @@ html.zen #date{font-size:clamp(9px,2.6vw,20px)}
   z-index:16;display:none;background:#3a0a14;border:3px solid var(--down);color:var(--down);font-size:8px;line-height:1.7;
   padding:6px 9px;text-align:center;pointer-events:none;white-space:nowrap;box-shadow:4px 4px 0 rgba(0,0,0,.5)}
 #netwarn small{display:block;font-size:inherit;color:var(--text)}
+/* แมวนอนหลับตอนช่วงเงียบ + ใยแมงมุมที่มุมจอ */
+#wz{display:none;position:absolute;left:28px;top:-14px;font-size:9px;line-height:1;color:var(--text);text-shadow:1px 1px 0 #000;white-space:nowrap;
+  -webkit-animation:zf 2.4s steps(5) infinite;animation:zf 2.4s steps(5) infinite}
+@-webkit-keyframes zf{0%{opacity:0;-webkit-transform:translateY(6px)}50%{opacity:1}100%{opacity:0;-webkit-transform:translateY(-6px)}}
+@keyframes zf{0%{opacity:0;transform:translateY(6px)}50%{opacity:1}100%{opacity:0;transform:translateY(-6px)}}
+.web{position:fixed;top:env(safe-area-inset-top,0px);left:0;z-index:13;pointer-events:none;line-height:0;opacity:.7;display:none}
+.web.r{left:auto;right:0}
+.web.r svg{-webkit-transform:scaleX(-1);transform:scaleX(-1)}
+#spBody{pointer-events:auto}
+#spBody::before{content:"";position:absolute;left:-8px;right:-8px;top:-8px;bottom:-8px}
 /* โหมดนาฬิกาล้วน: บรรทัดอุณหภูมิ + PM2.5 ใต้วันที่ */
 #zenwx{display:none;margin-top:10px;line-height:1.8;color:var(--text);text-shadow:2px 2px 0 #000;font-size:clamp(10px,3vw,24px)}
 #zenwx .sprite{display:inline-block;vertical-align:middle;margin-right:8px}
@@ -418,7 +428,16 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
       <div class="lab"><span id="icoHl"></span>GOLD H/L</div>
       <div class="val xs chg up" id="hlH">H --</div>
       <div class="val xs chg down" id="hlL">L --</div>
-      <div class="sub">นับตั้งแต่เปิดเครื่องวันนี้</div>
+      <div class="sub">ตั้งแต่เที่ยงคืนวันนี้ (เวลาเครื่อง)</div>
+    </div>
+
+    <div class="panel wide" id="fngPanel">
+      <div class="lab"><span id="icoFng"></span><span id="fngName">FEAR &amp; GREED</span></div>
+      <div class="ctl" id="fngSel"><button type="button" class="btn" data-m="crypto">CRYPTO</button><button type="button" class="btn" data-m="gold">GOLD</button></div>
+      <div class="val sm" id="fngV">--</div>
+      <div class="hp" id="fngHp"></div>
+      <div class="sub" id="fngT">&nbsp;</div>
+      <div class="sub" id="fngN">&nbsp;</div>
     </div>
 
     <div class="panel wide">
@@ -437,8 +456,8 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
   <div class="grid">
     <div class="panel wide">
       <div class="lab"><span id="icoCh"></span><span id="chName">BTC/USD</span></div>
-      <div class="ctl" id="chAst"><button type="button" class="btn" data-a="btc">BTC</button><button type="button" class="btn" data-a="gold">GOLD</button></div>
-      <div class="ctl" id="chRng"><button type="button" class="btn" data-r="1H">1H</button><button type="button" class="btn" data-r="24H">24H</button><button type="button" class="btn" data-r="7D">7D</button><button type="button" class="btn" data-r="30D">30D</button></div>
+      <div class="ctl" id="chAst" style="-webkit-flex-wrap:wrap;flex-wrap:wrap"><button type="button" class="btn" data-a="btc">BTC</button><button type="button" class="btn" data-a="gold">GOLD</button><button type="button" class="btn gap" data-s="tv">CANDLE</button><button type="button" class="btn" data-s="line">LINE</button><button type="button" class="btn" data-s="pixel">PIXEL</button></div>
+      <div class="ctl" id="chRng"><button type="button" class="btn" data-r="M15">M15</button><button type="button" class="btn" data-r="H1">H1</button><button type="button" class="btn" data-r="H4">H4</button><button type="button" class="btn" data-r="D1">D1</button><button type="button" class="btn" data-r="W1">W1</button></div>
       <div class="val" id="chPx">$ ---</div>
       <div class="sub"><span id="chChg" class="chg"></span></div>
       <div id="cvBox"><canvas id="cv" width="10" height="10"></canvas><span id="chHi"></span><span id="chLo"></span><div id="chMsg"></div></div>
@@ -475,27 +494,32 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <div id="coins"></div>
 <div id="lvl"></div>
 <div id="netwarn"></div>
-<div id="walker"><div id="wk"></div></div>
+<div id="walker"><div id="wk"></div><div id="wz">Zzz</div></div>
 <div id="spider"><div id="spThread"></div><div id="spBody"></div></div>
+<div id="webL" class="web"></div><div id="webR" class="web r"></div>
 <div class="ground"></div>
 <div class="status" id="status">LOADING...</div>
 
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.4',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.9',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
   gpsEverySec: 1800,     // เช็กตำแหน่งใหม่ทุกกี่วินาที
   goldSpotUrl: 'https://xaus.com/api/v1/spot?compact=1',  // ราคา XAU/USD spot (ฟรี ไม่ต้องใช้ key) ใส่ '' เพื่อปิด
   goldSpotEverySec: 60,  // เซิร์ฟเวอร์แคชไว้ 60 วิ ดึงถี่กว่านี้ไม่ได้ข้อมูลใหม่ (ลิมิต 60 ครั้ง/นาที)
+  liveGoldFut: true,     // ราคาทอง realtime ผ่าน Binance Futures XAUUSDT (ติดตามราคาทองโลกใกล้กว่า PAXG) ตั้ง false เพื่อใช้ PAXG อย่างเดียว
   liveWS: true,          // ราคา BTC/ทอง realtime ผ่าน WebSocket (Binance) ตั้ง false ถ้าอยากใช้แบบดึงทุก priceEverySec เท่านั้น
   priceEverySec: 90,     // ดึงราคาสำรอง + อัตราแลกเปลี่ยน USD/THB (ใช้คำนวณราคาบาท)
   weatherEverySec: 900,  // อัปเดตอุณหภูมิ/PM2.5
+  fngEverySec: 3600,     // Fear & Greed Index (alternative.me) ดึงทุกกี่วินาที ค่าจริงอัปเดตวันละครั้ง (0 = ปิดแผงนี้)
+  hlSeed: true,          // เติม H/L ของทองจากแท่งเทียน PAXG ย้อนหลังถึงเที่ยงคืน กรณีเปิดหน้าสายหรือปิดเครื่องไปนาน (false = นับเฉพาะตอนเปิดหน้านี้)
   staleSec: 300,         // ราคาไม่อัปเดตเกินกี่วินาที (หรือเน็ตหลุด) ให้ขึ้นป้ายแดงเตือนบนจอ (0 = ปิด)
   shiftEverySec: 120,    // โหมดนาฬิกาล้วน: ขยับตำแหน่งทั้งหน้าจอทุกกี่วินาที กันภาพค้างจอ OLED (0 = ปิด)
   shiftPx: 10,           // ขยับห่างจากตำแหน่งกลางได้สูงสุดกี่พิกเซล
+  webAfterSec: 1800,     // ทิ้งไว้ไม่แตะจอนานเท่านี้ แมงมุมจะชักใยที่มุมจอบน (0 = ปิด) แตะจอแล้วใยหายไป
   spiderAfterSec: 300,   // ไม่แตะหน้าจอเกินกี่วินาที แมงมุมจะเกาะใยลงมา (0 = ปิด) แตะจอเมื่อไหร่ก็ไต่กลับขึ้นไป
 
   /* --- เตือนราคา / ช่วงเงียบ / รีโหลด --- */
@@ -641,6 +665,7 @@ $('icoAlert').innerHTML = sprite('bell', 3);
 $('icoSess').innerHTML = sprite('sun', 2);
 $('icoFx').innerHTML = sprite('coin', 3);
 $('icoHl').innerHTML = sprite('bar', 3);
+$('icoFng').innerHTML = sprite('therm', 3);
 (function(){
   var s = '';
   for (var i = 0; i < 28; i++){
@@ -741,15 +766,134 @@ function renderSess(){
 /* ---- GOLD H/L ของวัน ---- */
 var hl = lsGet('pc_hl');
 function todayStr(){ var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function showHL(){
+  if (!hl) return;
+  $('hlH').textContent = 'H $' + fmt(hl.h, 2);
+  $('hlL').textContent = 'L $' + fmt(hl.l, 2);
+}
 function trackHL(v){
   var t = todayStr(), ch = false;
   if (!hl || hl.d !== t){ hl = {d: t, h: v, l: v, s: Date.now()}; ch = true; }
   if (v > hl.h){ hl.h = v; ch = true; levelCheck('gold', v, hl.s); }
   if (v < hl.l){ hl.l = v; ch = true; }
-  $('hlH').textContent = 'H $' + fmt(hl.h, 2);
-  $('hlL').textContent = 'L $' + fmt(hl.l, 2);
+  showHL();
   if (ch) lsSet('pc_hl', hl);
+  if (hlSeeded !== t) seedHL();
 }
+/* เติม H/L ของวันจากแท่งเทียน PAXG 15 นาที ตั้งแต่เที่ยงคืนเวลาเครื่อง (บวกส่วนต่าง spot ให้ตรงกับราคาหน้าแรก)
+   ข้ามแท่งที่อยู่ในช่วงตลาดทองปิด เพราะ PAXG ยังเทรดช่วงเสาร์-อาทิตย์ แต่ราคา spot นิ่ง */
+var hlSeeded = '', hlSeedAt = 0;
+function closedAt(t){ var d = new Date(t), w = d.getUTCDay(), h = d.getUTCHours(); return w === 6 || (w === 5 && h >= 22) || (w === 0 && h < 22); }
+function seedHL(){
+  if (!CONFIG.hlSeed || spotOff === null || marketClosed() || Date.now() - hlSeedAt < 60000) return;
+  var day = todayStr(), mid = new Date();
+  mid.setHours(0, 0, 0, 0); mid = mid.getTime();
+  hlSeeded = day;
+  function fail(hi){
+    if (hi + 1 < KHOSTS.length) go(hi + 1);
+    else { hlSeeded = ''; hlSeedAt = Date.now(); }   /* พลาดทุกโฮสต์ ลองใหม่ได้หลังผ่านไป 1 นาที */
+  }
+  function go(hi){
+    get(KHOSTS[hi] + '/api/v3/klines?symbol=' + KSYM.gold + '&interval=15m&limit=96', function(j){
+      var i, q, h = null, l = null, ph, pl, off = spotOff || 0;
+      if (j && j.length) for (i = 0; i < j.length; i++){
+        q = j[i];
+        if (q[0] < mid || closedAt(q[0])) continue;
+        ph = parseFloat(q[2]); pl = parseFloat(q[3]);
+        if (isNaN(ph) || isNaN(pl)) continue;
+        if (h === null || ph > h) h = ph;
+        if (l === null || pl < l) l = pl;
+      }
+      if (h === null){ fail(hi); return; }
+      h += off; l += off;
+      if (hlSeeded !== todayStr()) return;   /* ข้ามเที่ยงคืนระหว่างรอ ปล่อยให้รอบถัดไปจัดการ */
+      if (!hl || hl.d !== day) hl = {d: day, h: h, l: l, s: Date.now()};
+      else { if (h > hl.h) hl.h = h; if (l < hl.l) hl.l = l; }
+      lsSet('pc_hl', hl); showHL();
+    }, function(){ fail(hi); });
+  }
+  go(0);
+}
+if (hl && hl.d === todayStr()) showHL();   /* โชว์ค่าที่จำไว้ทันทีตอนเปิดหน้า ไม่ต้องรอราคาโหลด */
+
+/* ---- FEAR & GREED: เลือกดู CRYPTO (ดัชนีจริงจาก alternative.me) หรือ GOLD (คำนวณเองจากแท่งเทียน PAXG) ---- */
+var FNG_TH = {'Extreme Fear': 'กลัวสุดขีด', 'Fear': 'กลัว', 'Neutral': 'เป็นกลาง', 'Greed': 'โลภ', 'Extreme Greed': 'โลภสุดขีด'};
+function fngCol(v){ return v < 25 ? '#ff5f6d' : v < 45 ? '#ff9d57' : v < 55 ? '#ffe14a' : v < 75 ? '#9be86a' : '#4cf08a'; }
+function fngCls(v){ return v < 25 ? 'Extreme Fear' : v < 45 ? 'Fear' : v < 55 ? 'Neutral' : v < 75 ? 'Greed' : 'Extreme Greed'; }
+var fngM = lsGet('pc_fngm') === 'gold' ? 'gold' : 'crypto';
+var fngD = lsGet('pc_fng'), fngG = lsGet('pc_fngg');
+function fngRender(){
+  var d = fngM === 'gold' ? fngG : fngD, b = $('fngSel').getElementsByTagName('button'), i, col, t;
+  for (i = 0; i < b.length; i++) b[i].className = 'btn' + (b[i].getAttribute('data-m') === fngM ? ' on' : '');
+  $('fngName').textContent = fngM === 'gold' ? 'GOLD MOOD (PAXG)' : 'FEAR & GREED (CRYPTO)';
+  if (!d || isNaN(d.v)){
+    $('fngV').style.color = ''; $('fngV').textContent = '--'; setH($('fngHp'), '');
+    $('fngT').textContent = 'LOADING...'; $('fngN').textContent = '';
+    return;
+  }
+  col = fngCol(d.v);
+  $('fngV').style.color = col;
+  $('fngV').textContent = d.v + ' / 100';
+  setH($('fngHp'), segs(Math.max(1, Math.round(d.v / 10)), col));
+  if (fngM === 'gold'){
+    t = (FNG_TH[fngCls(d.v)]) + '  RSI ' + Math.round(d.rsi) + '  30D ' + Math.round(d.pos) + '%';
+    $('fngN').textContent = 'คำนวณเอง: เฉลี่ย RSI14 รายวัน + ตำแหน่งในกรอบ 30 วัน ไม่ใช่ดัชนีทางการ';
+  } else {
+    t = (FNG_TH[d.c] || d.c || '') + (d.y === null || d.y === undefined || isNaN(d.y) ? '' : '  (เมื่อวาน ' + d.y + ')');
+    $('fngN').textContent = 'ที่มา alternative.me (ดัชนีตลาดคริปโต)';
+  }
+  if (Date.now() - d.at > 12 * 3600000) t += '  ข้อมูลเก่า';
+  $('fngT').textContent = t;
+}
+function loadFng(){
+  get('https://api.alternative.me/fng/?limit=2', function(j){
+    var a = j && j.data && j.data[0], b = j && j.data && j.data[1], v = a ? parseInt(a.value, 10) : NaN;
+    if (isNaN(v) || v < 0 || v > 100) return;
+    fngD = {v: v, c: String(a.value_classification || ''), y: b ? parseInt(b.value, 10) : null, at: Date.now()};
+    lsSet('pc_fng', fngD); fngRender();
+  }, function(){ fngRender(); });
+}
+function rsi14(c){   /* RSI แบบ Wilder 14 งวด */
+  var i, d, g = 0, l = 0, ag, al;
+  if (c.length < 15) return null;
+  for (i = 1; i <= 14; i++){ d = c[i] - c[i - 1]; if (d > 0) g += d; else l -= d; }
+  ag = g / 14; al = l / 14;
+  for (i = 15; i < c.length; i++){
+    d = c[i] - c[i - 1];
+    ag = (ag * 13 + (d > 0 ? d : 0)) / 14; al = (al * 13 + (d < 0 ? -d : 0)) / 14;
+  }
+  if (al === 0) return ag === 0 ? 50 : 100;
+  return 100 - 100 / (1 + ag / al);
+}
+function loadFngGold(){
+  function fail(k){ if (k + 1 < KHOSTS.length) go(k + 1); else fngRender(); }
+  function go(k){
+    get(KHOSTS[k] + '/api/v3/klines?symbol=' + KSYM.gold + '&interval=1d&limit=31', function(j){
+      var c = [], hi = null, lo = null, i, q, cl, h, l, r, pos;
+      if (j && j.length) for (i = 0; i < j.length; i++){
+        q = j[i]; h = parseFloat(q[2]); l = parseFloat(q[3]); cl = parseFloat(q[4]);
+        if (isNaN(h) || isNaN(l) || isNaN(cl)) continue;
+        c.push(cl);
+        if (hi === null || h > hi) hi = h;
+        if (lo === null || l < lo) lo = l;
+      }
+      r = rsi14(c);
+      if (r === null || hi === null || hi <= lo){ fail(k); return; }
+      pos = (c[c.length - 1] - lo) / (hi - lo) * 100;
+      fngG = {v: Math.round((r + pos) / 2), rsi: r, pos: pos, at: Date.now()};
+      lsSet('pc_fngg', fngG); fngRender();
+    }, function(){ fail(k); });
+  }
+  go(0);
+}
+function loadFngAll(){ loadFng(); loadFngGold(); }
+$('fngSel').onclick = function(e){
+  var t = e.target || e.srcElement, m = t && t.getAttribute ? t.getAttribute('data-m') : null;
+  if (m !== 'crypto' && m !== 'gold') return;
+  fngM = m; lsSet('pc_fngm', m); fngRender();
+};
+if (!CONFIG.fngEverySec) $('fngPanel').style.display = 'none';
+else fngRender();
 
 /* ---- เตือนราคา ---- */
 var alerts = lsGet('pc_alerts') || [], pAlert = null, hist = {gold: [], btc: []}, lastMove = {gold: 0, btc: 0};
@@ -835,15 +979,22 @@ var fx = null, prevP = {btc: null, gold: null}, curP = {btc: null, gold: null};
 
 /* ---- ทอง XAU/USD spot (xaus.com) + ขยับตาม PAXG realtime ระหว่างรอบดึง ---- */
 var paxg = null, spotGold = null, spotOff = null, lastSpot = null;
+var xperp = null, xAt = 0, spotOffP = null;   // xperp = ราคาล่าสุดของ XAUUSDT perpetual (Binance Futures), spotOffP = ส่วนต่างจาก spot ของแหล่งนี้
+function xFresh(){ return xperp !== null && Date.now() - xAt < 15000; }
 function marketClosed(){   // ตลาดทอง spot ปิดประมาณ ศุกร์ 22:00 UTC ถึง อาทิตย์ 22:00 UTC
   var d = new Date(), w = d.getUTCDay(), h = d.getUTCHours();
   return w === 6 || (w === 5 && h >= 22) || (w === 0 && h < 22);
 }
 function goldCalc(){
-  if (spotGold === null) return paxg;                 // ยังไม่มี spot -> ใช้ PAXG ล้วน
-  if (marketClosed() || paxg === null) return spotGold; // ตลาดปิด/ไม่มี live -> ราคา spot นิ่ง
+  if (spotGold === null) return xFresh() ? xperp : paxg;   // ยังไม่มี spot -> ใช้ feed สดล้วน
+  if (marketClosed()) return spotGold;                      // ตลาดปิด -> ราคา spot นิ่ง
+  if (xFresh()){                                            // ลำดับแรก: XAUUSDT perpetual (tick ทุกวินาที)
+    if (spotOffP === null) spotOffP = spotGold - xperp;
+    return xperp + spotOffP;
+  }
+  if (paxg === null) return spotGold;                       // สำรอง: PAXG
   if (spotOff === null) spotOff = spotGold - paxg;
-  return paxg + spotOff;                              // spot ล่าสุด + การเปลี่ยนแปลงของ PAXG
+  return paxg + spotOff;                                    // spot ล่าสุด + การเปลี่ยนแปลงของ feed สด
 }
 function loadSpot(){
   if (!CONFIG.goldSpotUrl) return;
@@ -853,6 +1004,7 @@ function loadSpot(){
     if (spotGold === null) hist.gold = [];   // เริ่มประวัติใหม่ ไม่ให้ราคา PAXG ก่อนปรับเป็น spot ทำให้เตือนผิด
     spotGold = v;
     spotOff = (paxg !== null) ? v - paxg : null;
+    spotOffP = xFresh() ? v - xperp : null;
     lastSpot = new Date();
     applyPrices(null, null, null, null);
     showStatus();
@@ -871,6 +1023,7 @@ function applyPrices(bu, gu, bc, gc){
     if (bc !== null && bc !== undefined) chg($('btcChg'), bc);
   }
   if (gu !== null && gu !== undefined && !isNaN(gu)) paxg = gu;
+  if (spotOff === null && spotGold !== null && paxg !== null) spotOff = spotGold - paxg;   /* กราฟทองใช้ค่านี้ปรับแท่งเก่า ถ้าว่างแท่งสุดท้ายจะกระโดดจากแท่งอื่น */
   if (gc !== null && gc !== undefined) chg($('goldChg'), gc);
   var gd = goldCalc();
   if (gd !== null){
@@ -911,12 +1064,41 @@ function connectWS(){
     var was = isLive();
     wsAlive = lastTick = Date.now();
     applyPrices(d.s === 'BTCUSDT' ? c : null, d.s === 'PAXGUSDT' ? c : null,
-                d.s === 'BTCUSDT' ? pc : null, d.s === 'PAXGUSDT' ? pc : null);
+                d.s === 'BTCUSDT' ? pc : null, (d.s === 'PAXGUSDT' && !xFresh()) ? pc : null);
     if (!was) showStatus();
   };
   w.onclose = function(){
     if (ws === w) ws = null;
     setTimeout(connectWS, wsDelay); wsDelay = Math.min(wsDelay * 2, 30000);
+    showStatus();
+  };
+  w.onerror = function(){ try { w.close(); } catch(e){} };
+}
+/* ---- realtime ทอง: Binance Futures XAUUSDT (ไม่ต้องใช้ key) ---- */
+var XWS_URL = 'wss://fstream.binance.com/stream?streams=xauusdt@miniTicker';
+var xws = null, xDelay = 2000, xAlive = 0;
+function connectGoldWS(){
+  if (!CONFIG.liveWS || !CONFIG.liveGoldFut || !window.WebSocket) return;
+  var w;
+  try { w = new WebSocket(XWS_URL); } catch(e){ setTimeout(connectGoldWS, xDelay); return; }
+  xws = w; xAlive = Date.now();
+  w.onopen = function(){ xDelay = 2000; xAlive = Date.now(); };
+  w.onmessage = function(ev){
+    var m, d, c, o, was;
+    try { m = JSON.parse(ev.data); } catch(e){ return; }
+    d = m.data;
+    if (!d || d.s !== 'XAUUSDT') return;
+    c = parseFloat(d.c); o = parseFloat(d.o);
+    if (isNaN(c) || c <= 0) return;
+    was = xFresh();
+    if (!was) spotOffP = (curP.gold !== null) ? curP.gold - c : ((spotGold !== null) ? spotGold - c : null);   /* เพิ่งได้ feed แรก/กลับมา: ผูกกับราคาที่โชว์อยู่ ไม่ให้กระโดด */
+    xperp = c; xAt = xAlive = Date.now();
+    applyPrices(null, null, null, o ? (c - o) / o * 100 : null);
+    if (!was) showStatus();
+  };
+  w.onclose = function(){
+    if (xws === w) xws = null;
+    setTimeout(connectGoldWS, xDelay); xDelay = Math.min(xDelay * 2, 30000);
     showStatus();
   };
   w.onerror = function(){ try { w.close(); } catch(e){} };
@@ -927,6 +1109,11 @@ setInterval(function(){
     var w = ws; ws = null; w.onclose = null;
     try { w.close(); } catch(e){}
     connectWS();
+  }
+  if (xws && !marketClosed() && Date.now() - xAlive > 30000){   /* ตลาดปิดแล้วเงียบเป็นปกติ ไม่ต้องรีเซ็ต */
+    var w2 = xws; xws = null; w2.onclose = null;
+    try { w2.close(); } catch(e){}
+    connectGoldWS();
   }
   showStatus();
 }, 5000);
@@ -1211,6 +1398,7 @@ function showStatus(){
   if (!priceOk || !wxOk) s += '<b>OFFLINE</b> ลองใหม่อัตโนมัติ  ';
   if (lastSpot) s += (marketClosed() ? '<b>XAU CLOSED</b>  ' : 'XAU ' + pad(lastSpot.getHours()) + ':' + pad(lastSpot.getMinutes()) + '  ');
   if (isLive()) s += '<b>LIVE</b>  ';
+  if (xFresh() && !marketClosed()) s += 'XAUFUT  ';
   if (isQuiet()) s += 'QUIET  ';
   if (gpsState) s += (gpsState === 'GPS' ? gpsState : '<b>' + gpsState + '</b>') + '  ';
   else if (lastPrice) s += 'PRICE ' + pad(lastPrice.getHours()) + ':' + pad(lastPrice.getMinutes()) + '  ';
@@ -1309,28 +1497,31 @@ window.addEventListener('orientationchange', function(){ setTimeout(relayout, 30
 /* ---- หน้า CHART: กราฟพิกเซลจากแท่งเทียน Binance (BTCUSDT / PAXGUSDT) ---- */
 var KSYM = {btc: 'BTCUSDT', gold: 'PAXGUSDT'};
 var KHOSTS = ['https://api.binance.com', 'https://data-api.binance.vision'];
-var RNG = {'1H': {i: '3m', n: 20, m: 3}, '24H': {i: '1h', n: 24, m: 60}, '7D': {i: '6h', n: 28, m: 360}, '30D': {i: '1d', n: 30, m: 1440}};   // m = นาทีต่อแท่ง
-var CH = {a: 'btc', r: '24H', d: {}, busy: false, fail: 0}, cs0 = lsGet('pc_chart');
+var RNG = {'M15': {i: '15m', n: 96, m: 15, s: '24H', d: 0}, 'H1': {i: '1h', n: 96, m: 60, s: '4D', d: 0}, 'H4': {i: '4h', n: 90, m: 240, s: '15D', d: 1}, 'D1': {i: '1d', n: 90, m: 1440, s: '90D', d: 1}, 'W1': {i: '1w', n: 52, m: 10080, s: '1Y', d: 1}};   // Timeframe = ขนาดแท่งเทียน | m = นาทีต่อแท่ง | s = ช่วงเวลาที่ครอบคลุม | d = แสดงวันที่ที่แกนเวลา
+var CH = {a: 'btc', r: 'H1', s: 'tv', cx: null, d: {}, busy: false, fail: 0}, cs0 = lsGet('pc_chart');   // s = สไตล์กราฟ: tv แท่งเทียน | line เส้น | pixel พิกเซลเดิม, cx = ตำแหน่งนิ้วที่แตะ
 if (cs0 && KSYM[cs0.a]) CH.a = cs0.a;
 if (cs0 && RNG[cs0.r]) CH.r = cs0.r;
+if (cs0 && (cs0.s === 'tv' || cs0.s === 'line' || cs0.s === 'pixel')) CH.s = cs0.s;
 $('icoCh').innerHTML = sprite('bar', 3);
 $('icoRatio').innerHTML = sprite('coin', 3);
 $('icoSwing').innerHTML = sprite('therm', 3);
 
 function syncCtl(){
   var b = $('chAst').getElementsByTagName('button'), i;
-  for (i = 0; i < b.length; i++) b[i].className = 'btn' + (b[i].getAttribute('data-a') === CH.a ? ' on' : '');
+  for (i = 0; i < b.length; i++) b[i].className = 'btn' + ((b[i].getAttribute('data-a') === CH.a || b[i].getAttribute('data-s') === CH.s) ? ' on' : '') + (b[i].getAttribute('data-s') === 'tv' ? ' gap' : '');
   b = $('chRng').getElementsByTagName('button');
   for (i = 0; i < b.length; i++) b[i].className = 'btn' + (b[i].getAttribute('data-r') === CH.r ? ' on' : '');
   $('chName').textContent = CH.a === 'btc' ? 'BITCOIN (BTC/USD)' : 'GOLD (XAU/USD)';
-  $('chSwingT').textContent = 'สูง-ต่ำ ' + CH.r;
+  $('chSwingT').textContent = 'สูง-ต่ำ ' + RNG[CH.r].s;
 }
 function chPick(e){
-  var t = e.target || e.srcElement, a = t && t.getAttribute ? t.getAttribute('data-a') : null, r = t && t.getAttribute ? t.getAttribute('data-r') : null;
-  if (a === null && r === null) return;
+  var t = e.target || e.srcElement, a = t && t.getAttribute ? t.getAttribute('data-a') : null, r = t && t.getAttribute ? t.getAttribute('data-r') : null, st = t && t.getAttribute ? t.getAttribute('data-s') : null;
+  if (a === null && r === null && st === null) return;
   if (a !== null) CH.a = a;
   if (r !== null) CH.r = r;
-  lsSet('pc_chart', {a: CH.a, r: CH.r});
+  if (st === 'tv' || st === 'line' || st === 'pixel') CH.s = st;
+  CH.cx = null;
+  lsSet('pc_chart', {a: CH.a, r: CH.r, s: CH.s});
   CH.fail = 0; syncCtl(); loadK(false); drawChart();
 }
 $('chAst').onclick = chPick; $('chRng').onclick = chPick;
@@ -1382,12 +1573,13 @@ function chAgg(k, max){   /* แท่งเยอะเกินจอ -> ร�
 }
 function chTime(t){
   var d = new Date(t);
-  return (CH.r === '7D' || CH.r === '30D') ? d.getDate() + ' ' + MON[d.getMonth()] : pad(d.getHours()) + ':' + pad(d.getMinutes());
+  return RNG[CH.r].d ? d.getDate() + ' ' + MON[d.getMonth()] : pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
-function chDur(m){ return m < 60 ? m + ' นาที' : (m < 1440 ? (m / 60) + ' ชม.' : (m / 1440) + ' วัน'); }
-function drawChart(){
+function chDur(m){ return m < 60 ? m + ' นาที' : (m < 1440 ? (m / 60) + ' ชม.' : (m < 10080 ? (m / 1440) + ' วัน' : (m / 10080) + ' สัปดาห์')); }
+function drawChartPixel(){
   var cv = $('cv'), box = $('cvBox'), W = box.clientWidth, e = CH.d[CH.a + CH.r], msg = $('chMsg');
   if (!cv.getContext || W < 40) return;
+  cv.style.imageRendering = ''; $('chL').parentNode.style.display = '';   // กลับมาใช้สไตล์พิกเซลของ CSS
   var CELL = 3, cols = Math.floor(W / CELL), rows = 64, ctx, x, y, g;
   cv.width = cols; cv.height = rows;                      // 1 ช่องในแคนวาส = 3px บนจอ -> เม็ดพิกเซลชัด
   cv.style.width = (cols * CELL) + 'px'; cv.style.height = (rows * CELL) + 'px';
@@ -1418,25 +1610,28 @@ function drawChart(){
   }
   ctx.fillStyle = '#9a93c9';                               // เส้นจุดเทา = ราคาปัจจุบัน
   for (x = 0; x < cols; x += 2) ctx.fillRect(x, py, 1, 1);
+  /* ระยะห่างแท่งปรับตามจำนวนแท่ง: ให้แท่งกระจายเต็มกราฟ แท่งสุดท้ายชิดจุดราคาปัจจุบัน (เดิมตายตัว 4 ช่อง ทำให้แท่งน้อยๆ กองอยู่ซ้าย) */
+  var avail = cols - 5, p0 = Math.floor(avail / m), bw = p0 < 7 ? 3 : (p0 < 10 ? 5 : 7);
+  var pitch = m > 1 ? Math.min(12, (avail - bw) / (m - 1)) : 0, shift = m > 1 ? avail - bw - Math.round((m - 1) * pitch) : Math.round((avail - bw) / 2);
   var col, x0, yo, yc, top, bot, yh, yl;
   for (i = 0; i < m; i++){
-    q = K[i]; x0 = 1 + i * 4;
+    q = K[i]; x0 = 1 + shift + Math.round(i * pitch);
     col = q.c >= q.o ? '#4cf08a' : '#ff5f6d';              // เขียว = ปิดสูงกว่าเปิด | แดง = ปิดต่ำกว่าเปิด
     yo = Y(q.o); yc = Y(q.c); yh = Y(q.h); yl = Y(q.l);
     top = Math.min(yo, yc); bot = Math.max(yo, yc);
     if (bot - top < 1) bot = top + 1;                       // โดจิ ให้เห็นเป็นขีดหนา 2 ช่อง
     ctx.fillStyle = col;
-    ctx.fillRect(x0 + 1, yh, 1, yl - yh + 1);              // ไส้เทียน
-    ctx.fillRect(x0, top, 3, bot - top + 1);               // ตัวแท่ง
+    ctx.fillRect(x0 + (bw >> 1), yh, 1, yl - yh + 1);      // ไส้เทียน
+    ctx.fillRect(x0, top, bw, bot - top + 1);              // ตัวแท่ง
     ctx.fillStyle = 'rgba(0,0,0,.35)';                      // เงาใต้ตัวแท่ง ให้ดูนูนแบบพิกเซล
-    ctx.fillRect(x0 + 2, top + 1, 1, bot - top);
+    ctx.fillRect(x0 + bw - 1, top + 1, 1, bot - top);
   }
   ctx.fillStyle = (new Date().getSeconds() & 1) ? '#ffffff' : '#ffcf3a';   // เหรียญกะพริบที่ราคาปัจจุบัน
   ctx.fillRect(cols - 3, py - 1, 3, 3);
   var dc = dec(CH.a), pc = (last - first) / first * 100, ce = $('chChg'), mins = RNG[CH.r].m * ag.b;
   $('chPx').textContent = '$ ' + fmt(last, dc);
   ce.className = 'chg ' + (pc >= 0 ? 'up' : 'down');
-  ce.textContent = (pc >= 0 ? '▲ +' : '▼ ') + pc.toFixed(2) + '% ' + CH.r;
+  ce.textContent = (pc >= 0 ? '▲ +' : '▼ ') + pc.toFixed(2) + '% ' + RNG[CH.r].s;
   $('chHi').textContent = '$' + fmt(H, dc);
   $('chLo').textContent = '$' + fmt(L, dc);
   $('chL').textContent = chTime(e.t0 + ag.first * RNG[CH.r].m * 60000);
@@ -1444,6 +1639,164 @@ function drawChart(){
   $('chNote').textContent = 'แท่งละ ' + chDur(mins) + '  เขียว=ขึ้น แดง=ลง' +
     (CH.a === 'gold' ? '  ทอง=PAXG ปรับตาม spot' : '') + (hasAl ? '  ประเหลือง=ราคาเตือน' : '');
 }
+
+/* ---- กราฟสไตล์ TradingView: แท่งเทียน/เส้น กริดจาง แกนราคาขวา ป้ายราคาล่าสุด แตะดู OHLC ของแต่ละแท่ง ---- */
+var TVC = {up: '#26a69a', dn: '#ef5350', grid: 'rgba(255,255,255,.07)', txt: '#9aa3b5', line: '#2962ff', xh: '#7d869b', tag: '#4a5168'};
+function tvStep(range, n){
+  var raw = range / n, mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), nm = raw / mag;
+  return (nm < 1.5 ? 1 : nm < 3 ? 2 : nm < 7 ? 5 : 10) * mag;
+}
+function tvH(ctx, x0, x1, y, col){ var x; ctx.fillStyle = col; y = Math.round(y); for (x = x0; x < x1; x += 6) ctx.fillRect(x, y, Math.min(3, x1 - x), 1); }
+function tvV(ctx, x, y0, y1, col){ var y; ctx.fillStyle = col; x = Math.round(x); for (y = y0; y < y1; y += 6) ctx.fillRect(x, y, 1, Math.min(3, y1 - y)); }
+function tvTag(ctx, txt, y, x, w, bg, fg){
+  y = Math.round(y);
+  ctx.fillStyle = bg; ctx.fillRect(x, y - 8, w, 16);
+  ctx.fillStyle = fg; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(txt, x + 5, y);
+}
+function drawChartTV(){
+  var cv = $('cv'), box = $('cvBox'), W = box.clientWidth, e = CH.d[CH.a + CH.r], msg = $('chMsg');
+  if (!cv.getContext || W < 40) return;
+  var dpr = window.devicePixelRatio || 1, H = Math.max(160, Math.min(250, Math.round(W * 0.66))), asLine = CH.s === 'line';
+  var ctx, i, k, j, v, x, y, q, tw, lab, FONT = '10px -apple-system,Helvetica,Arial,sans-serif';
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  cv.style.width = W + 'px'; cv.style.height = H + 'px'; cv.style.imageRendering = 'auto';
+  $('chL').parentNode.style.display = 'none';   // เวลาอยู่ในกราฟแล้ว ซ่อนแถบเวลาเดิม
+  $('chHi').textContent = ''; $('chLo').textContent = '';
+  ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (!e){
+    msg.style.display = 'block';
+    msg.textContent = CH.fail ? 'โหลดกราฟไม่ได้ ลองใหม่อัตโนมัติ' : 'LOADING...';
+    return;
+  }
+  msg.style.display = 'none';
+  var dc = dec(CH.a), R = RNG[CH.r], raw = chSeries(e), hiR = -1e18, loR = 1e18;
+  for (i = 0; i < raw.length; i++){ q = raw[i]; if (q.h > hiR) hiR = q.h; if (q.l < loR) loR = q.l; }
+  var pd = (hiR - loR) * 0.1;
+  if (pd < hiR * 0.0005) pd = hiR * 0.0005;
+  var top = hiR + pd, bot = loR - pd, step = tvStep(top - bot, 5);
+  var td = step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log(step) / Math.LN10 - 1e-9)), ticks = [];
+  for (k = Math.ceil(bot / step); k * step <= top; k++) ticks.push(k * step);
+  ctx.font = FONT;
+  var lw = ctx.measureText(fmt(raw[raw.length - 1].c, dc)).width;
+  for (i = 0; i < ticks.length; i++){ v = ctx.measureText(fmt(ticks[i], td)).width; if (v > lw) lw = v; }
+  var AX = Math.ceil(lw) + 14, x0 = 4, x1 = W - AX, y0 = 24, y1 = H - 18, pw = x1 - x0, ph = y1 - y0;
+  function Y(p){ return y0 + (top - p) / (top - bot) * ph; }
+  var sh = Math.round(pw * 0.16), cw = pw - sh;   // เว้นขอบขวา 16% เหมือน Shift end of chart ใน MT5
+  var ag = chAgg(raw, Math.max(1, Math.floor(cw / 4))), K = ag.c, m = K.length, slot = cw / m;
+  function Xc(n){ return x0 + slot * (n + 0.5); }
+  function sIdx(n){ return Math.max(0, raw.length - (m - n) * ag.b); }
+  /* กริดราคา + ตัวเลขแกนขวา */
+  ctx.lineWidth = 1; ctx.textBaseline = 'middle';
+  for (i = 0; i < ticks.length; i++){
+    y = Math.round(Y(ticks[i])) + 0.5;
+    ctx.strokeStyle = TVC.grid; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    ctx.fillStyle = TVC.txt; ctx.textAlign = 'left'; ctx.fillText(fmt(ticks[i], td), x1 + 8, y);
+  }
+  /* กริดเวลา + ตัวเลขแกนล่าง */
+  var nt = Math.min(m, W < 420 ? 4 : 6);
+  for (i = 0; i < nt; i++){
+    j = Math.round((i + 0.5) * m / nt - 0.5); x = Xc(j);
+    lab = chTime(e.t0 + sIdx(j) * R.m * 60000); tw = ctx.measureText(lab).width / 2;
+    if (x - tw < x0 || x + tw > x1) continue;
+    ctx.strokeStyle = TVC.grid; ctx.beginPath(); ctx.moveTo(Math.round(x) + 0.5, y0); ctx.lineTo(Math.round(x) + 0.5, y1); ctx.stroke();
+    ctx.fillStyle = TVC.txt; ctx.textAlign = 'center'; ctx.fillText(lab, x, y1 + 10);
+  }
+  /* เส้นราคาเตือนที่ตั้งไว้ (เหลือง) */
+  var hasAl = false;
+  for (k = 0; k < alerts.length; k++){
+    if (alerts[k].a !== CH.a || alerts[k].p < bot || alerts[k].p > top) continue;
+    hasAl = true; y = Y(alerts[k].p);
+    tvH(ctx, x0, x1, y, '#ffcf3a');
+    tvTag(ctx, fmt(alerts[k].p, dc), y, x1 + 2, W - x1 - 3, '#ffcf3a', '#000');
+  }
+  /* ตัวกราฟ */
+  var last = K[m - 1].c, first = K[0].o, lc, bw, xc, yo, yc, bt, bb;
+  if (asLine){
+    ctx.beginPath();
+    for (i = 0; i < m; i++){ x = Xc(i); y = Y(K[i].c); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+    ctx.lineTo(Xc(m - 1), y1); ctx.lineTo(Xc(0), y1); ctx.closePath();
+    v = ctx.createLinearGradient(0, y0, 0, y1);
+    v.addColorStop(0, 'rgba(41,98,255,.38)'); v.addColorStop(1, 'rgba(41,98,255,0)');
+    ctx.fillStyle = v; ctx.fill();
+    ctx.beginPath();
+    for (i = 0; i < m; i++){ x = Xc(i); y = Y(K[i].c); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+    ctx.strokeStyle = TVC.line; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke(); ctx.lineWidth = 1;
+    lc = TVC.line;
+  } else {
+    bw = Math.max(1, Math.round(slot * 0.7)); if (bw > 1 && bw % 2 === 0) bw -= 1; if (bw > 15) bw = 15;
+    for (i = 0; i < m; i++){
+      q = K[i]; xc = Math.round(Xc(i)); v = q.c >= q.o ? TVC.up : TVC.dn;
+      yo = Y(q.o); yc = Y(q.c);
+      ctx.strokeStyle = v; ctx.beginPath(); ctx.moveTo(xc + 0.5, Math.round(Y(q.h))); ctx.lineTo(xc + 0.5, Math.round(Y(q.l)) + 1); ctx.stroke();
+      bt = Math.round(Math.min(yo, yc)); bb = Math.round(Math.max(yo, yc)); if (bb - bt < 1) bb = bt + 1;
+      ctx.fillStyle = v; ctx.fillRect(xc - (bw >> 1), bt, bw, bb - bt);
+    }
+    lc = K[m - 1].c >= K[m - 1].o ? TVC.up : TVC.dn;
+  }
+  /* เส้น + ป้ายราคาล่าสุด */
+  y = Y(last);
+  tvH(ctx, x0, x1, y, lc);
+  tvTag(ctx, fmt(last, dc), y, x1 + 2, W - x1 - 3, lc, '#fff');
+  /* เส้นกากบาทตอนแตะ */
+  var hb = m - 1;
+  if (CH.cx !== null && CH.cx !== undefined){
+    hb = Math.max(0, Math.min(m - 1, Math.floor((CH.cx - x0) / slot)));
+    x = Xc(hb); y = Y(K[hb].c);
+    tvV(ctx, x, y0, y1, TVC.xh); tvH(ctx, x0, x1, y, TVC.xh);
+    tvTag(ctx, fmt(K[hb].c, dc), y, x1 + 2, W - x1 - 3, TVC.tag, '#fff');
+    var dd = new Date(e.t0 + sIdx(hb) * R.m * 60000), l2 = dd.getDate() + ' ' + MON[dd.getMonth()] + ' ' + pad(dd.getHours()) + ':' + pad(dd.getMinutes());
+    tw = ctx.measureText(l2).width + 12; v = Math.max(x0, Math.min(x1 - tw, x - tw / 2));
+    ctx.fillStyle = TVC.tag; ctx.fillRect(v, y1 + 2, tw, 15);
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(l2, v + tw / 2, y1 + 10);
+  }
+  /* บรรทัด OHLC มุมซ้ายบน (แท่งที่แตะ หรือแท่งล่าสุด) */
+  q = K[hb]; v = asLine ? TVC.line : (q.c >= q.o ? TVC.up : TVC.dn);
+  var parts = asLine ? [['C', q.c]] : [['O', q.o], ['H', q.h], ['L', q.l], ['C', q.c]], lx = x0 + 2, s1;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  for (i = 0; i < parts.length; i++){
+    ctx.fillStyle = TVC.txt; ctx.fillText(parts[i][0], lx, 11); lx += ctx.measureText(parts[i][0]).width + 2;
+    s1 = fmt(parts[i][1], dc); ctx.fillStyle = v; ctx.fillText(s1, lx, 11); lx += ctx.measureText(s1).width + 8;
+  }
+  /* ตัวเลขหัวหน้า */
+  var pc = (last - first) / first * 100, ce = $('chChg');
+  $('chPx').textContent = '$ ' + fmt(last, dc);
+  ce.className = 'chg ' + (pc >= 0 ? 'up' : 'down');
+  ce.textContent = (pc >= 0 ? '▲ +' : '▼ ') + pc.toFixed(2) + '% ' + RNG[CH.r].s;
+  $('chSwing').textContent = ((hiR - loR) / loR * 100).toFixed(1) + '%';
+  $('chNote').textContent = 'แท่งละ ' + chDur(R.m * ag.b) + (CH.a === 'gold' ? '  ทอง=PAXG ปรับตาม spot' : '') + (hasAl ? '  ประเหลือง=ราคาเตือน' : '') + '  แตะกราฟดูราคา';
+}
+function drawChart(){ if (CH.s === 'pixel') drawChartPixel(); else drawChartTV(); }
+/* แตะ/ลากบนกราฟ = เส้นกากบาท (ลากแนวตั้ง = เลื่อนหน้าตามปกติ) | โหมดพิกเซลไม่ใช้ เพื่อให้ปัดสลับหน้าจากกราฟได้เหมือนเดิม */
+(function(){
+  var cv = $('cv'), st = null, hideT = null;
+  function px(t){ return t.clientX - cv.getBoundingClientRect().left; }
+  function hideLater(){ clearTimeout(hideT); hideT = setTimeout(function(){ CH.cx = null; drawChart(); }, 2500); }
+  cv.addEventListener('touchstart', function(e){
+    if (CH.s === 'pixel' || e.touches.length !== 1) return;
+    e.stopPropagation();   // ไม่ให้ pager เริ่มลากสลับหน้า
+    clearTimeout(hideT);
+    st = {x: e.touches[0].clientX, y: e.touches[0].clientY, mode: 0};
+    CH.cx = px(e.touches[0]); drawChart();
+  }, false);
+  cv.addEventListener('touchmove', function(e){
+    if (!st || CH.s === 'pixel') return;
+    e.stopPropagation();
+    var t = e.touches[0], dx = t.clientX - st.x, dy = t.clientY - st.y;
+    if (!st.mode){
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      st.mode = Math.abs(dx) >= Math.abs(dy) ? 1 : 2;
+      if (st.mode === 2){ CH.cx = null; drawChart(); }
+    }
+    if (st.mode !== 1) return;
+    if (e.cancelable) e.preventDefault();
+    CH.cx = px(t); drawChart();
+  }, false);
+  function up(e){ if (!st) return; e.stopPropagation(); st = null; hideLater(); }
+  cv.addEventListener('touchend', up, false);
+  cv.addEventListener('touchcancel', up, false);
+  cv.addEventListener('mousemove', function(e){ if (CH.s === 'pixel') return; CH.cx = px(e); drawChart(); }, false);
+  cv.addEventListener('mouseleave', function(){ CH.cx = null; if (CH.s !== 'pixel') drawChart(); }, false);
+})();
 function chartOpen(){ syncCtl(); loadK(false); drawChart(); }
 function chartTick(){
   if (curP.btc && curP.gold) $('chRatio').textContent = fmt(curP.btc / curP.gold, 2) + ' oz';
@@ -1781,6 +2134,19 @@ function walkJump(){
 }
 function walkStep(){
   if (document.hidden) return;
+  var wz = $('wz'), wke = $('wk'), look;
+  if (isQuiet()){   /* ช่วงเงียบ: แมวนอนหลับ มี Zzz ลอย */
+    setH(wke, spr('walkSleep', 3));
+    if (wz.style.display !== 'block') wz.style.display = 'block';
+    return;
+  }
+  if (wz.style.display === 'block') wz.style.display = 'none';
+  if (sp.mode === 'down' || sp.mode === 'idle'){   /* แมงมุมห้อยอยู่ แมวหยุดเดินแล้วหันไปแหงนมอง */
+    look = sp.x < wk.x + 21 ? 'scaleX(-1)' : 'none';
+    wke.style.webkitTransform = look; wke.style.transform = look;
+    setH(wke, spr('walkLook', 3));
+    return;
+  }
   if (wk.pause > 0){ wk.pause--; setH($('wk'), spr('walkA', 3)); return; }
   if (Math.random() < 0.02){ wk.pause = 8; return; }
   var W = window.innerWidth - 45, fl;
@@ -1800,18 +2166,66 @@ if (!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matche
 SPR.spiderA = ["k.........k",".L.......L.","..LkkkkkL..",".kkWkkkWkk.","kkkaaaaakkk",".kaaaaaaak.","L..k...k..L","L.........L"];
 SPR.spiderB = [".L.......L.","L.........L","..LkkkkkL..",".kkWkkkWkk.","kkkaaaaakkk",".kaaaaaaak.",".L.k...k.L.","L..L...L..L"];
 PAL.a = '#ff8a2a'; PAL.L = '#c9c2f5';
+SPR.walkLook = [".........k..k.",".k.......kgsgk",".ks......ksssk",".kskkkkkkktptk",".ksssssssssk..",".ksossossosk..",".ktttttttttk..",".kkkkkkkkkkk..","..ss.....ss...","..kk.....kk..."];
+SPR.walkSleep = [".........k..k.",".........ksssk",".........kkskk","..kkkkkkkktptk",".kssssssssssk.",".ksossossosk..",".kkkkkkkkkkk.."];
+/* ใยแมงมุมมุมซ้ายบน สร้างด้วยโค้ด: web0 = โครงเส้นรัศมี, web1-3 = ค่อยๆ ถักวงเพิ่ม */
+function webRows(stage){
+  var N = 14, g = [], x, y, i, k, a, P, sc, rad = [4, 8, 13], ang = [0, 30, 60, 90], out = [];
+  for (y = 0; y < N; y++){ g[y] = []; for (x = 0; x < N; x++) g[y][x] = '.'; }
+  function line(x0, y0, x1, y1){
+    var dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1, e = dx - dy, e2;
+    for (;;){
+      if (x0 >= 0 && x0 < N && y0 >= 0 && y0 < N) g[y0][x0] = 'L';
+      if (x0 === x1 && y0 === y1) break;
+      e2 = 2 * e; if (e2 > -dy){ e -= dy; x0 += sx; } if (e2 < dx){ e += dx; y0 += sy; }
+    }
+  }
+  for (i = 0; i < ang.length; i++){ a = ang[i] * Math.PI / 180; line(0, 0, Math.round(13 * Math.cos(a)), Math.round(13 * Math.sin(a))); }
+  for (k = 0; k < stage; k++){
+    P = [];
+    for (i = 0; i < ang.length; i++){
+      a = ang[i] * Math.PI / 180; sc = (i === 0 || i === ang.length - 1) ? 1 : 0.88;   /* วงโค้งหย่อนเข้าหามุม */
+      P.push([Math.round(rad[k] * sc * Math.cos(a)), Math.round(rad[k] * sc * Math.sin(a))]);
+    }
+    for (i = 0; i < P.length - 1; i++) line(P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]);
+  }
+  for (y = 0; y < N; y++) out.push(g[y].join(''));
+  return out;
+}
+for (var wi = 0; wi < 4; wi++) SPR['web' + wi] = webRows(wi);
+var webStage = 0;
+function webClear(){
+  if (!webStage) return;
+  webStage = 0; $('webL').style.display = 'none'; $('webR').style.display = 'none';
+}
+function webCheck(){
+  var after = CONFIG.webAfterSec, idle = Date.now() - sp.last, st, h;
+  if (!after || document.hidden) return;
+  if (idle < after){ webClear(); return; }
+  st = Math.min(4, 1 + Math.floor((idle - after) / 15000));   /* ถักเพิ่มทุก 15 วินาที */
+  if (st === webStage) return;
+  webStage = st; h = spr('web' + (st - 1), 4);
+  setH($('webL'), h); setH($('webR'), h);
+  $('webL').style.display = 'block'; $('webR').style.display = 'block';
+}
+function spPoke(){   /* แตะโดนแมงมุม: เด้งเหรียญ หรือสะบัดตัววิ่งหนี */
+  sp.mode = 'up';
+  if (Math.random() < 0.45){ sp.spd = 16; sp.flee = false; coinPop(); beep(2); }
+  else { sp.spd = 34; sp.flee = true; }
+}
 var sp = {mode: '', y: -30, target: 0, f: 0, t: 0, x: 0, last: Date.now()};
 function spDraw(){
   var b = $('spBody');
   $('spThread').style.height = Math.max(0, sp.y) + 'px';
   b.style.top = (sp.y - 3) + 'px';
+  b.style.left = (sp.flee ? (sp.f ? 4 : -4) : 0) + 'px';
   setH(b, spr(sp.f ? 'spiderA' : 'spiderB', 3));
 }
 function spStart(){
   var sc = $('spider'), W = window.innerWidth || 320, H = window.innerHeight || 480;
   sp.x = Math.round(W * (0.12 + Math.random() * 0.76));
   sp.target = Math.round(H * (0.22 + Math.random() * 0.2));
-  sp.y = -30; sp.t = 0; sp.mode = 'down';
+  sp.y = -30; sp.t = 0; sp.mode = 'down'; sp.flee = false; sp.spd = 16;
   sc.style.left = sp.x + 'px'; sc.style.marginLeft = '-16px'; sc.style.display = 'block';
   spDraw();
 }
@@ -1828,13 +2242,15 @@ function spTick(){
     sp.t++;
     if (sp.t % 4 === 0) sp.y = sp.target + (Math.floor(sp.t / 4) % 2 ? 6 : 0);   /* ห้อยโยกขึ้นลงเบาๆ */
   } else if (sp.mode === 'up'){
-    sp.y -= 16;
-    if (sp.y <= -30){ sp.mode = ''; $('spider').style.display = 'none'; return; }
+    sp.y -= (sp.spd || 16);
+    if (sp.y <= -30){ sp.mode = ''; sp.flee = false; sp.spd = 16; $('spider').style.display = 'none'; return; }
   }
   spDraw();
 }
-function spActive(){
-  sp.last = Date.now();
+function spActive(e){
+  var hit = (sp.mode === 'down' || sp.mode === 'idle') && e && e.target && $('spBody').contains(e.target);
+  sp.last = Date.now(); webClear();
+  if (hit){ spPoke(); return; }
   if (sp.mode === 'down' || sp.mode === 'idle') sp.mode = 'up';
 }
 function spCheck(){
@@ -1847,6 +2263,7 @@ if (CONFIG.spiderAfterSec && !(window.matchMedia && matchMedia('(prefers-reduced
   for (spi = 0; spi < spEv.length; spi++) window.addEventListener(spEv[spi], spActive, true);
   document.addEventListener('visibilitychange', function(){ if (!document.hidden) sp.last = Date.now(); });
   setInterval(spCheck, 5000);
+  setInterval(webCheck, 5000);
   setInterval(spTick, 120);
 }
 
@@ -1908,12 +2325,13 @@ $('time').parentNode.onclick = function(){ zenOn = !zenOn; lsSet('pc_zen', zenOn
 zenApply();
 
 renderAlerts(); renderSess();
-loadPrice(); loadWeather(); connectWS(); loadSpot(); locate();
+loadPrice(); loadWeather(); connectWS(); connectGoldWS(); loadSpot(); locate();
 if (!nc || !allEv.length || Date.now() - nc.at > CONFIG.newsEverySec * 1000) loadNews(); else showStatus();
 setInterval(loadPrice, CONFIG.priceEverySec * 1000);
 setInterval(loadWeather, CONFIG.weatherEverySec * 1000);
 setInterval(loadNews, CONFIG.newsEverySec * 1000);
 setInterval(loadSpot, CONFIG.goldSpotEverySec * 1000);
+if (CONFIG.fngEverySec){ loadFngAll(); setInterval(loadFngAll, CONFIG.fngEverySec * 1000); }
 setInterval(locate, CONFIG.gpsEverySec * 1000);
 </script>
 </body>
