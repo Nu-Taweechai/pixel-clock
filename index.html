@@ -2331,12 +2331,15 @@ function walkStep(){
     return;
   }
   if (wz.style.display === 'block') wz.style.display = 'none';
-  if (sp.mode === 'down' || sp.mode === 'idle'){   /* แมงมุมห้อยอยู่ แมวหยุดเดินแล้วหันไปแหงนมอง */
-    look = sp.x < wk.x + 21 ? 'scaleX(-1)' : 'none';
-    wke.style.webkitTransform = look; wke.style.transform = look;
-    setH(wke, spr('walkLook', 3));
-    return;
-  }
+  if (sp.mode === 'down' || sp.mode === 'idle'){   /* แมงมุมห้อยอยู่ แมวหยุดเดินแล้วหันไปแหงนมอง (ไม่เกิน 10 วินาที) */
+    if (!wk.lookT) wk.lookT = Date.now();
+    if (Date.now() - wk.lookT < 10000){
+      look = sp.x < wk.x + 21 ? 'scaleX(-1)' : 'none';
+      wke.style.webkitTransform = look; wke.style.transform = look;
+      setH(wke, spr('walkLook', 3));
+      return;
+    }
+  } else wk.lookT = 0;
   if (wk.pause > 0){ wk.pause--; setH($('wk'), spr('walkA', 3)); return; }
   if (Math.random() < 0.02){ wk.pause = 8; return; }
   var W = window.innerWidth - 45, fl;
