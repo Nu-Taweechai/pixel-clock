@@ -521,7 +521,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
   <div class="grid">
     <div class="panel wide">
       <div class="lab"><span id="icoCal"></span>NEWS CALENDAR</div>
-      <div class="ctl" id="calDay"><button type="button" class="btn" data-k="day" data-v="T">TODAY</button><button type="button" class="btn" data-k="day" data-v="N">TMRW</button><button type="button" class="btn" data-k="day" data-v="W">WEEK</button></div>
+      <div class="ctl" id="calDay"><button type="button" class="btn" data-k="day" data-v="T">TODAY</button><button type="button" class="btn" data-k="day" data-v="N">TMRW</button><button type="button" class="btn" data-k="day" data-v="W">WEEK</button><button type="button" class="btn" data-k="day" data-v="X">NEXT WK</button></div>
       <div class="ctl" id="calFlt"><button type="button" class="btn" data-k="cur" data-v="USD">USD</button><button type="button" class="btn" data-k="cur" data-v="ALL">ALL</button><button type="button" class="btn gap" data-k="imp" data-v="H">HIGH</button><button type="button" class="btn" data-k="imp" data-v="HM">H+M</button></div>
       <div class="sub" id="calSum">&nbsp;</div>
       <div id="calList"></div>
@@ -1921,7 +1921,7 @@ setInterval(chartTick, 1000);
 /* ---- หน้า NEWS: ปฏิทินข่าว Forex Factory ทั้งวัน/ทั้งสัปดาห์ (กรองสกุลเงิน/ระดับข่าวได้) ---- */
 var CAL = {day: 'T', cur: 'USD', imp: 'HM'}, cs1 = lsGet('pc_cal');
 if (cs1){
-  if (cs1.day === 'T' || cs1.day === 'N' || cs1.day === 'W') CAL.day = cs1.day;
+  if (cs1.day === 'T' || cs1.day === 'N' || cs1.day === 'W' || cs1.day === 'X') CAL.day = cs1.day;
   if (cs1.cur === 'USD' || cs1.cur === 'ALL') CAL.cur = cs1.cur;
   if (cs1.imp === 'H' || cs1.imp === 'HM') CAL.imp = cs1.imp;
 }
@@ -1945,8 +1945,11 @@ function calPick(e){
 }
 $('calDay').onclick = calPick; $('calFlt').onclick = calPick;
 function calRender(){
-  var now = Date.now(), tk = todayStr(), t2 = new Date(), nk, list = [], i, e, key, pk = '', h = '', nx = null, past, d, cnt = 0, left = 0;
+  var now = Date.now(), tk = todayStr(), t2 = new Date(), nk, list = [], i, e, key, pk = '', h = '', nx = null, past, d, cnt = 0, left = 0, w0, w1, w2;
   t2.setDate(t2.getDate() + 1); nk = dk(t2.getTime());
+  w0 = new Date(); w0.setHours(0, 0, 0, 0); w0.setDate(w0.getDate() - w0.getDay());   /* สัปดาห์เริ่มวันอาทิตย์ (เหมือน Forex Factory) */
+  w1 = new Date(w0.getTime()); w1.setDate(w1.getDate() + 7); w1 = w1.getTime();      /* เริ่มสัปดาห์หน้า */
+  w2 = new Date(w1); w2.setDate(w2.getDate() + 7); w2 = w2.getTime();                /* เริ่มสัปดาห์ถัดไปอีก */
   for (i = 0; i < allEv.length; i++){
     e = allEv[i];
     if (CAL.cur === 'USD' && e.cur !== 'USD') continue;
@@ -1954,7 +1957,8 @@ function calRender(){
     key = dk(e.t);
     if (CAL.day === 'T' && key !== tk) continue;
     if (CAL.day === 'N' && key !== nk) continue;
-    if (CAL.day === 'W' && key < tk) continue;
+    if (CAL.day === 'W' && (key < tk || e.t >= w1)) continue;
+    if (CAL.day === 'X' && (e.t < w1 || e.t >= w2)) continue;
     list.push(e);
   }
   for (i = 0; i < list.length; i++){
@@ -1963,7 +1967,7 @@ function calRender(){
   }
   for (i = 0; i < list.length; i++){
     e = list[i]; key = dk(e.t); past = e.t <= now - 5 * 60000;
-    if (CAL.day === 'W' && key !== pk){
+    if ((CAL.day === 'W' || CAL.day === 'X') && key !== pk){
       pk = key; d = new Date(e.t);
       h += '<div class="dh">' + (key === tk ? 'วันนี้ ' : '') + DAYS[d.getDay()] + ' ' + d.getDate() + ' ' + MON[d.getMonth()] + '</div>';
     }
@@ -1973,11 +1977,11 @@ function calRender(){
   }
   if (!list.length){
     h = '<div class="sub">' + (!allEv.length ? (newsOk ? 'ยังไม่มีข้อมูลข่าว' : 'โหลดข่าวไม่ได้ ลองใหม่อัตโนมัติ') :
-      'ไม่มีข่าวตามตัวกรองนี้ ลองเปลี่ยนเป็น ALL หรือ H+M') + '</div>';
+      (CAL.day === 'X' ? 'ยังไม่มีข่าวสัปดาห์หน้า (Forex Factory มักปล่อยข้อมูลช่วงปลายสัปดาห์) หรือไม่มีข่าวตามตัวกรองนี้' : 'ไม่มีข่าวตามตัวกรองนี้ ลองเปลี่ยนเป็น ALL หรือ H+M')) + '</div>';
   }
   setH($('calList'), h);
   var sum = list.length ? list.length + ' ข่าว' + (CAL.day === 'T' ? ' เหลือ ' + left : '') : '';
-  if (nx && CAL.day !== 'N') sum += '  ถัดไป ' + (nx.t - now <= 0 ? 'NOW!' : 'อีก ' + cd(nx.t - now));
+  if (nx && CAL.day !== 'N' && CAL.day !== 'X') sum += '  ถัดไป ' + (nx.t - now <= 0 ? 'NOW!' : 'อีก ' + cd(nx.t - now));
   setT($('calSum'), sum || '\u00a0');
   setT($('calNote'), !newsOk ? 'โหลดข่าวไม่ได้ ใช้ข้อมูลที่เก็บไว้' : (newsStale() ? 'ข้อมูลข่าวค้าง ตรวจ GitHub Actions' :
     'แดง=High ส้ม=Medium  เวลาตามเครื่อง  จางลง=ออกแล้ว'));
