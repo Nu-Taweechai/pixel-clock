@@ -356,6 +356,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
     <div class="panel wide">
       <div class="lab">MUSIC RADIO<span class="chg" id="muStat" style="margin-left:auto">STOP</span></div>
       <div class="val sm" id="muName">--</div>
+      <div class="sub" id="muNow" style="color:#4cf08a;min-height:1.2em;word-break:break-word"></div>
       <div class="ctl" style="margin-top:10px"><button type="button" class="btn" id="muPrev">&lt; PREV</button><button type="button" class="btn" id="muPlay">PLAY</button><button type="button" class="btn" id="muNext">NEXT &gt;</button></div>
       <div class="sub">STATIONS</div>
       <div class="ctl" id="muList" style="-webkit-flex-wrap:wrap;flex-wrap:wrap;margin-top:6px"></div>
@@ -570,7 +571,8 @@ var CONFIG = {
   newsEverySec: 1800,                 // ดึงปฏิทินข่าวทุกกี่วินาที (อย่าถี่เกินไป ไม่งั้นโดน rate limit)
   newsCurrencies: {USD:1},            // สกุลที่สนใจ เช่น {USD:1, EUR:1, GBP:1, JPY:1}
   newsImpacts: {High:1},              // ระดับข่าว: High = แดง, Medium = ส้ม ({High:1, Medium:1})
-  alertMinutes: 15,                   // เตือนล่วงหน้ากี่นาที (และเตือนอีกครั้งตอนข่าวออก)
+  alertMinutes: 15,                   // เตือนล่วงหน้าไกลสุดกี่นาที (ต้องไม่น้อยกว่าค่าสูงสุดใน alertSteps) และเตือนอีกครั้งตอนข่าวออก
+  alertSteps: [15, 5, 1],             // เตือนล่วงหน้าหลายรอบ (นาทีก่อนข่าวออก) เสียงจะถี่/สูงขึ้นเมื่อใกล้เวลา | [] = ใช้แค่ alertMinutes รอบเดียว
   newsStaleDays: 2                    // ถ้าข่าวล่าสุดในไฟล์เก่ากว่านี้ (วัน) ให้ขึ้นเตือนว่าข้อมูลค้าง
 };
 /* ===== */
@@ -1348,13 +1350,33 @@ function beep(times){
   } catch(e){}
   try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch(e){}
 }
+function beepNews(st){   /* เสียงเตือนข่าวล่วงหน้า: คนละโทนกับเตือนราคา (สามเหลี่ยม ไล่ระดับขึ้น) ยิ่งใกล้ยิ่งหลายโน้ต */
+  var n = st >= 10 ? 2 : (st >= 3 ? 3 : 5), F = [523, 659, 784, 988, 1175], i, o, g, t0;
+  if (!soundOn || !audioCtx || isQuiet()) return;
+  try {
+    for (i = 0; i < n; i++){
+      o = audioCtx.createOscillator(); g = audioCtx.createGain(); t0 = audioCtx.currentTime + i * 0.22;
+      o.type = 'triangle'; o.frequency.value = F[i];
+      g.gain.setValueAtTime(0.14, t0); g.gain.setValueAtTime(0, t0 + 0.16);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0); o.stop(t0 + 0.18);
+    }
+  } catch(e){}
+  try { if (navigator.vibrate) navigator.vibrate([150, 80, 150]); } catch(e){}
+  try { muDuck(n); } catch(e){}
+}
 function checkAlerts(){
-  var now = Date.now(), pre = CONFIG.alertMinutes * 60000, show = null, i, e, d;
+  var now = Date.now(), pre = CONFIG.alertMinutes * 60000, show = null, i, e, d, ns, st, s, nw;
   for (i = 0; i < news.length; i++){
     e = news[i]; d = e.t - now;
     if (d > pre) break;
     if (d <= -5 * 60000) continue;
-    if (d > 0 && !fired[e.key + 'p']){ fired[e.key + 'p'] = 1; saveState(); beep(2); }
+    if (d > 0){   /* เตือนล่วงหน้าหลายรอบ: เปิดหน้าตอนเหลือน้อยแล้ว เตือนเฉพาะรอบล่าสุด ไม่รัวทุกรอบพร้อมกัน */
+      ns = (CONFIG.alertSteps && CONFIG.alertSteps.length) ? CONFIG.alertSteps : [CONFIG.alertMinutes]; st = 0; nw = false;
+      for (s = 0; s < ns.length; s++) if (d <= ns[s] * 60000 && (!st || ns[s] < st)) st = ns[s];
+      for (s = 0; st && s < ns.length; s++) if (ns[s] >= st && !fired[e.key + 'p' + ns[s]]){ fired[e.key + 'p' + ns[s]] = 1; nw = true; }
+      if (nw){ saveState(); beepNews(st); }
+    }
     if (d <= 0 && !fired[e.key + 'n']){ fired[e.key + 'n'] = 1; saveState(); beep(4); }
     if (!show && !dismissed[e.key]) show = e;
   }
@@ -2417,14 +2439,14 @@ function soma(ch, hls){   /* มือถือ: HLS > AAC > MP3 | คอม: MP
   return (hls ? [hls] : []).concat([b + '-128-aac', b + '-128-mp3', c + '-128-aac', c + '-128-mp3']);
 }
 var MU_ST = [
-  {n: 'GROOVE', t: 'SOMAFM GROOVE SALAD', u: soma('groovesalad', 'https://hls.somafm.com/hls/groovesalad/128k/program.m3u8')},
-  {n: 'PARADISE', t: 'RADIO PARADISE', u: ['https://stream.radioparadise.com/aac-128', 'https://stream.radioparadise.com/mp3-128']},
-  {n: 'FLUID', t: 'SOMAFM FLUID', u: soma('fluid')},
-  {n: 'DRONE', t: 'SOMAFM DRONE ZONE', u: soma('dronezone')},
-  {n: 'SPACE', t: 'SOMAFM DEEP SPACE ONE', u: soma('deepspaceone')},
-  {n: 'LOUNGE', t: 'SOMAFM ILLINOIS LOUNGE', u: soma('illstreet')},
+  {n: 'GROOVE', t: 'SOMAFM GROOVE SALAD', c: 'groovesalad', u: soma('groovesalad', 'https://hls.somafm.com/hls/groovesalad/128k/program.m3u8')},
+  {n: 'PARADISE', t: 'RADIO PARADISE', rp: 1, u: ['https://stream.radioparadise.com/aac-128', 'https://stream.radioparadise.com/mp3-128']},
+  {n: 'FLUID', t: 'SOMAFM FLUID', c: 'fluid', u: soma('fluid')},
+  {n: 'DRONE', t: 'SOMAFM DRONE ZONE', c: 'dronezone', u: soma('dronezone')},
+  {n: 'SPACE', t: 'SOMAFM DEEP SPACE ONE', c: 'deepspaceone', u: soma('deepspaceone')},
+  {n: 'LOUNGE', t: 'SOMAFM ILLINOIS LOUNGE', c: 'illstreet', u: soma('illstreet')},
   {n: 'JAZZ', t: 'RADIO SWISS JAZZ', u: ['https://stream.srg-ssr.ch/srgssr/rsj/aac/96', 'https://stream.srg-ssr.ch/srgssr/rsj/aac/128', 'https://stream.srg-ssr.ch/srgssr/rsj/mp3/128', 'https://stream.srg-ssr.ch/m/rsj/mp3_128', 'https://stream.srg-ssr.ch/m/rsj/aacp_96']},
-  {n: 'SONIC', t: 'SOMAFM SONIC UNIVERSE (JAZZ)', u: soma('sonicuniverse')}
+  {n: 'SONIC', t: 'SOMAFM SONIC UNIVERSE (JAZZ)', c: 'sonicuniverse', u: soma('sonicuniverse')}
 ];
 var mu = {i: 0, vol: 6, on: false, au: null, st: 'STOP', sleepAt: 0, duckT: null, retryT: null, loadT: null, fl: false, k: 0, volOk: true},
     muS = lsGet('pc_music'), SLP = [0, 30, 60, 90], slpI = 0;
@@ -2432,6 +2454,43 @@ if (muS){
   if (muS.i >= 0 && muS.i < MU_ST.length) mu.i = muS.i;
   if (muS.vol >= 0 && muS.vol <= 10) mu.vol = muS.vol;
 }
+/* ---- Now Playing: ชื่อเพลงที่กำลังเล่น (SomaFM channels.json / Radio Paradise) ดึงไม่ได้ก็ซ่อนบรรทัดนี้เฉยๆ ไม่กระทบเสียง ---- */
+mu.np = ''; mu.npT = null; mu.npI = -1;
+function npGet(url, cb){
+  var x = new XMLHttpRequest(), done = false;
+  try {
+    x.open('GET', url, true); x.timeout = 8000;
+    x.onreadystatechange = function(){
+      var j = null;
+      if (x.readyState !== 4 || done) return;
+      done = true;
+      if (x.status === 200){ try { j = JSON.parse(x.responseText); } catch(e){} }
+      cb(j);
+    };
+    x.ontimeout = function(){ if (!done){ done = true; cb(null); } };
+    x.send();
+  } catch(e){ cb(null); }
+}
+function npSet(t){
+  t = t ? String(t).replace(/\s+/g, ' ').slice(0, 80) : '';
+  if (t === mu.np) return;
+  mu.np = t; $('muNow').textContent = t ? '\u266A ' + t : ''; muMeta();
+}
+function npFetch(){
+  var st = MU_ST[mu.i], i = mu.i;
+  if (!mu.on || !(st.c || st.rp)){ npSet(''); return; }
+  if (st.c) npGet('https://somafm.com/channels.json', function(j){
+    var k, c = j && j.channels;
+    if (i !== mu.i) return;
+    if (c) for (k = 0; k < c.length; k++) if (c[k].id === st.c){ npSet(c[k].lastPlaying); return; }
+    npSet('');
+  });
+  else npGet('https://api.radioparadise.com/api/now_playing?chan=0', function(j){
+    if (i !== mu.i) return;
+    npSet(j && j.title ? (j.artist ? j.artist + ' - ' : '') + j.title : '');
+  });
+}
+function npLoop(){ clearTimeout(mu.npT); if (!mu.on) return; npFetch(); mu.npT = setTimeout(npLoop, 20000); }
 function muSave(){ lsSet('pc_music', {i: mu.i, vol: mu.vol}); }
 function muVolApply(){ if (mu.au && mu.volOk){ try { mu.au.volume = mu.vol / 10; } catch(e){} } }
 function muRender(){
@@ -2452,7 +2511,7 @@ function muRender(){
 function muMeta(){
   try {
     if ('mediaSession' in navigator && window.MediaMetadata)
-      navigator.mediaSession.metadata = new MediaMetadata({title: MU_ST[mu.i].t, artist: 'Pixel Clock'});
+      navigator.mediaSession.metadata = new MediaMetadata({title: mu.np || MU_ST[mu.i].t, artist: mu.np ? MU_ST[mu.i].t : 'Pixel Clock'});
   } catch(e){}
 }
 function muFail(){
@@ -2487,6 +2546,8 @@ function muEnsure(){
 }
 function muLoad(){
   var a = muEnsure(), p;
+  if (mu.npI !== mu.i){ mu.npI = mu.i; npSet(''); }
+  clearTimeout(mu.npT); mu.npT = setTimeout(npLoop, 1500);
   clearTimeout(mu.retryT); clearTimeout(mu.loadT); mu.fl = false;
   mu.st = 'LOADING'; muRender(); muMeta();
   mu.loadT = setTimeout(function(){ if (mu.on && mu.st !== 'LIVE') muFail(); }, 10000);   /* ค้างโหลดเกิน 10 วินาที ถือว่าลิงก์นี้ใช้ไม่ได้ */
@@ -2500,7 +2561,7 @@ function muLoad(){
 }
 function muPlay(){ mu.on = true; mu.k = 0; muLoad(); }
 function muStop(){
-  mu.on = false; mu.st = 'STOP'; clearTimeout(mu.retryT); clearTimeout(mu.loadT);
+  mu.on = false; mu.st = 'STOP'; clearTimeout(mu.retryT); clearTimeout(mu.loadT); clearTimeout(mu.npT); mu.npI = -1; npSet('');
   if (mu.au){ try { mu.au.pause(); mu.au.removeAttribute('src'); mu.au.load(); } catch(e){} }   /* ปล่อยสตรีมจริง ไม่ใช่แค่พัก */
   muRender();
 }
