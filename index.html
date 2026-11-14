@@ -1239,7 +1239,7 @@ function saveState(){
   for (k in dismissed){ if (parseInt(k, 10) > lim) o.d[k] = 1; }
   lsSet('pc_state', o);
 }
-var nc = lsGet('pc_news');   /* ข่าวที่เก็บไว้ในเครื่อง กันโดน rate limit เวลาเปิด/รีโหลดบ่อย */
+var nc = lsGet('pc_news2');   /* ข่าวที่เก็บไว้ในเครื่อง กันโดน rate limit เวลาเปิด/รีโหลดบ่อย */
 if (nc && nc.news && nc.news.length !== undefined){ news = nc.news; lastNews = new Date(nc.at); newsMax = nc.max || 0; }
 var allEv = (nc && nc.all && nc.all.length !== undefined) ? nc.all : [];   /* ข่าวทุกสกุล High+Medium สำหรับหน้า NEWS */
 function parseFF(str){
@@ -1268,7 +1268,7 @@ function loadNews(){
       all.sort(function(a, b){ return a.t - b.t; });
       allx.sort(function(a, b){ return a.t - b.t; }); allEv = allx;
       news = all; newsMax = maxT; newsOk = true; lastNews = new Date();
-      lsSet('pc_news', {at: lastNews.getTime(), news: all, all: allx, max: maxT});
+      lsSet('pc_news2', {at: lastNews.getTime(), news: all, all: allx, max: maxT});
     } else {
       newsOk = false;   /* ลองใหม่ใน 5 นาที ระหว่างนั้นใช้ข่าวที่เก็บไว้ถ้ามี */
       if (!newsRetry) newsRetry = setTimeout(function(){ newsRetry = null; loadNews(); }, 300000);
@@ -1280,17 +1280,18 @@ function loadNews(){
       if (j && j.length !== undefined){
         anyOk = true;
         for (var k = 0; k < j.length; k++){
-          var e = j[k], t = parseFF(e.date);
+          var e = j[k], t = parseFF(e.date), im = String(e.impact || '').toLowerCase(), cu = e.country || e.currency;
+          im = im.charAt(0).toUpperCase() + im.slice(1);   /* showmytrades ส่ง high/medium ตัวเล็ก, Forex Factory ส่ง High/Medium */
           if (t !== null && t > maxT) maxT = t;
-          if (t !== null && (e.impact === 'High' || e.impact === 'Medium')){
-            var kx = t + '|' + e.country + '|' + e.title;
-            if (!seenx[kx]){ seenx[kx] = 1; allx.push({t: t, key: kx, cur: e.country, title: e.title, impact: e.impact, fc: e.forecast, pv: e.previous}); }
+          if (t !== null && (im === 'High' || im === 'Medium')){
+            var kx = t + '|' + cu + '|' + e.title;
+            if (!seenx[kx]){ seenx[kx] = 1; allx.push({t: t, key: kx, cur: cu, title: e.title, impact: im, fc: e.forecast, pv: e.previous}); }
           }
-          if (t === null || !CONFIG.newsCurrencies[e.country] || !CONFIG.newsImpacts[e.impact]) continue;
-          var key = t + '|' + e.country + '|' + e.title;
+          if (t === null || !CONFIG.newsCurrencies[cu] || !CONFIG.newsImpacts[im]) continue;
+          var key = t + '|' + cu + '|' + e.title;
           if (seen[key]) continue;
           seen[key] = 1;
-          all.push({t: t, key: key, cur: e.country, title: e.title, impact: e.impact, fc: e.forecast, pv: e.previous});
+          all.push({t: t, key: key, cur: cu, title: e.title, impact: im, fc: e.forecast, pv: e.previous});
         }
       }
       done();
