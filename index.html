@@ -536,7 +536,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.9.1',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.9.2',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -2408,14 +2408,20 @@ $('time').parentNode.onclick = function(){ zenOn = !zenOn; lsSet('pc_zen', zenOn
 zenApply();
 
 /* ---- หน้า MUSIC: วิทยุออนไลน์ (เพิ่ม/แก้สถานีที่ MU_ST | n = ชื่อบนปุ่ม, t = ชื่อเต็ม, u = รายการลิงก์สตรีม ลองตามลำดับถ้าอันแรกเล่นไม่ได้ ต้องเป็น https) ---- */
-function soma(ch){ return ['https://ice1.somafm.com/' + ch + '-128-mp3', 'https://ice2.somafm.com/' + ch + '-128-mp3', 'https://ice6.somafm.com/' + ch + '-128-mp3', 'https://ice.somafm.com/' + ch]; }
+var HLS_OK = false;
+try { HLS_OK = !!document.createElement('audio').canPlayType('application/vnd.apple.mpegurl'); } catch(e){}   /* มือถือส่วนใหญ่เล่น HLS ได้เอง คอมส่วนใหญ่ไม่ได้ */
+function soma(ch, hls){   /* มือถือ: HLS > AAC > MP3 | คอม: MP3 > AAC */
+  var b = 'https://ice1.somafm.com/' + ch, c = 'https://ice2.somafm.com/' + ch;
+  if (!HLS_OK) return [b + '-128-mp3', b + '-128-aac', c + '-128-mp3', c + '-128-aac'];
+  return (hls ? [hls] : []).concat([b + '-128-aac', b + '-128-mp3', c + '-128-aac', c + '-128-mp3']);
+}
 var MU_ST = [
-  {n: 'GROOVE', t: 'SOMAFM GROOVE SALAD', u: soma('groovesalad').concat(['https://hls.somafm.com/hls/groovesalad/128k/program.m3u8'])},
+  {n: 'GROOVE', t: 'SOMAFM GROOVE SALAD', u: soma('groovesalad', 'https://hls.somafm.com/hls/groovesalad/128k/program.m3u8')},
   {n: 'FLUID', t: 'SOMAFM FLUID', u: soma('fluid')},
   {n: 'DRONE', t: 'SOMAFM DRONE ZONE', u: soma('dronezone')},
   {n: 'SPACE', t: 'SOMAFM DEEP SPACE ONE', u: soma('deepspaceone')},
   {n: 'LOUNGE', t: 'SOMAFM ILLINOIS LOUNGE', u: soma('illstreet')},
-  {n: 'JAZZ', t: 'RADIO SWISS JAZZ', u: ['https://stream.srg-ssr.ch/m/rsj/mp3_128']}
+  {n: 'JAZZ', t: 'RADIO SWISS JAZZ', u: ['https://stream.srg-ssr.ch/m/rsj/mp3_128', 'https://stream.srg-ssr.ch/m/rsj/aacp_96']}
 ];
 var mu = {i: 0, vol: 6, on: false, au: null, st: 'STOP', sleepAt: 0, duckT: null, retryT: null, loadT: null, fl: false, k: 0, volOk: true},
     muS = lsGet('pc_music'), SLP = [0, 30, 60, 90], slpI = 0;
@@ -2429,7 +2435,7 @@ function muRender(){
   var i, h = '', b = $('muList').getElementsByTagName('button');
   $('muName').textContent = MU_ST[mu.i].t;
   $('muStat').textContent = mu.st;
-  $('muDbg').textContent = mu.au ? ('U' + (mu.k + 1) + '/' + MU_ST[mu.i].u.length + ' N' + mu.au.networkState + ' R' + mu.au.readyState + (mu.au.error ? ' E' + mu.au.error.code : '') + (mu.au.paused ? ' PAUSED' : '')) : 'NO AUDIO';   /* ไว้ดูสาเหตุเมื่อไม่มีเสียง */
+  $('muDbg').textContent = mu.au ? ('U' + (mu.k + 1) + '/' + MU_ST[mu.i].u.length + ' ' + (/m3u8/.test(MU_ST[mu.i].u[mu.k]) ? 'HLS' : (/aac/.test(MU_ST[mu.i].u[mu.k]) ? 'AAC' : 'MP3')) + ' N' + mu.au.networkState + ' R' + mu.au.readyState + (mu.au.error ? ' E' + mu.au.error.code : '') + (mu.au.paused ? ' PAUSED' : '')) : 'NO AUDIO';   /* ไว้ดูสาเหตุเมื่อไม่มีเสียง */
   $('muStat').className = 'chg' + (mu.st === 'LIVE' ? ' up' : (mu.st === 'ERROR' ? ' down' : ''));
   $('muPlay').textContent = mu.on ? 'PAUSE' : 'PLAY';
   $('muPlay').className = 'btn' + (mu.on ? ' on' : '');
@@ -2480,7 +2486,7 @@ function muLoad(){
   var a = muEnsure(), p;
   clearTimeout(mu.retryT); clearTimeout(mu.loadT); mu.fl = false;
   mu.st = 'LOADING'; muRender(); muMeta();
-  mu.loadT = setTimeout(function(){ if (mu.on && mu.st !== 'LIVE') muFail(); }, 12000);   /* ค้างโหลดเกิน 12 วินาที ถือว่าลิงก์นี้ใช้ไม่ได้ */
+  mu.loadT = setTimeout(function(){ if (mu.on && mu.st !== 'LIVE') muFail(); }, 10000);   /* ค้างโหลดเกิน 10 วินาที ถือว่าลิงก์นี้ใช้ไม่ได้ */
   try {
     a.src = MU_ST[mu.i].u[mu.k]; a.load(); p = a.play();
     if (p && p.catch) p.catch(function(err){
