@@ -536,7 +536,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.9',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.9.1',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -2407,16 +2407,17 @@ function zenApply(){ document.documentElement.className = zenOn ? 'zen' : ''; if
 $('time').parentNode.onclick = function(){ zenOn = !zenOn; lsSet('pc_zen', zenOn); zenApply(); };
 zenApply();
 
-/* ---- หน้า MUSIC: วิทยุออนไลน์ (เพิ่ม/แก้สถานีที่ MU_ST | n = ชื่อบนปุ่ม, t = ชื่อเต็ม, u = ลิงก์สตรีม ต้องเป็น https) ---- */
+/* ---- หน้า MUSIC: วิทยุออนไลน์ (เพิ่ม/แก้สถานีที่ MU_ST | n = ชื่อบนปุ่ม, t = ชื่อเต็ม, u = รายการลิงก์สตรีม ลองตามลำดับถ้าอันแรกเล่นไม่ได้ ต้องเป็น https) ---- */
+function soma(ch){ return ['https://ice1.somafm.com/' + ch + '-128-mp3', 'https://ice2.somafm.com/' + ch + '-128-mp3', 'https://ice6.somafm.com/' + ch + '-128-mp3', 'https://ice.somafm.com/' + ch]; }
 var MU_ST = [
-  {n: 'GROOVE', t: 'SOMAFM GROOVE SALAD', u: 'https://ice1.somafm.com/groovesalad-128-mp3'},
-  {n: 'FLUID', t: 'SOMAFM FLUID', u: 'https://ice1.somafm.com/fluid-128-mp3'},
-  {n: 'DRONE', t: 'SOMAFM DRONE ZONE', u: 'https://ice1.somafm.com/dronezone-128-mp3'},
-  {n: 'SPACE', t: 'SOMAFM DEEP SPACE ONE', u: 'https://ice1.somafm.com/deepspaceone-128-mp3'},
-  {n: 'LOUNGE', t: 'SOMAFM ILLINOIS LOUNGE', u: 'https://ice1.somafm.com/illstreet-128-mp3'},
-  {n: 'JAZZ', t: 'RADIO SWISS JAZZ', u: 'https://stream.srg-ssr.ch/m/rsj/mp3_128'}
+  {n: 'GROOVE', t: 'SOMAFM GROOVE SALAD', u: soma('groovesalad').concat(['https://hls.somafm.com/hls/groovesalad/128k/program.m3u8'])},
+  {n: 'FLUID', t: 'SOMAFM FLUID', u: soma('fluid')},
+  {n: 'DRONE', t: 'SOMAFM DRONE ZONE', u: soma('dronezone')},
+  {n: 'SPACE', t: 'SOMAFM DEEP SPACE ONE', u: soma('deepspaceone')},
+  {n: 'LOUNGE', t: 'SOMAFM ILLINOIS LOUNGE', u: soma('illstreet')},
+  {n: 'JAZZ', t: 'RADIO SWISS JAZZ', u: ['https://stream.srg-ssr.ch/m/rsj/mp3_128']}
 ];
-var mu = {i: 0, vol: 6, on: false, au: null, st: 'STOP', sleepAt: 0, duckT: null, retryT: null, volOk: true},
+var mu = {i: 0, vol: 6, on: false, au: null, st: 'STOP', sleepAt: 0, duckT: null, retryT: null, loadT: null, fl: false, k: 0, volOk: true},
     muS = lsGet('pc_music'), SLP = [0, 30, 60, 90], slpI = 0;
 if (muS){
   if (muS.i >= 0 && muS.i < MU_ST.length) mu.i = muS.i;
@@ -2428,7 +2429,7 @@ function muRender(){
   var i, h = '', b = $('muList').getElementsByTagName('button');
   $('muName').textContent = MU_ST[mu.i].t;
   $('muStat').textContent = mu.st;
-  $('muDbg').textContent = mu.au ? ('N' + mu.au.networkState + ' R' + mu.au.readyState + (mu.au.error ? ' E' + mu.au.error.code : '') + (mu.au.paused ? ' PAUSED' : '')) : 'NO AUDIO';   /* ไว้ดูสาเหตุเมื่อไม่มีเสียง */
+  $('muDbg').textContent = mu.au ? ('U' + (mu.k + 1) + '/' + MU_ST[mu.i].u.length + ' N' + mu.au.networkState + ' R' + mu.au.readyState + (mu.au.error ? ' E' + mu.au.error.code : '') + (mu.au.paused ? ' PAUSED' : '')) : 'NO AUDIO';   /* ไว้ดูสาเหตุเมื่อไม่มีเสียง */
   $('muStat').className = 'chg' + (mu.st === 'LIVE' ? ' up' : (mu.st === 'ERROR' ? ' down' : ''));
   $('muPlay').textContent = mu.on ? 'PAUSE' : 'PLAY';
   $('muPlay').className = 'btn' + (mu.on ? ' on' : '');
@@ -2446,17 +2447,26 @@ function muMeta(){
   } catch(e){}
 }
 function muFail(){
-  if (!mu.on) return;
-  mu.st = 'ERROR'; muRender();
-  clearTimeout(mu.retryT);
-  mu.retryT = setTimeout(function(){ if (mu.on) muLoad(); }, 5000);   /* สตรีมหลุด: ต่อใหม่เองทุก 5 วินาที */
+  if (!mu.on || mu.fl) return;
+  mu.fl = true; clearTimeout(mu.retryT); clearTimeout(mu.loadT);
+  if (mu.k < MU_ST[mu.i].u.length - 1){   /* ลิงก์นี้เล่นไม่ได้: ลองลิงก์สำรองถัดไป */
+    mu.k++; mu.st = 'LOADING'; muRender();
+    mu.retryT = setTimeout(function(){ if (mu.on) muLoad(); }, 800);
+    return;
+  }
+  mu.k = 0; mu.st = 'ERROR'; muRender();   /* ลองครบทุกลิงก์แล้ว: รอ 8 วินาทีแล้ววนใหม่ */
+  mu.retryT = setTimeout(function(){ if (mu.on) muLoad(); }, 8000);
 }
-function muBusy(){ if (mu.on){ mu.st = 'LOADING'; muRender(); } }
+function muBusy(){
+  if (!mu.on) return;
+  mu.st = 'LOADING'; muRender(); clearTimeout(mu.loadT);
+  mu.loadT = setTimeout(function(){ if (mu.on && mu.st !== 'LIVE') muFail(); }, 15000);
+}
 function muEnsure(){
   var a;
   if (mu.au) return mu.au;
   a = new Audio(); a.preload = 'none';
-  a.addEventListener('playing', function(){ mu.st = 'LIVE'; muRender(); }, false);
+  a.addEventListener('playing', function(){ clearTimeout(mu.loadT); mu.st = 'LIVE'; muRender(); }, false);
   a.addEventListener('waiting', muBusy, false);
   a.addEventListener('stalled', muBusy, false);
   a.addEventListener('error', muFail, false);
@@ -2468,24 +2478,25 @@ function muEnsure(){
 }
 function muLoad(){
   var a = muEnsure(), p;
-  clearTimeout(mu.retryT);
+  clearTimeout(mu.retryT); clearTimeout(mu.loadT); mu.fl = false;
   mu.st = 'LOADING'; muRender(); muMeta();
+  mu.loadT = setTimeout(function(){ if (mu.on && mu.st !== 'LIVE') muFail(); }, 12000);   /* ค้างโหลดเกิน 12 วินาที ถือว่าลิงก์นี้ใช้ไม่ได้ */
   try {
-    a.src = MU_ST[mu.i].u; a.load(); p = a.play();
+    a.src = MU_ST[mu.i].u[mu.k]; a.load(); p = a.play();
     if (p && p.catch) p.catch(function(err){
       if (!mu.on || (err && err.name === 'AbortError')) return;
       if (err && err.name === 'NotAllowedError'){ mu.on = false; mu.st = 'STOP'; muRender(); } else muFail();
     });
   } catch(e){ muFail(); }
 }
-function muPlay(){ mu.on = true; muLoad(); }
+function muPlay(){ mu.on = true; mu.k = 0; muLoad(); }
 function muStop(){
-  mu.on = false; mu.st = 'STOP'; clearTimeout(mu.retryT);
+  mu.on = false; mu.st = 'STOP'; clearTimeout(mu.retryT); clearTimeout(mu.loadT);
   if (mu.au){ try { mu.au.pause(); mu.au.removeAttribute('src'); mu.au.load(); } catch(e){} }   /* ปล่อยสตรีมจริง ไม่ใช่แค่พัก */
   muRender();
 }
-function muGo(d){ mu.i = (mu.i + d + MU_ST.length) % MU_ST.length; muSave(); if (mu.on) muLoad(); else muRender(); }
-function muPick(i){ mu.i = i; muSave(); mu.on = true; muLoad(); }
+function muGo(d){ mu.i = (mu.i + d + MU_ST.length) % MU_ST.length; mu.k = 0; muSave(); if (mu.on) muLoad(); else muRender(); }
+function muPick(i){ mu.i = i; mu.k = 0; muSave(); mu.on = true; muLoad(); }
 function muSetVol(n){ mu.vol = Math.max(0, Math.min(10, n)); muSave(); muVolApply(); muRender(); }
 /* เสียงเตือนข่าวดังขึ้น: หรี่เพลงลงชั่วคราวให้ได้ยินชัด (ทำได้เฉพาะเครื่องที่คุมระดับเสียงจากเว็บได้) */
 function muDuck(times){
