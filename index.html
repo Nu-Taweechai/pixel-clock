@@ -527,6 +527,12 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
       <div id="calList"></div>
       <div class="sub" id="calNote">&nbsp;</div>
     </div>
+    <div class="panel wide" id="impPanel">
+      <div class="lab"><span id="icoImp"></span>NEWS IMPACT<button type="button" class="btn" id="impClr">CLEAR</button></div>
+      <div class="sub" id="impNow">&nbsp;</div>
+      <div id="impList"></div>
+      <div class="sub" id="impNote">&nbsp;</div>
+    </div>
   </div>
   </div>
   </div></div>
@@ -544,7 +550,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.9.10',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.10.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -579,6 +585,9 @@ var CONFIG = {
   newsImpacts: {High:1},              // ระดับข่าว: High = แดง, Medium = ส้ม ({High:1, Medium:1})
   alertMinutes: 15,                   // เตือนล่วงหน้าไกลสุดกี่นาที (ต้องไม่น้อยกว่าค่าสูงสุดใน alertSteps) และเตือนอีกครั้งตอนข่าวออก
   alertSteps: [15, 5, 1],             // เตือนล่วงหน้าหลายรอบ (นาทีก่อนข่าวออก) เสียงจะถี่/สูงขึ้นเมื่อใกล้เวลา | [] = ใช้แค่ alertMinutes รอบเดียว
+  impact: true,                       // News Impact Log: จดว่าข่าวแต่ละตัวทำให้ทอง/BTC วิ่งกี่ดอลลาร์หลังข่าวออก (ดูที่หน้า NEWS) false = ปิด
+  impactMin: 5,                       // จับราคากี่นาทีหลังข่าวออก
+  impactKeep: 50,                     // เก็บประวัติกี่ครั้งล่าสุด
   newsStaleDays: 2                    // ถ้าข่าวล่าสุดในไฟล์เก่ากว่านี้ (วัน) ให้ขึ้นเตือนว่าข้อมูลค้าง
 };
 /* ===== */
@@ -1338,7 +1347,7 @@ function renderNews(){
   setC($('nCount'), 'val sm' + (hot ? ' hot' : '') + (diff <= 0 ? ' blink' : ''));
   setH($('nTitle'), '<span class="imp" style="background:' + impCol(n.impact) + '"></span><b style="font-weight:normal;color:#ffcf3a">' +
     n.cur + '</b> ' + hhmm(n.t) + ' ' + esc(n.title) +
-    ((n.fc || n.pv) ? '<br>FC ' + esc(n.fc || '-') + '  PV ' + esc(n.pv || '-') : ''));
+    ((n.fc || n.pv) ? '<br>FC ' + esc(n.fc || '-') + '  PV ' + esc(n.pv || '-') : '') + impHtml(n.title));
   var h = '';
   for (var i = 1; i < up.length; i++){
     h += '<div class="ev"><span class="imp" style="background:' + impCol(up[i].impact) + '"></span><span class="tm">' +
@@ -1405,7 +1414,7 @@ function checkAlerts(){
   box.setAttribute('data-key', show.key);
   box.innerHTML = '<b>' + (d <= 0 ? '!! NEWS NOW !!' : '! NEWS ALERT !') + '</b><br>' +
     '<span class="imp" style="background:' + impCol(show.impact) + '"></span>' + show.cur + ' ' + hhmm(show.t) + ' ' + esc(show.title) +
-    '<br>' + (d <= 0 ? 'ข่าวออกแล้ว' : 'อีก ' + cd(d)) + '<br><span style="color:#9a93c9">แตะเพื่อปิด</span>';
+    '<br>' + (d <= 0 ? 'ข่าวออกแล้ว' : 'อีก ' + cd(d)) + impHtml(show.title) + '<br><span style="color:#9a93c9">แตะเพื่อปิด</span>';
 }
 $('alert').onclick = function(){ dismissed[this.getAttribute('data-key')] = 1; saveState(); this.style.display = 'none'; };
 $('snd').onclick = function(){
@@ -1987,9 +1996,135 @@ function calRender(){
   setT($('calNote'), !newsOk ? 'โหลดข่าวไม่ได้ ใช้ข้อมูลที่เก็บไว้' : (newsStale() ? 'ข้อมูลข่าวค้าง ตรวจ GitHub Actions' :
     'แดง=High ส้ม=Medium  เวลาตามเครื่อง  จางลง=ออกแล้ว'));
 }
-function calOpen(){ syncCal(); calRender(); }
+function calOpen(){ syncCal(); calRender(); impRender(); }
 function calTick(){ if (pg !== 4 || (drag && drag.lock === 1)) return; calRender(); }
 setInterval(calTick, 1000);
+
+/* ---- NEWS IMPACT LOG: จดว่าข่าวแต่ละตัวทำให้ทอง/BTC วิ่งกี่ดอลลาร์ใน N นาทีหลังข่าวออก (เก็บใน localStorage) ---- */
+var impS = lsGet('pc_impact') || {}, impLog = (impS.log && impS.log.length !== undefined) ? impS.log : [], impAct = impS.act || null;
+var impSeen = {}, impSkip = {}, impSaveAt = 0, IMP_K = ['gold', 'btc'];
+function impWin(){ return (CONFIG.impactMin || 5) * 60000; }
+function impSave(){ lsSet('pc_impact', {log: impLog, act: impAct}); impSaveAt = Date.now(); }
+function impIdx(){
+  var i, j; impSeen = {};
+  for (i = 0; i < impLog.length; i++) for (j = 0; j < (impLog[i].k || []).length; j++) impSeen[impLog[i].k[j]] = 1;
+  if (impAct) for (j = 0; j < impAct.k.length; j++) impSeen[impAct.k[j]] = 1;
+}
+function impUpd(o, v){ if (v > o.h) o.h = v; if (v < o.l) o.l = v; o.c = v; }
+function impBase(k, t){   /* ราคาก่อนข่าวออก: จุดล่าสุดที่ไม่เกิน t (ห่างไม่เกิน 30 วิ) ถ้าไม่มีใช้จุดแรกหลัง t ไม่เกิน 10 วิ (ประมาณ) */
+  var arr = hist[k], i, best = null;
+  for (i = 0; i < arr.length; i++){
+    if (arr[i].t <= t){ if (t - arr[i].t <= 30000) best = {p: arr[i].p, ap: 0}; }
+    else { if (!best && arr[i].t - t <= 10000) best = {p: arr[i].p, ap: 1}; break; }
+  }
+  return best;
+}
+function impStart(e, now){
+  var a = {t: e.t, end: e.t + impWin(), n: [e.title], k: [e.key], cur: e.cur, im: e.impact, sv: now, ap: 0, p: {}}, i, j, b, arr, any = false;
+  for (i = 0; i < IMP_K.length; i++){
+    b = impBase(IMP_K[i], e.t);
+    if (!b) continue;
+    any = true; if (b.ap) a.ap = 1;
+    a.p[IMP_K[i]] = {b: b.p, h: b.p, l: b.p, c: b.p};
+    arr = hist[IMP_K[i]];
+    for (j = 0; j < arr.length; j++) if (arr[j].t >= e.t) impUpd(a.p[IMP_K[i]], arr[j].p);   /* เปิดหน้าช้าหลังข่าวออกไม่กี่นาที ย้อนเติมจากประวัติราคา */
+  }
+  if (!any) return false;
+  impAct = a; return true;
+}
+function r2(v){ return Math.round(v * 100) / 100; }
+function impFinish(){
+  var a = impAct, o = {t: a.t, n: a.n, k: a.k, cur: a.cur, im: a.im, ap: a.ap, pt: a.sv < a.end - 20000 ? 1 : 0}, k, q;
+  for (k in a.p){ q = a.p[k]; o[k] = {b: r2(q.b), u: r2(q.h - q.b), d: r2(q.b - q.l), c: r2(q.c - q.b)}; }
+  impLog.push(o);
+  while (impLog.length > (CONFIG.impactKeep || 50)) impLog.shift();
+  impAct = null; impSave();
+}
+function impTrack(){
+  if (!CONFIG.impact) return;
+  var now = Date.now(), i, e, k, v;
+  if (impAct){
+    if (now >= impAct.end) impFinish();
+    else {
+      for (i = 0; i < IMP_K.length; i++){
+        k = IMP_K[i]; v = curP[k];
+        if (impAct.p[k] && v !== null && v !== undefined) impUpd(impAct.p[k], v);
+      }
+      impAct.sv = now;
+      if (now - impSaveAt >= 10000) impSave();
+    }
+  }
+  for (i = 0; i < news.length; i++){
+    e = news[i];
+    if (e.t > now) break;
+    if (now >= e.t + impWin() || impSeen[e.key] || impSkip[e.key]) continue;
+    if (impAct){
+      if (Math.abs(e.t - impAct.t) <= 120000){ impAct.n.push(e.title); impAct.k.push(e.key); impSeen[e.key] = 1; impSave(); }   /* ข่าวออกพร้อมกัน (CPI + Core CPI) รวมเป็นเหตุการณ์เดียว */
+      else impSkip[e.key] = 1;
+      continue;
+    }
+    if (impStart(e, now)){ impSeen[e.key] = 1; impSave(); } else impSkip[e.key] = 1;   /* ไม่มีราคาก่อนข่าว (เปิดหน้าไม่ทัน) ข้ามครั้งนี้ */
+  }
+}
+function impAvg(title){
+  var i, o, gs = 0, gn = 0, bs = 0, bn = 0, n = 0;
+  for (i = 0; i < impLog.length; i++){
+    o = impLog[i];
+    if (o.pt || !o.n || o.n.indexOf(title) < 0) continue;
+    n++;
+    if (o.gold){ gs += Math.max(o.gold.u, o.gold.d); gn++; }
+    if (o.btc){ bs += Math.max(o.btc.u, o.btc.d); bn++; }
+  }
+  return {n: n, g: gn ? gs / gn : null, b: bn ? bs / bn : null};
+}
+function impHint(title){
+  if (!impS || !impLog || !CONFIG.impact) return '';
+  var a = impAvg(title);
+  if (!a.n) return '';
+  return 'เคยวิ่ง' + (a.g !== null ? ' ทอง $' + fmt(a.g, 2) : '') + (a.b !== null ? ' BTC $' + fmt(a.b) : '') + ' (' + a.n + ' ครั้ง)';
+}
+function impHtml(title){ var s = impHint(title); return s ? '<br><span style="color:#9a93c9">' + s + '</span>' : ''; }
+function sg(v, d){ return (v >= 0 ? '+' : '-') + fmt(Math.abs(v), d); }
+function impRow(nm, q, d){
+  if (!q) return '';
+  var m = Math.max(q.u, q.d), up = q.u >= q.d;
+  return '<div class="cs">' + nm + ' <span class="chg ' + (up ? 'up' : 'down') + '">' + (up ? 'UP' : 'DN') + ' $' + fmt(m, d) + '</span>  H+' + fmt(q.u, d) + ' L-' + fmt(q.d, d) + ' C' + sg(q.c, d) + '</div>';
+}
+function impRender(){
+  if (!CONFIG.impact) return;
+  var now = Date.now(), h = '', i, o, d, t = '', nx, q, c = 0;
+  if (impAct){
+    t = '<span class="blink" style="color:#ff5f6d">REC</span> ' + esc(impAct.n.join(' + ')) + '  เหลือ ' + cd(Math.max(0, impAct.end - now));
+    if (impAct.p.gold){ q = impAct.p.gold; t += '<br>GOLD ' + sg(q.c - q.b, 2) + '  H+' + fmt(q.h - q.b, 2) + ' L-' + fmt(q.b - q.l, 2); }
+    if (impAct.p.btc){ q = impAct.p.btc; t += '<br>BTC ' + sg(q.c - q.b, 0) + '  H+' + fmt(q.h - q.b, 0) + ' L-' + fmt(q.b - q.l, 0); }
+  } else {
+    nx = upcoming(now)[0];
+    if (nx && nx.t > now){
+      t = 'ถัดไป ' + nx.cur + ' ' + esc(nx.title) + '  อีก ' + cd(nx.t - now);
+      if (impHint(nx.title)) t += '<br>' + impHint(nx.title);
+    } else t = 'รอข่าวถัดไป';
+  }
+  setH($('impNow'), t);
+  for (i = impLog.length - 1; i >= 0 && c < 10; i--, c++){
+    o = impLog[i]; d = new Date(o.t);
+    h += '<div class="cr"><span class="imp" style="background:' + impCol(o.im) + '"></span><span class="tm">' + d.getDate() + ' ' + MON[d.getMonth()] + ' ' + hhmm(o.t) + '</span> ' +
+      esc(o.n.join(' + ')) + (o.pt || o.ap ? ' *' : '') + impRow('GOLD', o.gold, 2) + impRow('BTC', o.btc, 0) + '</div>';
+  }
+  if (!h) h = '<div class="sub">ยังไม่มีข้อมูล เปิดหน้านี้ค้างไว้ตอนข่าวแรงออก แล้วระบบจะจดให้เอง</div>';
+  setH($('impList'), h);
+  setT($('impNote'), 'จด ' + impLog.length + ' ครั้ง  ช่วง ' + (CONFIG.impactMin || 5) + ' นาทีหลังข่าวออก  H=สูงสุด L=ต่ำสุด C=ตอนจบ  *=ข้อมูลไม่ครบ');
+}
+$('impClr').onclick = function(){
+  if (!confirm('ล้างสถิติข่าวทั้งหมด?')) return;
+  impLog = []; impIdx(); impSave(); impRender();
+};
+$('icoImp').innerHTML = sprite('bar', 3);
+if (!CONFIG.impact) $('impPanel').style.display = 'none';
+impIdx();
+if (impAct && Date.now() > impAct.end + 600000){ impAct = null; impSave(); }   /* ค้างเก่าเกินไป ทิ้ง */
+else if (impAct && Date.now() >= impAct.end){ impFinish(); impIdx(); }
+setInterval(function(){ impTrack(); if (pg === 4 && !(drag && drag.lock === 1)) impRender(); }, 1000);
+impRender();
 SPR.pcloud = ["..y..y.........", "...kkk.........", ".ykyyyk.kkk....", "..kyyykkWWWk...", "...kkkWWWWWWk..", "....kWWWWWWWWk.", "....kkkkkkkkkk."];
 SPR.cloud2 = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk"];
 SPR.rain = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk", "..b..b..b..b..", ".b..b..b..b..."];
@@ -2214,9 +2349,9 @@ setInterval(function(){   /* กะพริบตา */
    sleep = ช่วงเงียบ | wow/shock = ทองขยับแรง (พุ่ง/ร่วง) 1 นาที | nerv = ข่าวแรงอีกไม่เกิน 15 นาที | happy/sad = 24H ±0.3% | flat = นิ่ง */
 function gMood(){
   var now = Date.now(), i, d;
-  if (gOv && gOv.u > now) return gOv.m;   /* อารมณ์ชั่วคราวจากการแตะแมว/แมงมุม */
-  if (typeof sp !== 'undefined' && (sp.mode === 'down' || sp.mode === 'idle')) return 'shock';   /* แมงมุมตัวเดิมห้อยลงมา */
+  if (gOv && gOv.u > now) return gOv.m;
   if (isQuiet()) return 'sleep';
+  if (typeof sp !== 'undefined' && (sp.mode === 'down' || sp.mode === 'idle')) return 'shock';
   if (gShock && now - gShock.t < 60000) return gShock.up ? 'wow' : 'shock';
   for (i = 0; i < news.length; i++){ d = news[i].t - now; if (d > 0){ if (d <= 900000) return 'nerv'; break; } }
   if (goldPct === null) return 'flat';
