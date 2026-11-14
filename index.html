@@ -365,6 +365,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
       <div class="sub" id="muNote" style="display:none">เครื่องนี้ไม่ให้เว็บคุมเสียง ใช้ปุ่มปรับเสียงข้างเครื่อง</div>
       <div class="ctl" style="margin-top:8px"><button type="button" class="btn" id="muSleep">SLEEP OFF</button></div>
       <div class="sub">เพลงเล่นต่อแม้ปัดไปหน้าอื่นหรือเข้าโหมดนาฬิกาล้วน</div>
+      <div class="sub" id="muDbg">&nbsp;</div>
     </div>
   </div>
   </div>
@@ -2427,6 +2428,7 @@ function muRender(){
   var i, h = '', b = $('muList').getElementsByTagName('button');
   $('muName').textContent = MU_ST[mu.i].t;
   $('muStat').textContent = mu.st;
+  $('muDbg').textContent = mu.au ? ('N' + mu.au.networkState + ' R' + mu.au.readyState + (mu.au.error ? ' E' + mu.au.error.code : '') + (mu.au.paused ? ' PAUSED' : '')) : 'NO AUDIO';   /* ไว้ดูสาเหตุเมื่อไม่มีเสียง */
   $('muStat').className = 'chg' + (mu.st === 'LIVE' ? ' up' : (mu.st === 'ERROR' ? ' down' : ''));
   $('muPlay').textContent = mu.on ? 'PAUSE' : 'PLAY';
   $('muPlay').className = 'btn' + (mu.on ? ' on' : '');
@@ -2515,6 +2517,7 @@ $('muSleep').onclick = function(){
   mu.sleepAt = SLP[slpI] ? Date.now() + SLP[slpI] * 60000 : 0;
   muRender();
 };
+setInterval(function(){ if (mu.on) muRender(); }, 2000);
 setInterval(function(){ if (mu.sleepAt && Date.now() >= mu.sleepAt){ mu.sleepAt = 0; slpI = 0; muStop(); } }, 10000);
 try {   /* ปุ่มควบคุมบนหน้าจอล็อก */
   if ('mediaSession' in navigator){
