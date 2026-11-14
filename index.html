@@ -537,7 +537,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.9.4',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.9.5',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -2423,7 +2423,7 @@ var MU_ST = [
   {n: 'DRONE', t: 'SOMAFM DRONE ZONE', u: soma('dronezone')},
   {n: 'SPACE', t: 'SOMAFM DEEP SPACE ONE', u: soma('deepspaceone')},
   {n: 'LOUNGE', t: 'SOMAFM ILLINOIS LOUNGE', u: soma('illstreet')},
-  {n: 'JAZZ', t: 'RADIO SWISS JAZZ', u: ['https://stream.srg-ssr.ch/m/rsj/mp3_128', 'https://stream.srg-ssr.ch/m/rsj/aacp_96', 'https://lsaplus.swisstxt.ch/audio/rsj_96.stream/playlist.m3u8']},
+  {n: 'JAZZ', t: 'RADIO SWISS JAZZ', u: ['https://stream.srg-ssr.ch/srgssr/rsj/aac/96', 'https://stream.srg-ssr.ch/srgssr/rsj/aac/128', 'https://stream.srg-ssr.ch/srgssr/rsj/mp3/128', 'https://stream.srg-ssr.ch/m/rsj/mp3_128', 'https://stream.srg-ssr.ch/m/rsj/aacp_96']},
   {n: 'SONIC', t: 'SOMAFM SONIC UNIVERSE (JAZZ)', u: soma('sonicuniverse')}
 ];
 var mu = {i: 0, vol: 6, on: false, au: null, st: 'STOP', sleepAt: 0, duckT: null, retryT: null, loadT: null, fl: false, k: 0, volOk: true},
