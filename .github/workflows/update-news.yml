@@ -1,3 +1,4 @@
+
 name: Update Forex Factory news
 
 on:
@@ -18,31 +19,70 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Download Forex Factory calendar
+      - name: Download thisweek from Forex Factory
         shell: bash
         run: |
           set -euo pipefail
+
           curl -fsSL --retry 2 --retry-delay 3 \
             'https://nfs.faireconomy.media/ff_calendar_thisweek.json' \
             -o thisweek.json
-          if curl -fsSL --retry 1 --retry-delay 2 \
-            'https://nfs.faireconomy.media/ff_calendar_nextweek.json' \
-            -o nextweek.json; then
-            :
-          else
-            echo '[]' > nextweek.json
-          fi
-          jq -s 'add | unique_by([.date, .country, .title])' \
-            thisweek.json nextweek.json > news.json
-          rm -f thisweek.json nextweek.json
+
+      - name: Download nextweek from ShowMyTrades
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          curl -fsSL --retry 3 --retry-delay 3 \
+            'https://showmytrades.com/api/public/calendar/v1?impact=all&days=30' \
+            -o calendar.json
+
+          # ตรวจสอบข้อมูล API
+          jq -e '.events | type == "array"' calendar.json > /dev/null
+
+          # คำนวณช่วงสัปดาห์หน้า ตามเวลาไทย
+          START=$(TZ=Asia/Bangkok date -d 'next monday 00:00' +%s)
+          END=$(TZ=Asia/Bangkok date -d 'next monday 00:00 +7 days' +%s)
+
+          # เลือกเฉพาะข่าวสัปดาห์หน้า
+          jq --argjson start "$START" --argjson end "$END" '
+            [
+              .events[]
+              | select(.ts >= $start and .ts < $end)
+              | . + {
+                  date: .time,
+                  country: .currency
+                }
+            ]
+          ' calendar.json > nextweek.json
+
+          echo "Next week news: $(jq 'length' nextweek.json)"
+
+      - name: Merge news
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          jq -s '
+            add
+            | unique_by([.date, .country, .title])
+            | sort_by(.date)
+          ' thisweek.json nextweek.json > news.json
+
+          echo "Total news: $(jq 'length' news.json)"
+
+          rm -f thisweek.json nextweek.json calendar.json
 
       - name: Commit updated news file
         shell: bash
         run: |
           set -euo pipefail
+
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
           git add news.json
+
           if git diff --cached --quiet; then
             echo 'News data has not changed.'
           else
