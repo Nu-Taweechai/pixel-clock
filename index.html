@@ -215,8 +215,8 @@ input.num{width:120px}
 .tb:last-child{margin-right:0}
 .tb.on{background:#2a2457;color:var(--gold);box-shadow:inset 0 -4px 0 var(--gold)}
 #pager{overflow:hidden;position:relative;padding:0 8px 8px 0;-ms-touch-action:pan-y;touch-action:pan-y}
-#track{display:-webkit-flex;display:flex;-webkit-align-items:flex-start;align-items:flex-start;width:400%;will-change:transform}
-.pg{-webkit-flex:none;flex:none;width:25%;min-width:0}
+#track{display:-webkit-flex;display:flex;-webkit-align-items:flex-start;align-items:flex-start;width:500%;will-change:transform}
+.pg{-webkit-flex:none;flex:none;width:20%;min-width:0}
 .pg.off{visibility:hidden;max-height:0;overflow:hidden}
 .ctl{display:-webkit-flex;display:flex;margin-bottom:6px}
 .ctl .btn{margin-right:4px}
@@ -261,6 +261,10 @@ input.num{width:120px}
 .dr .rn{-webkit-flex:2;flex:2;text-align:right;color:#6ac3ff}
 @media (max-width:599px){ .cr,.dh,.dr{font-size:8px} .say{font-size:8px;line-height:1.6} }
 @media (min-width:600px){ .say{font-size:11px} .cr,.dh,.dr{font-size:11px} .hc{font-size:10px} .tb{font-size:10px} }
+/* ===== หน้า MUSIC ===== */
+#muList .btn{margin-bottom:4px}
+#muBar .seg{height:20px}
+@media (max-width:599px){ .tb{font-size:7px;margin-right:3px} }
 @media (orientation:landscape) and (max-height:500px){
   #pagerbox{grid-column:2;grid-row:1 / span 2;min-width:0;min-height:0;height:100%;
     display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column}
@@ -344,9 +348,27 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
   </div>
 
   <div id="pagerbox">
-  <div class="tabs" id="tabs"><button type="button" class="tb" data-p="0">WEATHER</button><button type="button" class="tb on" data-p="1">MARKET</button><button type="button" class="tb" data-p="2">CHART</button><button type="button" class="tb" data-p="3">NEWS</button></div>
+  <div class="tabs" id="tabs"><button type="button" class="tb" data-p="0">MUSIC</button><button type="button" class="tb" data-p="1">WEATHER</button><button type="button" class="tb on" data-p="2">MARKET</button><button type="button" class="tb" data-p="3">CHART</button><button type="button" class="tb" data-p="4">NEWS</button></div>
   <div id="pager"><div id="track">
-  <div class="pg off" id="pg0">
+    <div class="pg off" id="pg0">
+  <div class="grid">
+    <div class="panel wide">
+      <div class="lab">MUSIC RADIO<span class="chg" id="muStat" style="margin-left:auto">STOP</span></div>
+      <div class="val sm" id="muName">--</div>
+      <div class="ctl" style="margin-top:10px"><button type="button" class="btn" id="muPrev">&lt; PREV</button><button type="button" class="btn" id="muPlay">PLAY</button><button type="button" class="btn" id="muNext">NEXT &gt;</button></div>
+      <div class="sub">STATIONS</div>
+      <div class="ctl" id="muList" style="-webkit-flex-wrap:wrap;flex-wrap:wrap;margin-top:6px"></div>
+      <div id="muVolBox">
+        <div class="sub">VOLUME</div>
+        <div class="ctl" style="-webkit-align-items:center;align-items:center"><button type="button" class="btn" id="muVm">-</button><div class="hp" id="muBar" style="-webkit-flex:1;flex:1;margin:0 4px;cursor:pointer"></div><button type="button" class="btn" id="muVp">+</button></div>
+      </div>
+      <div class="sub" id="muNote" style="display:none">เครื่องนี้ไม่ให้เว็บคุมเสียง ใช้ปุ่มปรับเสียงข้างเครื่อง</div>
+      <div class="ctl" style="margin-top:8px"><button type="button" class="btn" id="muSleep">SLEEP OFF</button></div>
+      <div class="sub">เพลงเล่นต่อแม้ปัดไปหน้าอื่นหรือเข้าโหมดนาฬิกาล้วน</div>
+    </div>
+  </div>
+  </div>
+  <div class="pg off" id="pg1">
   <div class="grid">
     <div class="panel wide">
       <div class="lab"><span id="icoHero"></span>PLAYER 1</div>
@@ -387,7 +409,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
     </div>
   </div>
   </div>
-  <div class="pg" id="pg1">
+  <div class="pg" id="pg2">
   <div class="grid">
     <div class="panel wide arp" id="btcPanel"><span id="btcAr" class="far"></span>
       <div class="lab"><span id="icoBtc" class="coinspin"></span>BITCOIN (BTC/USD)</div>
@@ -462,7 +484,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
     </div>
   </div>
   </div>
-  <div class="pg off" id="pg2">
+  <div class="pg off" id="pg3">
   <div class="grid">
     <div class="panel wide">
       <div class="lab"><span id="icoCh"></span><span id="chName">BTC/USD</span></div>
@@ -486,7 +508,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
     </div>
   </div>
   </div>
-  <div class="pg off" id="pg3">
+  <div class="pg off" id="pg4">
   <div class="grid">
     <div class="panel wide">
       <div class="lab"><span id="icoCal"></span>NEWS CALENDAR</div>
@@ -1486,8 +1508,8 @@ document.addEventListener('visibilitychange', keepAwake);
 document.addEventListener('click', keepAwake);
 keepAwake();
 
-/* ---- หน้าสลับ: ปัดซ้าย = หน้าถัดไป (WEATHER < MARKET > CHART > NEWS), ปัดขวา = ย้อนกลับ ---- */
-var NPG = 4, pg = 1, pgW = 0, drag = null, offT = null;
+/* ---- หน้าสลับ: ปัดซ้าย = หน้าถัดไป (MUSIC < WEATHER < MARKET > CHART > NEWS), ปัดขวา = ย้อนกลับ ---- */
+var NPG = 5, pg = 2, pgW = 0, drag = null, offT = null;
 function trk(x, anim){
   var st = $('track').style;
   st.webkitTransition = anim ? '-webkit-transform .24s steps(6,end)' : 'none';
@@ -1504,9 +1526,9 @@ function setPage(n, anim){
   clearTimeout(offT);
   offT = setTimeout(function(){ for (var j = 0; j < NPG; j++){ if (j !== n) pgEl(j).className = 'pg off'; } }, anim ? 300 : 0);   // หน้าที่ไม่ได้ดูหดความสูง ไม่ให้เลื่อนยาวเกินจริง
   lsSet('pc_page', n);
-  if (n === 2) chartOpen(); else if (n === 3) calOpen(); else if (n === 0) wxOpen();
+  if (n === 3) chartOpen(); else if (n === 4) calOpen(); else if (n === 1) wxOpen();
 }
-function relayout(){ pgW = pageW(); trk(-pg * pgW, false); if (pg === 2) drawChart(); }
+function relayout(){ pgW = pageW(); trk(-pg * pgW, false); if (pg === 3) drawChart(); }
 (function(){
   var el = $('pager');
   el.addEventListener('touchstart', function(e){
@@ -1860,7 +1882,7 @@ function drawChart(){ if (CH.s === 'pixel') drawChartPixel(); else drawChartTV()
 function chartOpen(){ syncCtl(); loadK(false); drawChart(); }
 function chartTick(){
   if (curP.btc && curP.gold) $('chRatio').textContent = fmt(curP.btc / curP.gold, 2) + ' oz';
-  if (pg !== 2 || (drag && drag.lock === 1)) return;
+  if (pg !== 3 || (drag && drag.lock === 1)) return;
   loadK(false); drawChart();
 }
 setInterval(chartTick, 1000);
@@ -1929,7 +1951,7 @@ function calRender(){
     'แดง=High ส้ม=Medium  เวลาตามเครื่อง  จางลง=ออกแล้ว'));
 }
 function calOpen(){ syncCal(); calRender(); }
-function calTick(){ if (pg !== 3 || (drag && drag.lock === 1)) return; calRender(); }
+function calTick(){ if (pg !== 4 || (drag && drag.lock === 1)) return; calRender(); }
 setInterval(calTick, 1000);
 SPR.pcloud = ["..y..y.........", "...kkk.........", ".ykyyyk.kkk....", "..kyyykkWWWk...", "...kkkWWWWWWk..", "....kWWWWWWWWk.", "....kkkkkkkkkk."];
 SPR.cloud2 = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk"];
@@ -2043,7 +2065,7 @@ function loadWx2(){
     function(j){ if (j && j.current){ AQ = j.current; aqRender(); } else wxBad(); }, wxBad);
 }
 function wxOpen(){ wxRender(); aqRender(); if (!WX || Date.now() - WX.at > 20 * 60000) loadWx2(); }
-function wxTick(){ if (pg !== 0 || (drag && drag.lock === 1)) return; wxRender(); }
+function wxTick(){ if (pg !== 1 || (drag && drag.lock === 1)) return; wxRender(); }
 setInterval(wxTick, 20000);
 var _lw = loadWeather;   /* ให้หน้านี้รีเฟรชตามรอบเดียวกับอุณหภูมิ/PM2.5 และตอนย้ายตำแหน่ง */
 loadWeather = function(){ _lw(); loadWx2(); };
@@ -2147,12 +2169,12 @@ var _wr = wxRender, _aq = aqRender;
 wxRender = function(){ _wr(); heroRender(); };
 aqRender = function(){ _aq(); heroRender(); };
 setInterval(function(){   /* กะพริบตา */
-  if (pg !== 0 || heroBlink) return;
+  if (pg !== 1 || heroBlink) return;
   heroBlink = true; heroRender();
   setTimeout(function(){ heroBlink = false; heroRender(); }, 180);
 }, 3500);
 syncCtl(); relayout();
-setPage(1, false);   // เปิดมาที่หน้า MARKET ทุกครั้ง
+setPage(2, false);   // เปิดมาที่หน้า MARKET ทุกครั้ง
 
 /* ---- v2.0 ความมีชีวิต ---- */
 /* เหรียญเด้ง (ตอนราคาถึงเป้าที่ตั้งเอง และตอน LEVEL UP) */
@@ -2383,6 +2405,126 @@ var zenOn = !!lsGet('pc_zen');
 function zenApply(){ document.documentElement.className = zenOn ? 'zen' : ''; if (!zenOn) relayout(); walkPlace(); shiftNow(false); }
 $('time').parentNode.onclick = function(){ zenOn = !zenOn; lsSet('pc_zen', zenOn); zenApply(); };
 zenApply();
+
+/* ---- หน้า MUSIC: วิทยุออนไลน์ (เพิ่ม/แก้สถานีที่ MU_ST | n = ชื่อบนปุ่ม, t = ชื่อเต็ม, u = ลิงก์สตรีม ต้องเป็น https) ---- */
+var MU_ST = [
+  {n: 'GROOVE', t: 'SOMAFM GROOVE SALAD', u: 'https://ice1.somafm.com/groovesalad-128-mp3'},
+  {n: 'FLUID', t: 'SOMAFM FLUID', u: 'https://ice1.somafm.com/fluid-128-mp3'},
+  {n: 'DRONE', t: 'SOMAFM DRONE ZONE', u: 'https://ice1.somafm.com/dronezone-128-mp3'},
+  {n: 'SPACE', t: 'SOMAFM DEEP SPACE ONE', u: 'https://ice1.somafm.com/deepspaceone-128-mp3'},
+  {n: 'LOUNGE', t: 'SOMAFM ILLINOIS LOUNGE', u: 'https://ice1.somafm.com/illstreet-128-mp3'},
+  {n: 'JAZZ', t: 'RADIO SWISS JAZZ', u: 'https://stream.srg-ssr.ch/m/rsj/mp3_128'}
+];
+var mu = {i: 0, vol: 6, on: false, au: null, st: 'STOP', sleepAt: 0, duckT: null, retryT: null, volOk: true},
+    muS = lsGet('pc_music'), SLP = [0, 30, 60, 90], slpI = 0;
+if (muS){
+  if (muS.i >= 0 && muS.i < MU_ST.length) mu.i = muS.i;
+  if (muS.vol >= 0 && muS.vol <= 10) mu.vol = muS.vol;
+}
+function muSave(){ lsSet('pc_music', {i: mu.i, vol: mu.vol}); }
+function muVolApply(){ if (mu.au && mu.volOk){ try { mu.au.volume = mu.vol / 10; } catch(e){} } }
+function muRender(){
+  var i, h = '', b = $('muList').getElementsByTagName('button');
+  $('muName').textContent = MU_ST[mu.i].t;
+  $('muStat').textContent = mu.st;
+  $('muStat').className = 'chg' + (mu.st === 'LIVE' ? ' up' : (mu.st === 'ERROR' ? ' down' : ''));
+  $('muPlay').textContent = mu.on ? 'PAUSE' : 'PLAY';
+  $('muPlay').className = 'btn' + (mu.on ? ' on' : '');
+  for (i = 0; i < b.length; i++) b[i].className = 'btn' + (i === mu.i ? ' on' : '');
+  for (i = 0; i < 10; i++) h += '<div class="seg' + (i < mu.vol ? ' on' : '') + '" style="background:' + (i < mu.vol ? '#4cf08a' : '#2a2457') + '"></div>';
+  setH($('muBar'), h);
+  $('muSleep').textContent = 'SLEEP ' + (SLP[slpI] ? SLP[slpI] + 'M' : 'OFF');
+  $('muVolBox').style.display = mu.volOk ? 'block' : 'none';
+  $('muNote').style.display = mu.volOk ? 'none' : 'block';
+}
+function muMeta(){
+  try {
+    if ('mediaSession' in navigator && window.MediaMetadata)
+      navigator.mediaSession.metadata = new MediaMetadata({title: MU_ST[mu.i].t, artist: 'Pixel Clock'});
+  } catch(e){}
+}
+function muFail(){
+  if (!mu.on) return;
+  mu.st = 'ERROR'; muRender();
+  clearTimeout(mu.retryT);
+  mu.retryT = setTimeout(function(){ if (mu.on) muLoad(); }, 5000);   /* สตรีมหลุด: ต่อใหม่เองทุก 5 วินาที */
+}
+function muBusy(){ if (mu.on){ mu.st = 'LOADING'; muRender(); } }
+function muEnsure(){
+  var a;
+  if (mu.au) return mu.au;
+  a = new Audio(); a.preload = 'none';
+  a.addEventListener('playing', function(){ mu.st = 'LIVE'; muRender(); }, false);
+  a.addEventListener('waiting', muBusy, false);
+  a.addEventListener('stalled', muBusy, false);
+  a.addEventListener('error', muFail, false);
+  a.addEventListener('ended', muFail, false);
+  mu.au = a;
+  try { a.volume = 0.5; mu.volOk = Math.abs(a.volume - 0.5) < 0.01; } catch(e){ mu.volOk = false; }   /* iOS ไม่ยอมให้เว็บตั้งระดับเสียง */
+  muVolApply();
+  return a;
+}
+function muLoad(){
+  var a = muEnsure(), p;
+  clearTimeout(mu.retryT);
+  mu.st = 'LOADING'; muRender(); muMeta();
+  try {
+    a.src = MU_ST[mu.i].u; a.load(); p = a.play();
+    if (p && p.catch) p.catch(function(err){
+      if (!mu.on || (err && err.name === 'AbortError')) return;
+      if (err && err.name === 'NotAllowedError'){ mu.on = false; mu.st = 'STOP'; muRender(); } else muFail();
+    });
+  } catch(e){ muFail(); }
+}
+function muPlay(){ mu.on = true; muLoad(); }
+function muStop(){
+  mu.on = false; mu.st = 'STOP'; clearTimeout(mu.retryT);
+  if (mu.au){ try { mu.au.pause(); mu.au.removeAttribute('src'); mu.au.load(); } catch(e){} }   /* ปล่อยสตรีมจริง ไม่ใช่แค่พัก */
+  muRender();
+}
+function muGo(d){ mu.i = (mu.i + d + MU_ST.length) % MU_ST.length; muSave(); if (mu.on) muLoad(); else muRender(); }
+function muPick(i){ mu.i = i; muSave(); mu.on = true; muLoad(); }
+function muSetVol(n){ mu.vol = Math.max(0, Math.min(10, n)); muSave(); muVolApply(); muRender(); }
+/* เสียงเตือนข่าวดังขึ้น: หรี่เพลงลงชั่วคราวให้ได้ยินชัด (ทำได้เฉพาะเครื่องที่คุมระดับเสียงจากเว็บได้) */
+function muDuck(times){
+  if (!mu.au || !mu.on || !mu.volOk) return;
+  try { mu.au.volume = Math.max(0.03, mu.vol / 10 * 0.2); } catch(e){}
+  clearTimeout(mu.duckT);
+  mu.duckT = setTimeout(muVolApply, (times || 1) * 280 + 900);
+}
+var _muBeep = beep;
+beep = function(n){ _muBeep(n); if (soundOn && audioCtx && !isQuiet()) muDuck(n); };
+
+(function(){
+  var h = '', i;
+  for (i = 0; i < MU_ST.length; i++) h += '<button type="button" class="btn" data-i="' + i + '">' + MU_ST[i].n + '</button>';
+  $('muList').innerHTML = h;
+})();
+$('muList').onclick = function(e){
+  var t = e.target || e.srcElement, i = t && t.getAttribute ? t.getAttribute('data-i') : null;
+  if (i !== null) muPick(parseInt(i, 10));
+};
+$('muPlay').onclick = function(){ if (mu.on) muStop(); else muPlay(); };
+$('muPrev').onclick = function(){ muGo(-1); };
+$('muNext').onclick = function(){ muGo(1); };
+$('muVm').onclick = function(){ muSetVol(mu.vol - 1); };
+$('muVp').onclick = function(){ muSetVol(mu.vol + 1); };
+$('muBar').onclick = function(e){ var r = this.getBoundingClientRect(); muSetVol(Math.round((e.clientX - r.left) / r.width * 10)); };
+$('muSleep').onclick = function(){
+  slpI = (slpI + 1) % SLP.length;
+  mu.sleepAt = SLP[slpI] ? Date.now() + SLP[slpI] * 60000 : 0;
+  muRender();
+};
+setInterval(function(){ if (mu.sleepAt && Date.now() >= mu.sleepAt){ mu.sleepAt = 0; slpI = 0; muStop(); } }, 10000);
+try {   /* ปุ่มควบคุมบนหน้าจอล็อก */
+  if ('mediaSession' in navigator){
+    navigator.mediaSession.setActionHandler('play', muPlay);
+    navigator.mediaSession.setActionHandler('pause', muStop);
+    navigator.mediaSession.setActionHandler('nexttrack', function(){ muGo(1); });
+    navigator.mediaSession.setActionHandler('previoustrack', function(){ muGo(-1); });
+  }
+} catch(e){}
+muRender();
 
 renderAlerts(); renderSess();
 loadPrice(); loadWeather(); connectWS(); connectGoldWS(); loadSpot(); locate();
