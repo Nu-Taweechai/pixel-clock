@@ -70,6 +70,9 @@ body:not(.day) .cloud{opacity:.18}
   box-shadow:inset 4px 4px 0 var(--edge),inset -4px -4px 0 #0e0a24,6px 6px 0 rgba(0,0,0,.45)}
 .panel.wide{grid-column:1 / span 2}
 .panel.arp{padding-right:62px}
+/* คนนั่งบนขอบกล่องทอง: ตัวสูง 23 แถว x 3px = 69px เหนือขอบ หัวทับกล่อง BTC ด้านบน */
+.sit{position:absolute;right:78px;top:-69px;z-index:3;pointer-events:none;line-height:0}
+.sit svg{display:block}
 .far{position:absolute;right:14px;top:50%;margin-top:-24px;width:48px;height:48px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;pointer-events:none;filter:drop-shadow(0 0 6px currentColor)}
 .far svg{display:block;max-width:100%;max-height:100%}
 .far.ar-up{animation:arUp 1.2s steps(1,end) infinite}
@@ -420,7 +423,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
       <div class="sub"><span id="btcThb">฿ ---</span>&nbsp; <span id="btcChg" class="chg"></span></div>
     </div>
 
-    <div class="panel wide arp" id="goldPanel"><span id="goldAr" class="far"></span>
+    <div class="panel wide arp" id="goldPanel"><span id="goldAr" class="far"></span><div class="sit" id="goldSit"></div>
       <div class="lab"><span id="icoGold"></span>GOLD (XAU/USD ต่อออนซ์)</div>
       <div class="val" id="goldUsd">$ ---</div>
       <div class="sub"><span id="goldThb">฿ ---</span> /บาททอง&nbsp; <span id="goldChg" class="chg"></span><span class="note"><br>ราคาทองไทยประมาณจากราคาทองโลก ไม่ใช่ราคาสมาคมฯ</span></div>
@@ -538,7 +541,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.9.5',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.9.7',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -982,6 +985,7 @@ if (!CONFIG.fngEverySec) $('fngPanel').style.display = 'none';
 else fngRender();
 
 /* ---- เตือนราคา ---- */
+var goldPct = null, gShock = null;   /* ใช้กับตัวละครนั่งบนกล่องทอง: % 24H และเวลาที่ราคาขยับแรงล่าสุด */
 var alerts = lsGet('pc_alerts') || [], pAlert = null, hist = {gold: [], btc: []}, lastMove = {gold: 0, btc: 0};
 function nameOf(k){ return k === 'gold' ? 'GOLD' : 'BTC'; }
 function dec(k){ return k === 'gold' ? 2 : 0; }
@@ -1036,6 +1040,7 @@ function checkPriceAlerts(){
         text: nameOf(k) + (up >= dn ? ' พุ่ง +$' + fmt(up, dec(k)) : ' ร่วง -$' + fmt(dn, dec(k))) +
               ' ใน ' + cfg.minutes + ' นาที (ตอนนี้ $' + fmt(v, dec(k)) + ')'};
       beep(3);
+      if (k === 'gold') gShock = {t: now, up: up >= dn};
     }
   }
 }
@@ -1110,7 +1115,7 @@ function applyPrices(bu, gu, bc, gc){
   }
   if (gu !== null && gu !== undefined && !isNaN(gu)) paxg = gu;
   if (spotOff === null && spotGold !== null && paxg !== null) spotOff = spotGold - paxg;   /* กราฟทองใช้ค่านี้ปรับแท่งเก่า ถ้าว่างแท่งสุดท้ายจะกระโดดจากแท่งอื่น */
-  if (gc !== null && gc !== undefined) chg($('goldChg'), gc);
+  if (gc !== null && gc !== undefined){ chg($('goldChg'), gc); goldPct = gc; }
   var gd = goldCalc();
   if (gd !== null){
     if (curP.gold !== null && gd !== curP.gold) flash($('goldUsd'), gd > curP.gold);
@@ -2197,6 +2202,61 @@ setInterval(function(){   /* กะพริบตา */
   heroBlink = true; heroRender();
   setTimeout(function(){ heroBlink = false; heroRender(); }, 180);
 }, 3500);
+/* ---- ตัวละครนั่งบนขอบกล่องทอง ห้อยขา แสดงอารมณ์ตามราคา/ข่าว ----
+   sleep = ช่วงเงียบ | wow/shock = ทองขยับแรง (พุ่ง/ร่วง) 1 นาที | nerv = ข่าวแรงอีกไม่เกิน 15 นาที | happy/sad = 24H ±0.3% | flat = นิ่ง */
+function gMood(){
+  var now = Date.now(), i, d;
+  if (isQuiet()) return 'sleep';
+  if (gShock && now - gShock.t < 60000) return gShock.up ? 'wow' : 'shock';
+  for (i = 0; i < news.length; i++){ d = news[i].t - now; if (d > 0){ if (d <= 900000) return 'nerv'; break; } }
+  if (goldPct === null) return 'flat';
+  return goldPct >= 0.3 ? 'happy' : (goldPct <= -0.3 ? 'sad' : 'flat');
+}
+function gSitRows(m, f){
+  var g = [], i, j, hd, L = f ? 6 : 7, R = f ? 7 : 6, TB, rr;
+  function rp(c, n){ var t = ''; while (n-- > 0) t += c; return t; }
+  function put(rows, dx, dy){
+    for (var y = 0; y < rows.length; y++) for (var x = 0; x < rows[y].length; x++){
+      var c = rows[y].charAt(x);
+      if (c !== '.' && g[y + dy] && x + dx < 22) g[y + dy][x + dx] = c;
+    }
+  }
+  function ins(r, t){ hd[r] = hd[r].charAt(0) + t + hd[r].charAt(11); }
+  function leg(x, n){
+    for (var y = 0; y < n; y++) put(y === n - 1 ? [rp('k', 6)] : (y === n - 2 ? ['k' + rp('W', 4) + 'k'] : ['kbbk']), y >= n - 2 ? x - 1 : x, 23 + y);
+  }
+  for (i = 0; i < 31; i++){ g.push([]); for (j = 0; j < 22; j++) g[i].push('.'); }
+  hd = ['..' + rp('k', 8) + '..', '.k' + rp('o', 8) + 'k.', 'k' + rp('o', 10) + 'k', 'koo' + rp('t', 6) + 'ook', 'k' + rp('t', 10) + 'k',
+        'kttkttttktt'.replace('kttk', 'ktk') + 'k', 'k' + 'ttkttttktt' + 'k', 'k' + 'tpttttttpt' + 'k', 'k' + 'tttkkkkttt' + 'k', '.k' + rp('t', 8) + 'k.', '..' + rp('k', 8) + '..'];
+  hd[5] = 'k' + 'ttkttttktt' + 'k';
+  if (m === 'sleep'){ ins(5, rp('t', 10)); ins(6, 'tkkttttkkt'); L = R = 6; }
+  if (m === 'happy' || m === 'wow'){ ins(8, 'tkWWWWWWkt'); hd[9] = '.k' + 'ttkkkktt' + 'k.'; }
+  if (m === 'sad'){ ins(4, 'ttkkttkktt'); ins(7, 'tpttttttbt'); ins(8, 'tttkkkkbtt'); hd[9] = '.k' + 'tkttttkt' + 'k.'; L = R = 7; }
+  if (m === 'shock'){ ins(5, 'tkkttttkkt'); ins(6, 'tkkttttkkt'); ins(7, rp('t', 10)); hd[9] = '.k' + 'ttkrrktt' + 'k.'; }
+  if (m === 'nerv'){ ins(4, 'ttkkttkktt'); ins(7, rp('t', 10)); ins(8, 'ttkkttkktt'); }
+  if (m === 'flat') ins(7, 'tpttttttpt');
+  leg(5, L); leg(13, R);
+  put(hd, 5, 2);
+  put(['..' + rp('k', 18) + '..'], 0, 13);
+  for (i = 14; i < 19; i++) put(['..krrk' + rp('r', 10) + 'krrk..'], 0, i);
+  put(['..kttk' + rp('r', 10) + 'kttk..'], 0, 19);
+  put(['....k' + rp('b', 12) + 'k....', '....k' + rp('b', 12) + 'k....', '....' + rp('k', 14) + '....'], 0, 20);
+  if (m === 'sleep') put(HR.zzz, 18, 0);
+  if (m === 'happy') put(HR.heart, 18, 2);
+  if (m === 'wow' || m === 'shock') put(['r', 'r', 'r', '.', 'r'], 19, 0);
+  if (m === 'nerv') put(HR.drop, 18, 5);
+  rr = []; for (i = 0; i < g.length; i++) rr.push(g[i].join(''));
+  return rr;
+}
+var gsF = 0, gsLast = '';
+function goldSit(){
+  var m = gMood(), f = (m === 'sleep' || m === 'sad') ? 0 : gsF, n = 'gs_' + m + f, h;
+  if (!SPR[n]) SPR[n] = gSitRows(m, f);
+  h = spr(n, 3);
+  if (h !== gsLast){ gsLast = h; setH($('goldSit'), h); }
+}
+setInterval(function(){ gsF ^= 1; goldSit(); }, 600);
+goldSit();
 syncCtl(); relayout();
 setPage(2, false);   // เปิดมาที่หน้า MARKET ทุกครั้ง
 
