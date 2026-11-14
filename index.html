@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>Pixel Clock</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pixel Clock">
@@ -536,7 +537,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.9.2',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.9.3',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -2417,6 +2418,7 @@ function soma(ch, hls){   /* มือถือ: HLS > AAC > MP3 | คอม: MP
 }
 var MU_ST = [
   {n: 'GROOVE', t: 'SOMAFM GROOVE SALAD', u: soma('groovesalad', 'https://hls.somafm.com/hls/groovesalad/128k/program.m3u8')},
+  {n: 'PARADISE', t: 'RADIO PARADISE', u: ['https://stream.radioparadise.com/aac-128', 'https://stream.radioparadise.com/mp3-128']},
   {n: 'FLUID', t: 'SOMAFM FLUID', u: soma('fluid')},
   {n: 'DRONE', t: 'SOMAFM DRONE ZONE', u: soma('dronezone')},
   {n: 'SPACE', t: 'SOMAFM DEEP SPACE ONE', u: soma('deepspaceone')},
