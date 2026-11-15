@@ -299,10 +299,10 @@ input.num{width:120px}
 .gr .p{-webkit-flex:2;flex:2}
 .gr .r{text-align:right}
 .gr.bu{border-left-color:#6ac3ff} .gr.se{border-left-color:#ff9d57} .gr.pe{border-left-style:dashed;opacity:.8} .gr.nx{border-left-style:dotted;color:var(--dim)}
-.gr.av{color:var(--lite);border-left-color:var(--lite)} .gr.cu{background:#2a2457;border-left-color:var(--gold);color:var(--gold)}
+.gr.hg{border-left-color:#c58aff;color:#e3c9ff} .gr.tp{color:var(--up);border-left-color:var(--up)} .gr.av{color:var(--lite);border-left-color:var(--lite)} .gr.cu{background:#2a2457;border-left-color:var(--gold);color:var(--gold)}
 .pr{margin-top:4px;padding:5px 6px;background:#0b0820;border:3px solid #000;cursor:pointer;overflow-wrap:anywhere}
 .pr .d{color:var(--dim);font-size:11px}
-.pr.bu{border-left:6px solid #6ac3ff} .pr.se{border-left:6px solid #ff9d57}
+.pr.hg{border-left:6px solid #c58aff} .pr.bu{border-left:6px solid #6ac3ff} .pr.se{border-left:6px solid #ff9d57}
 .ctl.wr{-webkit-flex-wrap:wrap;flex-wrap:wrap}
 .ctl.wr .btn{margin-bottom:4px}
 
@@ -583,8 +583,8 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
     <div class="panel"><div class="lab">EQUITY</div><div class="val xs" id="kEq">--</div><div class="sub" id="kEqS">&nbsp;</div></div>
     <div class="panel"><div class="lab">FLOATING</div><div class="val xs" id="kFl">--</div><div class="sub" id="kFlS">&nbsp;</div></div>
     <div class="panel"><div class="lab">CLOSED TODAY</div><div class="val xs" id="kRt">--</div><div class="sub" id="kRtS">&nbsp;</div></div>
-    <div class="panel"><div class="lab">ORDERS</div><div class="val xs" id="kN">--</div><div class="sub" id="kNS">&nbsp;</div></div>
-    <div class="panel"><div class="lab">TOTAL LOTS</div><div class="val xs" id="kLot">--</div><div class="sub" id="kLotS">&nbsp;</div></div>
+    <div class="panel"><div class="lab">MAIN ORDERS</div><div class="val xs" id="kN">--</div><div class="sub" id="kNS">&nbsp;</div></div>
+    <div class="panel"><div class="lab">MAIN LOTS</div><div class="val xs" id="kLot">--</div><div class="sub" id="kLotS">&nbsp;</div></div>
     <div class="panel wide">
       <div class="lab">GRID</div>
       <div class="bk" id="botGrid">&nbsp;</div>
@@ -593,7 +593,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
     </div>
     <div class="panel wide">
       <div class="lab">POSITIONS</div>
-      <div class="ctl wr" id="posF"><button type="button" class="btn" data-k="f" data-v="A">ALL</button><button type="button" class="btn" data-k="f" data-v="B">BUY</button><button type="button" class="btn" data-k="f" data-v="S">SELL</button><button type="button" class="btn gap" data-g="1" data-k="s" data-v="T">TIME</button><button type="button" class="btn" data-k="s" data-v="L">LOT</button><button type="button" class="btn" data-k="s" data-v="P">P/L</button></div>
+      <div class="ctl wr" id="posF"><button type="button" class="btn" data-k="f" data-v="A">ALL</button><button type="button" class="btn" data-k="f" data-v="B">BUY</button><button type="button" class="btn" data-k="f" data-v="S">SELL</button><button type="button" class="btn" data-k="f" data-v="H">HEDGE</button><button type="button" class="btn gap" data-g="1" data-k="s" data-v="T">TIME</button><button type="button" class="btn" data-k="s" data-v="L">LOT</button><button type="button" class="btn" data-k="s" data-v="P">P/L</button></div>
       <div class="sub" id="posSum">&nbsp;</div>
       <div id="posList"></div>
     </div>
@@ -618,7 +618,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.11.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.12.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -666,6 +666,7 @@ var CONFIG = {
   botMlCrit: 150,                     // ต่ำกว่ากี่ % เตือน CRITICAL
   botGridNear: 2,                     // เหลือไม้อีกกี่ไม้ก่อนถึง max grid ให้เตือน (ต้องตั้ง InpMaxGrid ใน Reporter)
   botRows: 60,                        // แสดงรายการไม้สูงสุดกี่แถว
+  botSigMaxAge: 1200,                 // สัญญาณเก่ากว่านี้ (วินาที) ถือว่า STALE ให้ตรงกับ SignalMaxAgeSec ของ EA
   newsStaleDays: 2                    // ถ้าข่าวล่าสุดในไฟล์เก่ากว่านี้ (วัน) ให้ขึ้นเตือนว่าข้อมูลค้าง
 };
 /* ===== */
@@ -2234,6 +2235,12 @@ function bEa(){   /* สถานะ EA กริด: ตรวจจากว�
   if (e.att === false) return {l: 2, t: 'STOPPED'};
   return {l: 1, t: 'UNKNOWN'};
 }
+function bHgSide(g){ return (g.nb > 0 && g.ns === 0) ? 'BUY' : ((g.ns > 0 && g.nb === 0) ? 'SELL' : 'MIX'); }
+function bSigHtml(g, extra){   /* สัญญาณจากสคริปต์ Python (EA ไม่ใช้สัญญาณที่เก่ากว่า botSigMaxAge) */
+  if (!g) return bChip(1, 'N/A') + ' ไม่พบไฟล์สัญญาณ';
+  var age = (g.age === null || g.age === undefined) ? null : Math.max(0, g.age + (extra || 0)), dir = g.d || '-', old = age !== null && age > CONFIG.botSigMaxAge;
+  return bChip((old || (dir !== 'BUY' && dir !== 'SELL')) ? 1 : 0, old ? 'STALE' : dir) + (old ? ' <b>' + esc(dir) + '</b>' : '') + ' LTF <b>' + esc(g.ltf || '-') + '</b> HTF <b>' + esc(g.htf || '-') + '</b> (' + (age === null ? 'N/A' : bAgeT(age)) + (old ? ' EA ไม่ใช้สัญญาณเก่า' : '') + ')';
+}
 function bDd(){ return (Bs && Bs.bal > 0 && Bs.eq !== null && Bs.eq !== undefined) ? Math.max(0, (Bs.bal - Bs.eq) / Bs.bal * 100) : null; }
 
 /* ---- เหตุการณ์/แจ้งเตือน ---- */
@@ -2289,6 +2296,15 @@ function bEval(){
       if (s.agg && s.agg.n !== null){
         if (Bprev.n !== undefined && Bprev.n !== s.agg.n) bNote('I', 'ORDERS ' + Bprev.n + ' -> ' + s.agg.n, false);
         Bprev.n = s.agg.n;
+      }
+      if (s.pause !== null && s.pause !== undefined){
+        if (Bprev.pause !== undefined && Bprev.pause !== s.pause) bNote('I', s.pause ? 'EA PAUSED: ไม่เปิดตะกร้าใหม่ (สั่งจาก Telegram /stopea)' : 'EA RUN: เปิดตะกร้าใหม่ได้อีกครั้ง (/startea)', false);
+        Bprev.pause = s.pause;
+      }
+      if (s.hg && s.hg.n !== null && s.hg.n !== undefined){
+        if (Bprev.hg !== undefined && (Bprev.hg > 0) !== (s.hg.n > 0))
+          bNote(s.hg.n > 0 ? 'W' : 'S', s.hg.n > 0 ? 'HEDGE เปิด ' + s.hg.n + ' ไม้ ' + bHgSide(s.hg) + ' ' + fmt(s.hg.l, 2) + ' lot' : 'HEDGE ปิดหมดแล้ว', false);
+        Bprev.hg = s.hg.n;
       }
     }
     Bbad = lk.l >= 1 || Bprev.ea === 2 || Bprev.conn === 2 || Bprev.dd === 2 || Bprev.ml === 2 || Bprev.near === 2;
@@ -2346,14 +2362,15 @@ function botOpenPage(){
 
 /* ---- วาดหน้าจอ ---- */
 function bLadder(){
-  var P = Bp, s = Bs, it = [], i, o, g, d, buy, h = '', kinds, minB = null, maxS = null, cnt = 0, lim = CONFIG.botRows + 20;
+  var P = Bp, s = Bs, it = [], i, o, g, d, h = '', hgp, minB = null, maxS = null, cnt = 0, lim = CONFIG.botRows + 20;
   if (!P || !s) return '';
   d = (s.px && s.px.d !== null && s.px.d !== undefined) ? s.px.d : 2;
   for (i = 0; i < P.pos.length; i++){
     o = P.pos[i]; if (o.o === null) continue;
-    it.push({p: o.o, k: o.s === 0 ? 'bu' : 'se', t: o.s === 0 ? 'BUY' : 'SELL', l: o.l, f: o.f});
-    if (o.s === 0 && (minB === null || o.o < minB)) minB = o.o;
-    if (o.s === 1 && (maxS === null || o.o > maxS)) maxS = o.o;
+    hgp = o.m === 1;
+    it.push({p: o.o, k: hgp ? 'hg' : (o.s === 0 ? 'bu' : 'se'), t: (hgp ? 'H.' : '') + (o.s === 0 ? 'BUY' : 'SELL'), l: o.l, f: o.f});
+    if (!hgp && o.s === 0 && (minB === null || o.o < minB)) minB = o.o;
+    if (!hgp && o.s === 1 && (maxS === null || o.o > maxS)) maxS = o.o;
   }
   for (i = 0; i < P.pend.length; i++){
     o = P.pend[i]; if (o.o === null) continue;
@@ -2362,6 +2379,7 @@ function bLadder(){
   if (s.px && s.px.b !== null) it.push({p: s.px.b, k: 'cu', t: 'PRICE', l: null, f: null, x: s.px.a !== null ? 'ASK ' + fmt(s.px.a, d) : ''});
   if (s.agg && s.agg.avgb !== null) it.push({p: s.agg.avgb, k: 'av', t: 'AVG B', l: s.agg.lb, f: null});
   if (s.agg && s.agg.avgs !== null) it.push({p: s.agg.avgs, k: 'av', t: 'AVG S', l: s.agg.ls, f: null});
+  if (s.ln && s.ln.tp !== null && s.ln.tp !== undefined) it.push({p: s.ln.tp, k: 'tp', t: 'TP*', l: null, f: null});
   g = s.grid;
   if (g && g.step > 0 && !P.pend.length){   /* ไม่มี pending: คำนวณระดับถัดไปตามกติกาที่ตั้งเอง และติดป้าย * ว่าไม่ใช่ค่าจาก EA */
     if (minB !== null) it.push({p: minB - g.step, k: 'nx', t: 'NEXT B*', l: null, f: null});
@@ -2383,6 +2401,7 @@ function bPosList(){
     o = P.pos[i];
     if (f === 'B' && o.s !== 0) continue;
     if (f === 'S' && o.s !== 1) continue;
+    if (f === 'H' && o.m !== 1) continue;
     a.push(o);
     if (o.s === 0){ nb++; lb += o.l || 0; } else { ns++; ls += o.l || 0; }
     sum += o.f || 0;
@@ -2394,10 +2413,10 @@ function bPosList(){
   });
   for (i = 0; i < a.length && shown < CONFIG.botRows; i++, shown++){
     o = a[i];
-    h += '<div class="pr ' + (o.s === 0 ? 'bu' : 'se') + '" data-t="' + o.t + '"><b>' + (o.s === 0 ? 'BUY' : 'SELL') + '</b> ' + bN(o.l, 2) + ' @ ' + bN(o.o, d) +
+    h += '<div class="pr ' + (o.m === 1 ? 'hg' : (o.s === 0 ? 'bu' : 'se')) + '" data-t="' + o.t + '"><b>' + (o.m === 1 ? 'H.' : '') + (o.s === 0 ? 'BUY' : 'SELL') + '</b> ' + bN(o.l, 2) + ' @ ' + bN(o.o, d) +
       '  <span class="' + (bCls(o.f).replace(' ', '')) + '">' + bSg(o.f, 2) + '</span>' +
       '<div class="d">#' + o.t + '  NOW ' + bN(o.p, d) + '  SWAP ' + bSg(o.w, 2) + '  ' + (o.ot ? bSrv(o.ot) : 'N/A') + '</div>' +
-      (Bopen[o.t] ? '<div class="d">OPEN (เวลาเซิร์ฟเวอร์ MT5) ' + (o.ot ? bSrv(o.ot) : 'N/A') + '<br>COMMISSION N/A (MT5 ไม่แยกต่อไม้)  MAGIC N/A</div>' : '') + '</div>';
+      (Bopen[o.t] ? '<div class="d">OPEN (เวลาเซิร์ฟเวอร์ MT5) ' + (o.ot ? bSrv(o.ot) : 'N/A') + '<br>COMMISSION N/A (MT5 ไม่แยกต่อไม้)  ROLE ' + (o.m === 1 ? 'HEDGE' : (o.m === 0 ? 'MAIN' : 'N/A')) + '</div>' : '') + '</div>';
   }
   if (a.length > shown) h += '<div class="sub">แสดง ' + shown + ' จาก ' + a.length + ' ไม้ (ปรับ CONFIG.botRows)</div>';
   tot = (P.trunc ? ' | EA ส่งมาไม่ครบทุกไม้' : '');
@@ -2405,8 +2424,8 @@ function bPosList(){
 }
 function bRender(){
   if (!CONFIG.bot) return;
-  var lk = bLink(), ea = bEa(), s = Bs, old = lk.l !== 0, ag, g, d, h, w = '', dd, lim, on, col, ml, i, segs = '', cls, pl, btns, b, e, T;
-  ag = (s && s.agg) || {}; g = (s && s.grid) || {};
+  var lk = bLink(), ea = bEa(), s = Bs, old = lk.l !== 0, ag, g, hg, d, h, w = '', dd, lim, on, col, ml, i, segs = '', cls, pl, btns, b, e, T;
+  ag = (s && s.agg) || {}; g = (s && s.grid) || {}; hg = (s && s.hg) || null;
   d = (s && s.px && s.px.d !== null && s.px.d !== undefined) ? s.px.d : 2;
   /* หัว: สถานะเชื่อมต่อ + EA */
   h = 'LINK ' + bChip(lk.l === 0 ? 0 : (lk.l === 2 ? 2 : 1), lk.t) + ' EA ' + bChip(ea.l, ea.t) + (s && s.ea && s.ea.conn === false ? ' BROKER ' + bChip(2, 'DOWN') : '');
@@ -2414,6 +2433,8 @@ function bRender(){
   if (s){
     h += '<br>ACC <b>' + esc((s.acc && s.acc.id) || 'N/A') + '</b> ' + esc((s.acc && s.acc.plat) || '') + ' ' + esc((s.acc && s.acc.mode) || '') + ' ' + esc((s.acc && s.acc.cur) || '');
     h += '<br>EA <b>' + esc((s.ea && s.ea.name) || 'N/A') + '</b> MAGIC ' + (s.ea && s.ea.magic !== null && s.ea.magic >= 0 ? s.ea.magic : 'ALL') + ' SYM ' + esc((s.ea && s.ea.sym) || 'ALL');
+    h += '<br>CONTROL ' + (s.pause === true ? bChip(1, 'PAUSED') + ' ไม่เปิดตะกร้าใหม่ (Telegram /stopea)' : (s.pause === false ? bChip(0, 'RUN') : bChip(1, 'N/A')));
+    h += '<br>SIGNAL ' + bSigHtml(s.sg, lk.a || 0);
     h += '<br>SERVER TIME <b>' + (s.ts ? bSrv(s.ts) : 'N/A') + '</b> GMT' + (s.tzo !== null && s.tzo !== undefined ? (s.tzo >= 0 ? '+' : '-') + Math.abs(s.tzo / 3600) : '?');
   }
   setH($('botSt'), h);
@@ -2444,21 +2465,31 @@ function bRender(){
   setT($('kEq'), s ? bN(s.eq, 2) : 'N/A'); setC($('kEq'), 'val xs' + cls); setT($('kEqS'), s ? 'FREE MARGIN ' + bN(s.fm, 2) : '\u00a0');
   setT($('kFl'), s ? bSg(s.fl, 2) : 'N/A'); setC($('kFl'), 'val xs' + (s ? bCls(s.fl) : '') + cls); setT($('kFlS'), s ? 'ทั้งบัญชี (MT5)' : '\u00a0');
   setT($('kRt'), s ? bSg(s.rt, 2) : 'N/A'); setC($('kRt'), 'val xs' + (s ? bCls(s.rt) : '') + cls); setT($('kRtS'), s ? (s.rt === null || s.rt === undefined ? 'N/A' : (s.rtc || 0) + ' ไม้ปิด รวม swap+คอม') : '\u00a0');
-  setT($('kN'), s ? bN(ag.n, 0) : 'N/A'); setC($('kN'), 'val xs' + cls); setT($('kNS'), s ? 'BUY ' + bN(ag.nb, 0) + '  SELL ' + bN(ag.ns, 0) + '  PEND ' + bN(ag.np, 0) : '\u00a0');
-  setT($('kLot'), s && ag.lb !== null && ag.ls !== null && ag.lb !== undefined ? fmt(ag.lb + ag.ls, 2) : 'N/A'); setC($('kLot'), 'val xs' + cls); setT($('kLotS'), s ? 'B ' + bN(ag.lb, 2) + '  S ' + bN(ag.ls, 2) : '\u00a0');
+  setT($('kN'), s ? bN(ag.n, 0) : 'N/A'); setC($('kN'), 'val xs' + cls); setT($('kNS'), s ? 'BUY ' + bN(ag.nb, 0) + '  SELL ' + bN(ag.ns, 0) + (ag.np > 0 ? '  PEND ' + ag.np : '') + '  HEDGE ' + (hg && hg.n !== null && hg.n !== undefined ? hg.n : 'N/A') : '\u00a0');
+  setT($('kLot'), s && ag.lb !== null && ag.ls !== null && ag.lb !== undefined ? fmt(ag.lb + ag.ls, 2) : 'N/A'); setC($('kLot'), 'val xs' + cls); setT($('kLotS'), s ? 'B ' + bN(ag.lb, 2) + '  S ' + bN(ag.ls, 2) + (hg && hg.l > 0 ? '  HG ' + fmt(hg.l, 2) : '') : '\u00a0');
   /* กริด */
   h = '';
   if (s){
     h += 'GRID <b>' + bN(ag.n, 0) + ' / ' + (g.max > 0 ? g.max : 'N/A') + '</b> ไม้   STEP <b>' + (g.step > 0 ? fmt(g.step, d) + ' (ตั้งเอง)' : 'N/A') + '</b>';
     h += '<br>BUY <b>' + bN(ag.nb, 0) + '</b> (' + bN(ag.lb, 2) + ' lot)  AVG <b>' + bN(ag.avgb, d) + '</b>';
     h += '<br>SELL <b>' + bN(ag.ns, 0) + '</b> (' + bN(ag.ls, 2) + ' lot)  AVG <b>' + bN(ag.avgs, d) + '</b>';
-    h += '<br>BASKET TP <b>N/A</b> (EA ไม่ได้ส่งมา)';
+    h += '<br>HEDGE ' + (!hg || hg.n === null || hg.n === undefined ? '<b>N/A</b>' : (hg.n > 0 ?
+      '<b>' + hg.n + '</b> ไม้ ' + bHgSide(hg) + ' (' + fmt(hg.l, 2) + ' lot)  AVG <b>' + bN(hg.avg, d) + '</b>  P/L <b>' + bSg(hg.f, 2) + '</b>' : '<b>NONE</b>'));
+    if (ag.f !== null && ag.f !== undefined && ag.w !== null && ag.w !== undefined){
+      nt = ag.f + ag.w + (hg && hg.n > 0 ? (hg.f || 0) + (hg.w || 0) : 0);
+      h += '<br>NET (MAIN' + (hg && hg.n > 0 ? '+HEDGE' : '') + ' รวม swap) <b>' + sg(nt, 2) + '</b>';
+    }
+    if (s.ln && s.ln.tp !== null && s.ln.tp !== undefined){
+      h += '<br>BASKET TP* <b>' + fmt(s.ln.tp, d) + '</b>' + (s.px && s.px.b !== null ? '  ห่าง ' + fmt(Math.abs(s.ln.tp - s.px.b), d) : '');
+    } else {
+      h += '<br>BASKET TP* <b>N/A</b> ' + (hg && hg.n > 0 ? '(EA ลบเส้น TP ตอนมี hedge)' : (s.ln ? '(ไม่พบเส้นบนชาร์ต EA)' : '(ไม่ได้อ่านเส้น: ตั้ง InpGridEA ใน Reporter)'));
+    }
   }
   setH($('botGrid'), h);
-  var lad = bLadder(), stale = old || (Bp && Bw && Bp.rx !== Bw.rx);
+  var nt, lad = bLadder(), stale = old || (Bp && Bw && Bp.rx !== Bw.rx);
   setH($('botLad'), lad || '<div class="sub">' + (s ? 'กำลังโหลดรายการไม้...' : 'ยังไม่มีข้อมูลกริด') + '</div>');
   setC($('botLad'), 'gl' + (stale ? ' old' : ''));
-  setT($('botLadN'), lad ? 'ซ้าย=ราคา  ฟ้า=BUY ส้ม=SELL  เส้นประ=ออเดอร์รอ  *=ค่าที่คำนวณจาก STEP ที่ตั้งเอง (ต่ำสุดของ BUY - step / สูงสุดของ SELL + step)' : '\u00a0');
+  setT($('botLadN'), lad ? 'ซ้าย=ราคา  ฟ้า=BUY ส้ม=SELL  ม่วง=HEDGE  เส้นประ=ออเดอร์รอ  TP*=เส้นบนชาร์ต EA ไม่รวมกำไรรอบที่ปิดไปแล้ว (EA ปิดเมื่อรวมแล้วถึงเป้า)  NEXT*=คำนวณจาก STEP ที่ตั้งเอง' : '\u00a0');
   /* ไม้ที่เปิดอยู่ */
   btns = $('posF').getElementsByTagName('button');
   for (i = 0; i < btns.length; i++){
