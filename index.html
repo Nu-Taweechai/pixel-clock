@@ -75,6 +75,10 @@ body:not(.day) .cloud{opacity:.18}
 .sit svg{display:block}
 #lapCat{position:absolute;right:70px;top:-33px;z-index:4;line-height:0;display:none;pointer-events:none}
 #lapCat svg{display:block}
+#tpPop{position:absolute;right:112px;top:-60px;z-index:6;display:none;pointer-events:none;padding:3px 6px;background:#0b0820;border:3px solid #000;color:var(--up);font-size:11px;line-height:1.3;white-space:nowrap}
+#tpPop.go{-webkit-animation:tpup 2s ease-out forwards;animation:tpup 2s ease-out forwards}
+@-webkit-keyframes tpup{0%{opacity:0;-webkit-transform:translateY(8px)}12%{opacity:1;-webkit-transform:translateY(0)}75%{opacity:1;-webkit-transform:translateY(-6px)}100%{opacity:0;-webkit-transform:translateY(-10px)}}
+@keyframes tpup{0%{opacity:0;transform:translateY(8px)}12%{opacity:1;transform:translateY(0)}75%{opacity:1;transform:translateY(-6px)}100%{opacity:0;transform:translateY(-10px)}}
 #wk{pointer-events:auto;cursor:pointer;padding:6px;margin:-6px;-webkit-tap-highlight-color:transparent}
 .far{position:absolute;right:14px;top:50%;margin-top:-24px;width:48px;height:48px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;pointer-events:none;filter:drop-shadow(0 0 6px currentColor)}
 .far svg{display:block;max-width:100%;max-height:100%}
@@ -288,7 +292,7 @@ input.num{width:120px}
 .bk{font-size:9px;line-height:2;color:var(--dim)}
 .bk b{font-weight:normal;color:var(--text)}
 .bs{display:inline-block;padding:1px 5px;margin:0 6px 2px 0;border:2px solid #000;font-size:8px;line-height:1.6;background:#2a2457;color:var(--dim)}
-.bs.ok{background:#103a24;color:var(--up)} .bs.wn{background:#4a3a08;color:var(--gold)} .bs.cr{background:#3a0a14;color:var(--down)}
+.bs.ok{background:#103a24;color:var(--up)} .bs.wn{background:#4a3a08;color:var(--gold)} .bs.er{background:#3a0a14;color:var(--down)}
 .bw{margin:8px 0 2px;padding:8px;background:#3a0a14;border:3px solid var(--down);font-size:9px;line-height:1.8;color:var(--text)}
 .bw.wn{background:#4a3a08;border-color:var(--gold)}
 .old{opacity:.45}
@@ -448,7 +452,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
       <div class="sub"><span id="btcThb">฿ ---</span>&nbsp; <span id="btcChg" class="chg"></span></div>
     </div>
 
-    <div class="panel wide arp" id="goldPanel"><span id="goldAr" class="far"></span><div class="sit" id="goldSit"></div><div id="lapCat"></div>
+    <div class="panel wide arp" id="goldPanel"><span id="goldAr" class="far"></span><div class="sit" id="goldSit"></div><div id="lapCat"></div><div id="tpPop"></div>
       <div class="lab"><span id="icoGold"></span>GOLD (XAU/USD ต่อออนซ์)</div>
       <div class="val" id="goldUsd">$ ---</div>
       <div class="sub"><span id="goldThb">฿ ---</span> /บาททอง&nbsp; <span id="goldChg" class="chg"></span><span class="note"><br>ราคาทองไทยประมาณจากราคาทองโลก ไม่ใช่ราคาสมาคมฯ</span></div>
@@ -618,7 +622,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.12.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.14.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -666,6 +670,9 @@ var CONFIG = {
   botMlCrit: 150,                     // ต่ำกว่ากี่ % เตือน CRITICAL
   botGridNear: 2,                     // เหลือไม้อีกกี่ไม้ก่อนถึง max grid ให้เตือน (ต้องตั้ง InpMaxGrid ใน Reporter)
   botRows: 60,                        // แสดงรายการไม้สูงสุดกี่แถว
+  botTpFx: true,                      // BOT ปิดกำไร (take profit): แมวมานั่งตัก 5 วิ + ตัวเลขกำไรลอย 2 วิ + เสียงเหรียญ | false = ปิด
+  botTpMin: 0,                        // ฉลองเมื่อกำไรจริงตั้งแต่เท่านี้ขึ้นไป (หน่วยเงินบัญชี) 0 = ทุกครั้งที่ปิดเป็นบวก
+  botTpFresh: 90,                     // ฉลองเฉพาะเหตุการณ์ที่เพิ่งเกิดภายในกี่วินาที (กันฉลองของเก่าตอนเปิดแอปใหม่)
   botSigMaxAge: 1200,                 // สัญญาณเก่ากว่านี้ (วินาที) ถือว่า STALE ให้ตรงกับ SignalMaxAgeSec ของ EA
   newsStaleDays: 2                    // ถ้าข่าวล่าสุดในไฟล์เก่ากว่านี้ (วัน) ให้ขึ้นเตือนว่าข้อมูลค้าง
 };
@@ -1462,6 +1469,21 @@ function beepNews(st){   /* เสียงเตือนข่าวล่ว�
   try { if (navigator.vibrate) navigator.vibrate([150, 80, 150]); } catch(e){}
   try { muDuck(n); } catch(e){}
 }
+function beepCoin(){   /* เสียงเหรียญ/เงินเข้า: โน้ตสั้นสูง 2 ตัวแบบเกมเก็บเหรียญ + ประกายเสียงสูงตอนท้าย (เคารพ SOUND ON/OFF และช่วงเงียบ) */
+  if (!soundOn || !audioCtx || isQuiet()) return;
+  var N = [[988, 0, .07], [1319, .07, .42], [1976, .22, .30]], i, o, g, t0;
+  try {
+    for (i = 0; i < N.length; i++){
+      o = audioCtx.createOscillator(); g = audioCtx.createGain(); t0 = audioCtx.currentTime + N[i][1];
+      o.type = i === 2 ? 'triangle' : 'square'; o.frequency.value = N[i][0];
+      g.gain.setValueAtTime(i === 2 ? 0.05 : 0.09, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + N[i][2]);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0); o.stop(t0 + N[i][2] + 0.02);
+    }
+  } catch(e){}
+  try { if (navigator.vibrate) navigator.vibrate([60, 40, 120]); } catch(e){}
+  try { muDuck(3); } catch(e){}
+}
 function checkAlerts(){
   var now = Date.now(), pre = CONFIG.alertMinutes * 60000, show = null, i, e, d, ns, st, s, nw;
   for (i = 0; i < news.length; i++){
@@ -2209,6 +2231,7 @@ impRender();
    ข้อมูลมาจาก Reporter EA -> Cloudflare Worker -> หน้านี้ | ไม่มีค่า = N/A ไม่เดา | ข้อมูลเก่า = ขึ้น STALE/OFFLINE และจางตัวเลข
    นิยาม: DD = (BALANCE - EQUITY) / BALANCE | MARGIN LEVEL = ค่าจากโบรกเกอร์ | AVG = ถ่วงน้ำหนักตามล็อตจากไม้ที่เปิดอยู่ */
 var Bcfg = lsGet('pc_bot'), Bw = null, Bs = null, Bp = null, Bbusy = false, Bfail = 0, Berr = '', Bprev = {}, Bbad = false;
+var Blc = lsGet('pc_botlc');   /* id เหตุการณ์ปิดล่าสุดที่เห็นแล้ว กันฉลองซ้ำเมื่อรีโหลด */
 var Blog = lsGet('pc_botlog') || [], Bui = lsGet('pc_botui') || {f: 'A', s: 'T'}, Bopen = {};
 var BPT = {2: 'B.LIM', 3: 'S.LIM', 4: 'B.STP', 5: 'S.STP', 6: 'B.SL', 7: 'S.SL'};
 if (!Blog || Blog.length === undefined) Blog = [];
@@ -2217,7 +2240,7 @@ function bN(v, d){ return (v === null || v === undefined) ? 'N/A' : fmt(v, d); }
 function bSg(v, d){ return (v === null || v === undefined) ? 'N/A' : sg(v, d); }
 function bCls(v){ return (v === null || v === undefined) ? '' : (v >= 0 ? ' chg up' : ' chg down'); }
 function bAgeT(a){ a = Math.floor(a); if (a < 60) return a + 's'; if (a < 3600) return Math.floor(a / 60) + 'm ' + (a % 60) + 's'; return Math.floor(a / 3600) + 'h ' + Math.floor((a % 3600) / 60) + 'm'; }
-function bChip(l, t){ return '<span class="bs ' + (l === 0 ? 'ok' : (l === 1 ? 'wn' : 'cr')) + '">' + esc(t) + '</span>'; }
+function bChip(l, t){ return '<span class="bs ' + (l === 0 ? 'ok' : (l === 1 ? 'wn' : 'er')) + '">' + esc(t) + '</span>'; }
 function bSrv(sec){ var d = new Date(sec * 1000); return d.getUTCDate() + ' ' + MON[d.getUTCMonth()] + ' ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }   /* เวลาเซิร์ฟเวอร์ MT5 (ไม่ใช่เวลาเครื่อง) */
 function bAge(){ return Bw ? Math.max(0, (Bw.now - Bw.rx) / 1000 + (Date.now() - Bw.at) / 1000) : null; }   /* อายุข้อมูล: นับจากเวลารับที่ Worker + เวลาที่ผ่านไปตั้งแต่ดึงสำเร็จ (ไม่ขึ้นกับนาฬิกาเครื่อง) */
 function bLink(){   /* l: 0 LIVE | 1 STALE | 2 OFFLINE | 3 ยังไม่ตั้งค่า | 4 ยังไม่มีข้อมูล */
@@ -2234,6 +2257,20 @@ function bEa(){   /* สถานะ EA กริด: ตรวจจากว�
   if (e.att === true) return e.algo === false ? {l: 2, t: 'ALGO OFF'} : {l: 0, t: 'RUNNING'};
   if (e.att === false) return {l: 2, t: 'STOPPED'};
   return {l: 1, t: 'UNKNOWN'};
+}
+function bMoney(v, cur){ return (v >= 0 ? '+' : '-') + fmt(Math.abs(v), 2) + (!cur || cur === 'USD' ? '$' : ' ' + cur); }
+function bClose(s, lk){   /* เหตุการณ์ปิดล่าสุดที่ EA เป็นคนปิด: กำไร = ฉลอง + บันทึก | ขาดทุน = บันทึกอย่างเดียว */
+  var c = s.lc, age, txt, fresh;
+  if (!c || c.id === null || c.id === undefined || c.p === null || c.p === undefined) return;
+  if (Blc === c.id) return;
+  Blc = c.id; lsSet('pc_botlc', Blc);
+  age = (s.ts !== null && s.ts !== undefined && c.t !== null && c.t !== undefined) ? (s.ts - c.t) + (lk.a || 0) : null;   /* อายุเหตุการณ์ = เวลาเซิร์ฟเวอร์ตอนส่ง - เวลาดีลสุดท้าย + เวลาที่ผ่านมาหลังรับ */
+  fresh = age !== null && age <= CONFIG.botTpFresh;
+  txt = bMoney(c.p, s.acc && s.acc.cur);
+  if (c.p > 0){
+    bNote('S', 'BOT TAKE PROFIT ' + txt + ' (ปิด ' + (c.n || '?') + ' ไม้)', false);
+    if (fresh && CONFIG.botTpFx && c.p >= CONFIG.botTpMin && typeof tpCelebrate === 'function') tpCelebrate(txt, 0);
+  } else bNote('W', 'BOT ปิดออเดอร์ ' + txt + ' (ปิด ' + (c.n || '?') + ' ไม้)', false);
 }
 function bHgSide(g){ return (g.nb > 0 && g.ns === 0) ? 'BUY' : ((g.ns > 0 && g.nb === 0) ? 'SELL' : 'MIX'); }
 function bSigHtml(g, extra){   /* สัญญาณจากสคริปต์ Python (EA ไม่ใช้สัญญาณที่เก่ากว่า botSigMaxAge) */
@@ -2269,6 +2306,7 @@ function bEval(){
     at = lk.a === null ? '-' : bAgeT(lk.a);
     bEdge('link', lk.l, ['LINK OK: ได้รับข้อมูลจาก EA แล้ว', 'DATA STALE: ไม่มีข้อมูลใหม่ ' + at, 'BOT OFFLINE: ไม่มีข้อมูลใหม่ ' + at + ' (ตรวจ EA / MT5 / VPS / เน็ต)']);
     if (lk.l === 0 && s){   /* ประเมินความเสี่ยงเฉพาะตอนข้อมูลสด */
+      bClose(s, lk);
       ea = bEa();
       if (ea.l !== 1) bEdge('ea', ea.l, ['EA กลับมาทำงานแล้ว', '', 'EA หยุด: ' + ea.t + ' (ตรวจจากชาร์ตใน MT5)']);
       bEdge('conn', (s.ea && s.ea.conn === false) ? 2 : 0, ['MT5 เชื่อมต่อโบรกเกอร์ได้แล้ว', '', 'MT5 หลุดจากโบรกเกอร์']);
@@ -2841,6 +2879,21 @@ function catVisit(){
   setTimeout(function(){ gBusy = false; }, 6200);
 }
 $('wk').onclick = catVisit;
+/* BOT ปิดกำไร (take profit): แมวกระโดดมานั่งตักเอง 5 วิ คนดีใจ มีตัวเลขกำไรจริงลอยข้างหัว 2 วิ + เสียงเหรียญ
+   เรียกจากหน้า BOT (bClose) | ทำงานแม้อยู่ช่วงเงียบ (ภาพ) แต่เสียงยังเคารพ quiet hours | ถ้าแมวกำลังเล่นอยู่ รอให้จบก่อน */
+function tpPop(txt){
+  var e = $('tpPop');
+  e.textContent = txt; e.style.display = 'block'; e.className = ''; void e.offsetWidth; e.className = 'go';
+  clearTimeout(tpPop._t); tpPop._t = setTimeout(function(){ e.style.display = 'none'; e.className = ''; }, 2000);
+}
+function tpCelebrate(txt, tries){
+  var w = $('walker'), l = $('lapCat');
+  if (gBusy){ if ((tries || 0) < 12) setTimeout(function(){ tpCelebrate(txt, (tries || 0) + 1); }, 1000); return; }
+  gBusy = true; walkJump();
+  setTimeout(function(){ w.style.visibility = 'hidden'; setH(l, spr('walkSleep', 3)); l.style.display = 'block'; gMoodSet('play', 5000); tpPop(txt); beepCoin(); }, 500);
+  setTimeout(function(){ l.style.display = 'none'; w.style.visibility = ''; walkJump(); }, 5500);
+  setTimeout(function(){ gBusy = false; }, 6200);
+}
 syncCtl(); relayout();
 setPage(2, false);   // เปิดมาที่หน้า MARKET ทุกครั้ง
 
