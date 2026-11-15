@@ -222,8 +222,8 @@ input.num{width:120px}
 .tb:last-child{margin-right:0}
 .tb.on{background:#2a2457;color:var(--gold);box-shadow:inset 0 -4px 0 var(--gold)}
 #pager{overflow:hidden;position:relative;padding:0 8px 8px 0;-ms-touch-action:pan-y;touch-action:pan-y}
-#track{display:-webkit-flex;display:flex;-webkit-align-items:flex-start;align-items:flex-start;width:500%;will-change:transform}
-.pg{-webkit-flex:none;flex:none;width:20%;min-width:0}
+#track{display:-webkit-flex;display:flex;-webkit-align-items:flex-start;align-items:flex-start;width:600%;will-change:transform}
+.pg{-webkit-flex:none;flex:none;width:16.6667%;min-width:0}
 .pg.off{visibility:hidden;max-height:0;overflow:hidden}
 .ctl{display:-webkit-flex;display:flex;margin-bottom:6px}
 .ctl .btn{margin-right:4px}
@@ -283,6 +283,28 @@ input.num{width:120px}
   #cvBox{margin:4px 0 2px} .axis{font-size:7px}
   .cr,.dr{font-size:8px;margin-top:4px;padding:3px 5px;border-width:2px} .dh{font-size:8px;margin-top:6px} .hc{font-size:7px;border-width:2px}
 }
+
+/* ===== หน้า BOT ===== */
+.bk{font-size:9px;line-height:2;color:var(--dim)}
+.bk b{font-weight:normal;color:var(--text)}
+.bs{display:inline-block;padding:1px 5px;margin:0 6px 2px 0;border:2px solid #000;font-size:8px;line-height:1.6;background:#2a2457;color:var(--dim)}
+.bs.ok{background:#103a24;color:var(--up)} .bs.wn{background:#4a3a08;color:var(--gold)} .bs.cr{background:#3a0a14;color:var(--down)}
+.bw{margin:8px 0 2px;padding:8px;background:#3a0a14;border:3px solid var(--down);font-size:9px;line-height:1.8;color:var(--text)}
+.bw.wn{background:#4a3a08;border-color:var(--gold)}
+.old{opacity:.45}
+.gl{max-height:320px;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:6px}
+.gr,.pr{font-family:'Chakra Petch','Press Start 2P',ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:12px;line-height:1.5;color:var(--text)}
+.gr{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;margin-bottom:2px;padding:3px 6px;background:#0b0820;border-left:6px solid var(--dim)}
+.gr span{-webkit-flex:1;flex:1;min-width:0}
+.gr .p{-webkit-flex:2;flex:2}
+.gr .r{text-align:right}
+.gr.bu{border-left-color:#6ac3ff} .gr.se{border-left-color:#ff9d57} .gr.pe{border-left-style:dashed;opacity:.8} .gr.nx{border-left-style:dotted;color:var(--dim)}
+.gr.av{color:var(--lite);border-left-color:var(--lite)} .gr.cu{background:#2a2457;border-left-color:var(--gold);color:var(--gold)}
+.pr{margin-top:4px;padding:5px 6px;background:#0b0820;border:3px solid #000;cursor:pointer;overflow-wrap:anywhere}
+.pr .d{color:var(--dim);font-size:11px}
+.pr.bu{border-left:6px solid #6ac3ff} .pr.se{border-left:6px solid #ff9d57}
+.ctl.wr{-webkit-flex-wrap:wrap;flex-wrap:wrap}
+.ctl.wr .btn{margin-bottom:4px}
 
 /* ===== v2.0 ความมีชีวิต: เหรียญเด้ง / LEVEL UP / ตัวเดินได้ / โหมดนาฬิกาล้วน ===== */
 #coins{position:fixed;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:19;overflow:hidden}
@@ -355,7 +377,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
   </div>
 
   <div id="pagerbox">
-  <div class="tabs" id="tabs"><button type="button" class="tb" data-p="0">MUSIC</button><button type="button" class="tb" data-p="1">WEATHER</button><button type="button" class="tb on" data-p="2">MARKET</button><button type="button" class="tb" data-p="3">CHART</button><button type="button" class="tb" data-p="4">NEWS</button></div>
+  <div class="tabs" id="tabs"><button type="button" class="tb" data-p="0">MUSIC</button><button type="button" class="tb" data-p="1">WEATHER</button><button type="button" class="tb on" data-p="2">MARKET</button><button type="button" class="tb" data-p="3">CHART</button><button type="button" class="tb" data-p="4">NEWS</button><button type="button" class="tb" data-p="5">BOT</button></div>
   <div id="pager"><div id="track">
     <div class="pg off" id="pg0">
   <div class="grid">
@@ -535,6 +557,52 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
     </div>
   </div>
   </div>
+  <div class="pg off" id="pg5">
+  <div class="grid">
+    <div class="panel wide">
+      <div class="lab"><span id="icoBot"></span>BOT MONITOR<button type="button" class="btn" id="botCfg">SETUP</button></div>
+      <div class="bk" id="botSt">&nbsp;</div>
+      <div id="botWarn"></div>
+    </div>
+    <div class="panel wide" id="botSetup" style="display:none">
+      <div class="lab">BOT SETUP</div>
+      <div class="sub">WORKER URL (https://....workers.dev)</div>
+      <input class="num" id="botUrl" type="url" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%">
+      <div class="sub">READ KEY (ไม่ใช่ WRITE KEY ของ EA)</div>
+      <input class="num" id="botKey" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%">
+      <div class="ctl"><button type="button" class="btn" id="botSave">SAVE</button><button type="button" class="btn x" id="botDel">DELETE</button></div>
+      <div class="sub" id="botSetupT">KEY เก็บในเครื่องนี้เท่านั้น (ไม่อยู่ในไฟล์) หน้านี้ดูอย่างเดียว ไม่มีคำสั่งเทรด</div>
+    </div>
+    <div class="panel wide">
+      <div class="lab"><span id="icoHp"></span>DRAWDOWN</div>
+      <div class="val sm" id="botDd">--</div>
+      <div class="hp" id="botBar"></div>
+      <div class="bk" id="botRisk">&nbsp;</div>
+    </div>
+    <div class="panel"><div class="lab">BALANCE</div><div class="val xs" id="kBal">--</div><div class="sub" id="kBalS">&nbsp;</div></div>
+    <div class="panel"><div class="lab">EQUITY</div><div class="val xs" id="kEq">--</div><div class="sub" id="kEqS">&nbsp;</div></div>
+    <div class="panel"><div class="lab">FLOATING</div><div class="val xs" id="kFl">--</div><div class="sub" id="kFlS">&nbsp;</div></div>
+    <div class="panel"><div class="lab">CLOSED TODAY</div><div class="val xs" id="kRt">--</div><div class="sub" id="kRtS">&nbsp;</div></div>
+    <div class="panel"><div class="lab">ORDERS</div><div class="val xs" id="kN">--</div><div class="sub" id="kNS">&nbsp;</div></div>
+    <div class="panel"><div class="lab">TOTAL LOTS</div><div class="val xs" id="kLot">--</div><div class="sub" id="kLotS">&nbsp;</div></div>
+    <div class="panel wide">
+      <div class="lab">GRID</div>
+      <div class="bk" id="botGrid">&nbsp;</div>
+      <div class="gl" id="botLad"></div>
+      <div class="sub" id="botLadN">&nbsp;</div>
+    </div>
+    <div class="panel wide">
+      <div class="lab">POSITIONS</div>
+      <div class="ctl wr" id="posF"><button type="button" class="btn" data-k="f" data-v="A">ALL</button><button type="button" class="btn" data-k="f" data-v="B">BUY</button><button type="button" class="btn" data-k="f" data-v="S">SELL</button><button type="button" class="btn gap" data-g="1" data-k="s" data-v="T">TIME</button><button type="button" class="btn" data-k="s" data-v="L">LOT</button><button type="button" class="btn" data-k="s" data-v="P">P/L</button></div>
+      <div class="sub" id="posSum">&nbsp;</div>
+      <div id="posList"></div>
+    </div>
+    <div class="panel wide">
+      <div class="lab">BOT EVENTS<button type="button" class="btn" id="botLogClr">CLEAR</button></div>
+      <div id="botLog"></div>
+    </div>
+  </div>
+  </div>
   </div></div>
   </div>
 </div>
@@ -550,7 +618,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.10.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.11.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -588,6 +656,16 @@ var CONFIG = {
   impact: true,                       // News Impact Log: จดว่าข่าวแต่ละตัวทำให้ทอง/BTC วิ่งกี่ดอลลาร์หลังข่าวออก (ดูที่หน้า NEWS) false = ปิด
   impactMin: 5,                       // จับราคากี่นาทีหลังข่าวออก
   impactKeep: 50,                     // เก็บประวัติกี่ครั้งล่าสุด
+  bot: true,                          // หน้า BOT: ดูสถานะ EA Grid บน MT5 (ดูอย่างเดียว) ต้องตั้ง URL+KEY ที่หน้า BOT > SETUP | false = ปิด
+  botEverySec: 10,                    // ดึงข้อมูลทุกกี่วินาที (หน้าอื่นดึงแบบย่อ ประหยัดข้อมูล)
+  botStaleSec: 45,                    // ไม่มีข้อมูลใหม่เกินกี่วินาที = STALE (เตือนเหลือง)
+  botOfflineSec: 120,                 // เกินกี่วินาที = OFFLINE (เตือนแดง มีเสียง)
+  botDdLimit: 30,                     // เพดาน drawdown (%) ใช้กับแถบ HP | DD = (BALANCE - EQUITY) / BALANCE
+  botDdWarn: 15,                      // drawdown ถึงกี่ % เตือนระดับ WARN
+  botMlWarn: 300,                     // margin level (จากโบรกเกอร์) ต่ำกว่ากี่ % เตือน WARN (0 = ปิด)
+  botMlCrit: 150,                     // ต่ำกว่ากี่ % เตือน CRITICAL
+  botGridNear: 2,                     // เหลือไม้อีกกี่ไม้ก่อนถึง max grid ให้เตือน (ต้องตั้ง InpMaxGrid ใน Reporter)
+  botRows: 60,                        // แสดงรายการไม้สูงสุดกี่แถว
   newsStaleDays: 2                    // ถ้าข่าวล่าสุดในไฟล์เก่ากว่านี้ (วัน) ให้ขึ้นเตือนว่าข้อมูลค้าง
 };
 /* ===== */
@@ -1402,7 +1480,7 @@ function checkAlerts(){
   if (!show){
     if (pAlert && pAlert.exp > now && !dismissed[pAlert.key]){
       box.className = 'alert now'; box.style.display = 'block'; box.setAttribute('data-key', pAlert.key);
-      box.innerHTML = '<b>!! PRICE ALERT !!</b><br>' + esc(pAlert.text) + '<br><span style="color:#9a93c9">' +
+      box.innerHTML = '<b>' + (pAlert.h || '!! PRICE ALERT !!') + '</b><br>' + esc(pAlert.text) + '<br><span style="color:#9a93c9">' +
         (pAlert.auto ? 'ปิดเองใน ' + Math.ceil((pAlert.exp - now) / 1000) + ' วิ' : 'แตะเพื่อปิด') + '</span>';
       return;
     }
@@ -1550,8 +1628,8 @@ document.addEventListener('visibilitychange', keepAwake);
 document.addEventListener('click', keepAwake);
 keepAwake();
 
-/* ---- หน้าสลับ: ปัดซ้าย = หน้าถัดไป (MUSIC < WEATHER < MARKET > CHART > NEWS), ปัดขวา = ย้อนกลับ ---- */
-var NPG = 5, pg = 2, pgW = 0, drag = null, offT = null;
+/* ---- หน้าสลับ: ปัดซ้าย = หน้าถัดไป (MUSIC < WEATHER < MARKET > CHART > NEWS > BOT), ปัดขวา = ย้อนกลับ ---- */
+var NPG = 6, pg = 2, pgW = 0, drag = null, offT = null;
 function trk(x, anim){
   var st = $('track').style;
   st.webkitTransition = anim ? '-webkit-transform .24s steps(6,end)' : 'none';
@@ -1568,7 +1646,7 @@ function setPage(n, anim){
   clearTimeout(offT);
   offT = setTimeout(function(){ for (var j = 0; j < NPG; j++){ if (j !== n) pgEl(j).className = 'pg off'; } }, anim ? 300 : 0);   // หน้าที่ไม่ได้ดูหดความสูง ไม่ให้เลื่อนยาวเกินจริง
   lsSet('pc_page', n);
-  if (n === 3) chartOpen(); else if (n === 4) calOpen(); else if (n === 1) wxOpen();
+  if (n === 3) chartOpen(); else if (n === 4) calOpen(); else if (n === 1) wxOpen(); else if (n === 5) botOpenPage();
 }
 function relayout(){ pgW = pageW(); trk(-pg * pgW, false); if (pg === 3) drawChart(); }
 (function(){
@@ -2125,6 +2203,321 @@ if (impAct && Date.now() > impAct.end + 600000){ impAct = null; impSave(); }   /
 else if (impAct && Date.now() >= impAct.end){ impFinish(); impIdx(); }
 setInterval(function(){ impTrack(); if (pg === 4 && !(drag && drag.lock === 1)) impRender(); }, 1000);
 impRender();
+
+/* ---- หน้า BOT: จอดูสถานะ EA Grid บน MT5 (ดูอย่างเดียว ไม่มีคำสั่งเทรดใดๆ) ----
+   ข้อมูลมาจาก Reporter EA -> Cloudflare Worker -> หน้านี้ | ไม่มีค่า = N/A ไม่เดา | ข้อมูลเก่า = ขึ้น STALE/OFFLINE และจางตัวเลข
+   นิยาม: DD = (BALANCE - EQUITY) / BALANCE | MARGIN LEVEL = ค่าจากโบรกเกอร์ | AVG = ถ่วงน้ำหนักตามล็อตจากไม้ที่เปิดอยู่ */
+var Bcfg = lsGet('pc_bot'), Bw = null, Bs = null, Bp = null, Bbusy = false, Bfail = 0, Berr = '', Bprev = {}, Bbad = false;
+var Blog = lsGet('pc_botlog') || [], Bui = lsGet('pc_botui') || {f: 'A', s: 'T'}, Bopen = {};
+var BPT = {2: 'B.LIM', 3: 'S.LIM', 4: 'B.STP', 5: 'S.STP', 6: 'B.SL', 7: 'S.SL'};
+if (!Blog || Blog.length === undefined) Blog = [];
+if (!Bui || !Bui.f) Bui = {f: 'A', s: 'T'};
+function bN(v, d){ return (v === null || v === undefined) ? 'N/A' : fmt(v, d); }
+function bSg(v, d){ return (v === null || v === undefined) ? 'N/A' : sg(v, d); }
+function bCls(v){ return (v === null || v === undefined) ? '' : (v >= 0 ? ' chg up' : ' chg down'); }
+function bAgeT(a){ a = Math.floor(a); if (a < 60) return a + 's'; if (a < 3600) return Math.floor(a / 60) + 'm ' + (a % 60) + 's'; return Math.floor(a / 3600) + 'h ' + Math.floor((a % 3600) / 60) + 'm'; }
+function bChip(l, t){ return '<span class="bs ' + (l === 0 ? 'ok' : (l === 1 ? 'wn' : 'cr')) + '">' + esc(t) + '</span>'; }
+function bSrv(sec){ var d = new Date(sec * 1000); return d.getUTCDate() + ' ' + MON[d.getUTCMonth()] + ' ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }   /* เวลาเซิร์ฟเวอร์ MT5 (ไม่ใช่เวลาเครื่อง) */
+function bAge(){ return Bw ? Math.max(0, (Bw.now - Bw.rx) / 1000 + (Date.now() - Bw.at) / 1000) : null; }   /* อายุข้อมูล: นับจากเวลารับที่ Worker + เวลาที่ผ่านไปตั้งแต่ดึงสำเร็จ (ไม่ขึ้นกับนาฬิกาเครื่อง) */
+function bLink(){   /* l: 0 LIVE | 1 STALE | 2 OFFLINE | 3 ยังไม่ตั้งค่า | 4 ยังไม่มีข้อมูล */
+  if (!Bcfg || !Bcfg.u || !Bcfg.k) return {l: 3, t: 'SETUP', a: null};
+  var a = bAge();
+  if (!Bs || a === null) return Bfail >= 2 ? {l: 2, t: 'NO LINK', a: null} : {l: 4, t: 'NO DATA', a: null};
+  if (a > CONFIG.botOfflineSec) return {l: 2, t: 'OFFLINE', a: a};
+  if (a > CONFIG.botStaleSec) return {l: 1, t: 'STALE', a: a};
+  return {l: 0, t: 'LIVE', a: a};
+}
+function bEa(){   /* สถานะ EA กริด: ตรวจจากว่ายังแนบกับชาร์ตใน MT5 ไหม ไม่ใช่การเดา */
+  var e = Bs && Bs.ea;
+  if (!e) return {l: 1, t: 'UNKNOWN'};
+  if (e.att === true) return e.algo === false ? {l: 2, t: 'ALGO OFF'} : {l: 0, t: 'RUNNING'};
+  if (e.att === false) return {l: 2, t: 'STOPPED'};
+  return {l: 1, t: 'UNKNOWN'};
+}
+function bDd(){ return (Bs && Bs.bal > 0 && Bs.eq !== null && Bs.eq !== undefined) ? Math.max(0, (Bs.bal - Bs.eq) / Bs.bal * 100) : null; }
+
+/* ---- เหตุการณ์/แจ้งเตือน ---- */
+function bNote(sev, text, loud){
+  var now = Date.now();
+  Blog.push({t: now, s: sev, m: text});
+  while (Blog.length > 40) Blog.shift();
+  lsSet('pc_botlog', Blog);
+  if (loud && (sev === 'C' || sev === 'W')){
+    pAlert = {key: 'b' + now, exp: now + 600000, h: sev === 'C' ? '!! BOT CRITICAL !!' : '! BOT WARNING !', text: text};
+    beep(sev === 'C' ? 4 : 2);
+  }
+}
+function bEdge(key, lvl, msgs){   /* ระดับ 0 ปกติ | 1 เตือน | 2 วิกฤต: แจ้งเฉพาะตอนเปลี่ยนระดับ ครั้งแรกที่เห็นไม่แจ้ง ยกเว้นวิกฤต */
+  var p = Bprev[key];
+  Bprev[key] = lvl;
+  if (p === undefined){ if (lvl === 2) bNote('C', msgs[2], true); return; }
+  if (lvl > p) bNote(lvl === 2 ? 'C' : 'W', msgs[lvl], true);
+  else if (lvl < p) bNote(lvl === 0 ? 'S' : 'W', msgs[lvl], false);
+}
+function bEval(){
+  if (!CONFIG.bot) return;
+  var lk = bLink(), s = Bs, ea, dd, ml, lvl, p, g, left, at, tb = $('tabs').getElementsByTagName('button')[5];
+  if (lk.l === 3 || lk.l === 4){ Bbad = false; }
+  else {
+    at = lk.a === null ? '-' : bAgeT(lk.a);
+    bEdge('link', lk.l, ['LINK OK: ได้รับข้อมูลจาก EA แล้ว', 'DATA STALE: ไม่มีข้อมูลใหม่ ' + at, 'BOT OFFLINE: ไม่มีข้อมูลใหม่ ' + at + ' (ตรวจ EA / MT5 / VPS / เน็ต)']);
+    if (lk.l === 0 && s){   /* ประเมินความเสี่ยงเฉพาะตอนข้อมูลสด */
+      ea = bEa();
+      if (ea.l !== 1) bEdge('ea', ea.l, ['EA กลับมาทำงานแล้ว', '', 'EA หยุด: ' + ea.t + ' (ตรวจจากชาร์ตใน MT5)']);
+      bEdge('conn', (s.ea && s.ea.conn === false) ? 2 : 0, ['MT5 เชื่อมต่อโบรกเกอร์ได้แล้ว', '', 'MT5 หลุดจากโบรกเกอร์']);
+      dd = bDd();
+      if (dd !== null){
+        p = Bprev.dd;
+        lvl = dd >= CONFIG.botDdLimit ? 2 : (dd >= CONFIG.botDdWarn ? 1 : 0);
+        if (p === 2 && dd >= CONFIG.botDdLimit - 1) lvl = 2;
+        else if (p >= 1 && lvl === 0 && dd >= CONFIG.botDdWarn - 1) lvl = 1;   /* กันกระพริบเมื่อค่าวนอยู่ใกล้เกณฑ์ */
+        bEdge('dd', lvl, ['DRAWDOWN ลดลงต่ำกว่าเกณฑ์ (' + dd.toFixed(1) + '%)', 'DRAWDOWN ' + dd.toFixed(1) + '% ถึงระดับเตือน ' + CONFIG.botDdWarn + '%', 'DRAWDOWN ' + dd.toFixed(1) + '% ถึงเพดาน ' + CONFIG.botDdLimit + '%']);
+      }
+      ml = s.ml;
+      if (ml !== null && ml !== undefined && ml > 0 && CONFIG.botMlWarn > 0){
+        p = Bprev.ml;
+        lvl = ml <= CONFIG.botMlCrit ? 2 : (ml <= CONFIG.botMlWarn ? 1 : 0);
+        if (p === 2 && ml <= CONFIG.botMlCrit * 1.1) lvl = 2;
+        else if (p >= 1 && lvl === 0 && ml <= CONFIG.botMlWarn * 1.1) lvl = 1;
+        bEdge('ml', lvl, ['MARGIN LEVEL กลับมาปลอดภัย (' + ml.toFixed(0) + '%)', 'MARGIN LEVEL ' + ml.toFixed(0) + '% ต่ำกว่า ' + CONFIG.botMlWarn + '%', 'MARGIN LEVEL ' + ml.toFixed(0) + '% ต่ำกว่า ' + CONFIG.botMlCrit + '% ใกล้ margin call']);
+      }
+      g = s.grid;
+      if (g && g.max > 0 && s.agg && s.agg.n !== null){
+        left = g.max - s.agg.n;
+        bEdge('near', left <= 0 ? 2 : (left <= CONFIG.botGridNear ? 1 : 0), ['GRID ห่างจาก max แล้ว (' + s.agg.n + '/' + g.max + ')', 'GRID ใกล้เต็ม ' + s.agg.n + '/' + g.max + ' ไม้', 'GRID เต็ม ' + s.agg.n + '/' + g.max + ' ไม้']);
+      }
+      if (s.agg && s.agg.n !== null){
+        if (Bprev.n !== undefined && Bprev.n !== s.agg.n) bNote('I', 'ORDERS ' + Bprev.n + ' -> ' + s.agg.n, false);
+        Bprev.n = s.agg.n;
+      }
+    }
+    Bbad = lk.l >= 1 || Bprev.ea === 2 || Bprev.conn === 2 || Bprev.dd === 2 || Bprev.ml === 2 || Bprev.near === 2;
+  }
+  if (tb){ tb.textContent = Bbad ? 'BOT!' : 'BOT'; tb.style.color = Bbad ? '#ff5f6d' : ''; }   /* แท็บเปลี่ยนเป็น BOT! สีแดงเมื่อมีปัญหา (ทั้งตัวอักษรและสี) */
+}
+
+/* ---- ดึงข้อมูล ---- */
+function bGet(path, ok, fail){
+  var x = new XMLHttpRequest(), fin = false;
+  function bad(r){ if (fin) return; fin = true; fail(r); }
+  try {
+    x.open('GET', Bcfg.u + path, true);
+    x.setRequestHeader('Authorization', 'Bearer ' + Bcfg.k);
+  } catch(e){ bad('cfg'); return; }
+  x.timeout = 8000;
+  x.onreadystatechange = function(){
+    if (x.readyState !== 4 || fin) return;
+    if (x.status === 200){
+      var j;
+      try { j = JSON.parse(x.responseText); } catch(e){ bad('parse'); return; }
+      fin = true; ok(j);
+    } else bad(x.status || 'net');
+  };
+  x.ontimeout = function(){ bad('timeout'); };
+  x.send();
+}
+function bSet(j, full){
+  Bfail = 0; Berr = '';
+  if (!j || j.ok === false) return;
+  Bw = {now: j.now, rx: j.rx, at: Date.now()};
+  if (j.snap){
+    Bs = j.snap;
+    if (full) Bp = {rx: j.rx, pos: j.snap.pos || [], pend: j.snap.pend || [], trunc: !!j.snap.trunc};
+  } else Bs = null;
+  bEval();
+  if (pg === 5) bRender();
+}
+function botPoll(){
+  if (!CONFIG.bot || !Bcfg || !Bcfg.u || !Bcfg.k || Bbusy) return;
+  var full = pg === 5;
+  Bbusy = true;
+  bGet('/state' + (full ? '' : '?lite=1'), function(j){ Bbusy = false; bSet(j, full); }, function(r){
+    Bbusy = false; Bfail++; Berr = String(r);
+    if (r === 401 || r === 403) Berr = 'KEY ไม่ถูกต้อง';
+    bEval(); if (pg === 5) bRender();
+  });
+}
+function botOpenPage(){
+  if (!CONFIG.bot || typeof Bui === 'undefined') return;
+  if (!Bcfg) $('botSetup').style.display = 'block';
+  bRender();
+  if (Bbusy) setTimeout(botPoll, 800); else botPoll();
+}
+
+/* ---- วาดหน้าจอ ---- */
+function bLadder(){
+  var P = Bp, s = Bs, it = [], i, o, g, d, buy, h = '', kinds, minB = null, maxS = null, cnt = 0, lim = CONFIG.botRows + 20;
+  if (!P || !s) return '';
+  d = (s.px && s.px.d !== null && s.px.d !== undefined) ? s.px.d : 2;
+  for (i = 0; i < P.pos.length; i++){
+    o = P.pos[i]; if (o.o === null) continue;
+    it.push({p: o.o, k: o.s === 0 ? 'bu' : 'se', t: o.s === 0 ? 'BUY' : 'SELL', l: o.l, f: o.f});
+    if (o.s === 0 && (minB === null || o.o < minB)) minB = o.o;
+    if (o.s === 1 && (maxS === null || o.o > maxS)) maxS = o.o;
+  }
+  for (i = 0; i < P.pend.length; i++){
+    o = P.pend[i]; if (o.o === null) continue;
+    it.push({p: o.o, k: 'pe', t: BPT[o.y] || 'PEND', l: o.l, f: null});
+  }
+  if (s.px && s.px.b !== null) it.push({p: s.px.b, k: 'cu', t: 'PRICE', l: null, f: null, x: s.px.a !== null ? 'ASK ' + fmt(s.px.a, d) : ''});
+  if (s.agg && s.agg.avgb !== null) it.push({p: s.agg.avgb, k: 'av', t: 'AVG B', l: s.agg.lb, f: null});
+  if (s.agg && s.agg.avgs !== null) it.push({p: s.agg.avgs, k: 'av', t: 'AVG S', l: s.agg.ls, f: null});
+  g = s.grid;
+  if (g && g.step > 0 && !P.pend.length){   /* ไม่มี pending: คำนวณระดับถัดไปตามกติกาที่ตั้งเอง และติดป้าย * ว่าไม่ใช่ค่าจาก EA */
+    if (minB !== null) it.push({p: minB - g.step, k: 'nx', t: 'NEXT B*', l: null, f: null});
+    if (maxS !== null) it.push({p: maxS + g.step, k: 'nx', t: 'NEXT S*', l: null, f: null});
+  }
+  it.sort(function(a, b){ return b.p - a.p || (a.k === 'cu' ? -1 : 1); });
+  for (i = 0; i < it.length && cnt < lim; i++, cnt++){
+    o = it[i];
+    h += '<div class="gr ' + o.k + '"><span class="p">' + fmt(o.p, d) + '</span><span>' + o.t + '</span><span class="r">' +
+      (o.l !== null ? fmt(o.l, 2) : (o.x || '')) + '</span><span class="r' + bCls(o.f) + '">' + (o.f !== null ? sg(o.f, 2) : '') + '</span></div>';
+  }
+  return h;
+}
+function bPosList(){
+  var P = Bp, a = [], i, o, h = '', d, f = Bui.f, k = Bui.s, nb = 0, ns = 0, lb = 0, ls = 0, sum = 0, tot, shown = 0;
+  if (!P) return {h: '', sum: ''};
+  d = (Bs && Bs.px && Bs.px.d !== null && Bs.px.d !== undefined) ? Bs.px.d : 2;
+  for (i = 0; i < P.pos.length; i++){
+    o = P.pos[i];
+    if (f === 'B' && o.s !== 0) continue;
+    if (f === 'S' && o.s !== 1) continue;
+    a.push(o);
+    if (o.s === 0){ nb++; lb += o.l || 0; } else { ns++; ls += o.l || 0; }
+    sum += o.f || 0;
+  }
+  a.sort(function(x, y){
+    if (k === 'L') return (y.l || 0) - (x.l || 0);
+    if (k === 'P') return (x.f || 0) - (y.f || 0);   /* ขาดทุนมากสุดขึ้นก่อน */
+    return (y.ot || 0) - (x.ot || 0);                 /* ใหม่สุดก่อน */
+  });
+  for (i = 0; i < a.length && shown < CONFIG.botRows; i++, shown++){
+    o = a[i];
+    h += '<div class="pr ' + (o.s === 0 ? 'bu' : 'se') + '" data-t="' + o.t + '"><b>' + (o.s === 0 ? 'BUY' : 'SELL') + '</b> ' + bN(o.l, 2) + ' @ ' + bN(o.o, d) +
+      '  <span class="' + (bCls(o.f).replace(' ', '')) + '">' + bSg(o.f, 2) + '</span>' +
+      '<div class="d">#' + o.t + '  NOW ' + bN(o.p, d) + '  SWAP ' + bSg(o.w, 2) + '  ' + (o.ot ? bSrv(o.ot) : 'N/A') + '</div>' +
+      (Bopen[o.t] ? '<div class="d">OPEN (เวลาเซิร์ฟเวอร์ MT5) ' + (o.ot ? bSrv(o.ot) : 'N/A') + '<br>COMMISSION N/A (MT5 ไม่แยกต่อไม้)  MAGIC N/A</div>' : '') + '</div>';
+  }
+  if (a.length > shown) h += '<div class="sub">แสดง ' + shown + ' จาก ' + a.length + ' ไม้ (ปรับ CONFIG.botRows)</div>';
+  tot = (P.trunc ? ' | EA ส่งมาไม่ครบทุกไม้' : '');
+  return {h: h, sum: a.length + ' ไม้  BUY ' + nb + ' (' + fmt(lb, 2) + ' lot)  SELL ' + ns + ' (' + fmt(ls, 2) + ' lot)  P/L รายการนี้ ' + sg(sum, 2) + tot};
+}
+function bRender(){
+  if (!CONFIG.bot) return;
+  var lk = bLink(), ea = bEa(), s = Bs, old = lk.l !== 0, ag, g, d, h, w = '', dd, lim, on, col, ml, i, segs = '', cls, pl, btns, b, e, T;
+  ag = (s && s.agg) || {}; g = (s && s.grid) || {};
+  d = (s && s.px && s.px.d !== null && s.px.d !== undefined) ? s.px.d : 2;
+  /* หัว: สถานะเชื่อมต่อ + EA */
+  h = 'LINK ' + bChip(lk.l === 0 ? 0 : (lk.l === 2 ? 2 : 1), lk.t) + ' EA ' + bChip(ea.l, ea.t) + (s && s.ea && s.ea.conn === false ? ' BROKER ' + bChip(2, 'DOWN') : '');
+  h += '<br>LAST <b>' + (lk.a !== null ? bAgeT(lk.a) + ' ago' : 'N/A') + '</b>' + (Bw && Bw.rx ? '  (' + hhmm(Bw.rx) + ' เวลาเครื่อง)' : '');
+  if (s){
+    h += '<br>ACC <b>' + esc((s.acc && s.acc.id) || 'N/A') + '</b> ' + esc((s.acc && s.acc.plat) || '') + ' ' + esc((s.acc && s.acc.mode) || '') + ' ' + esc((s.acc && s.acc.cur) || '');
+    h += '<br>EA <b>' + esc((s.ea && s.ea.name) || 'N/A') + '</b> MAGIC ' + (s.ea && s.ea.magic !== null && s.ea.magic >= 0 ? s.ea.magic : 'ALL') + ' SYM ' + esc((s.ea && s.ea.sym) || 'ALL');
+    h += '<br>SERVER TIME <b>' + (s.ts ? bSrv(s.ts) : 'N/A') + '</b> GMT' + (s.tzo !== null && s.tzo !== undefined ? (s.tzo >= 0 ? '+' : '-') + Math.abs(s.tzo / 3600) : '?');
+  }
+  setH($('botSt'), h);
+  if (lk.l === 3) w = '<div class="bw wn"><b>ยังไม่ได้ตั้งค่า</b><br>กด SETUP แล้วใส่ WORKER URL กับ READ KEY</div>';
+  else if (lk.l === 4) w = '<div class="bw wn"><b>ยังไม่มีข้อมูล</b><br>' + (Bfail ? 'เชื่อม Worker ไม่ได้ (' + esc(Berr) + ')' : 'รอ Reporter EA ส่งข้อมูลครั้งแรก หรือกำลังโหลด...') + '</div>';
+  else if (lk.l === 2 || lk.l === 1) w = '<div class="bw' + (lk.l === 1 ? ' wn' : '') + '"><b>' + (lk.l === 2 ? '!! BOT OFFLINE !!' : '! DATA STALE !') + '</b><br>' +
+    (lk.a !== null ? 'ไม่มีข้อมูลใหม่ ' + bAgeT(lk.a) + ' ' : '') + 'ตัวเลขด้านล่างเป็นค่าเก่า' + (Bfail >= 2 ? '<br>เชื่อม Worker ไม่ได้ (' + esc(Berr) + ')' : '') + '</div>';
+  setH($('botWarn'), w);
+  /* ความเสี่ยง */
+  dd = bDd(); lim = CONFIG.botDdLimit; ml = s ? s.ml : null;
+  on = dd === null ? 0 : Math.min(20, Math.ceil(dd / lim * 20));
+  col = dd === null ? '#2a2457' : (dd / lim < 0.5 ? '#4cf08a' : (dd / lim < 0.8 ? '#ffcf3a' : '#ff5f6d'));
+  for (i = 0; i < 20; i++) segs += '<div class="seg" style="background:' + (i < on ? col : '#2a2457') + '"></div>';
+  setH($('botBar'), segs);
+  setT($('botDd'), dd === null ? 'N/A' : dd.toFixed(1) + '%');
+  setC($('botDd'), 'val sm' + (old ? ' old' : ''));
+  i = dd === null ? 1 : (dd >= lim ? 2 : (dd >= CONFIG.botDdWarn ? 1 : 0));
+  h = 'DD ' + (dd === null ? bChip(1, 'N/A') : bChip(i, i === 2 ? 'CRIT' : (i === 1 ? 'WARN' : 'OK'))) + ' = (BALANCE - EQUITY) / BALANCE  เพดานแถบ ' + lim + '%  เตือนที่ ' + CONFIG.botDdWarn + '%';
+  if (s){
+    i = (ml === null || ml === undefined || !(ml > 0)) ? -1 : (ml <= CONFIG.botMlCrit ? 2 : (ml <= CONFIG.botMlWarn ? 1 : 0));
+    h += '<br>MARGIN LEVEL ' + (i < 0 ? bChip(1, 'N/A') + ' (ไม่มีไม้เปิด)' : bChip(i, i === 2 ? 'CRIT' : (i === 1 ? 'WARN' : 'OK')) + ' <b>' + fmt(ml, 0) + '%</b> (ค่าจากโบรกเกอร์)');
+    h += '<br>USED MARGIN <b>' + bN(s.mg, 2) + '</b>  FREE <b>' + bN(s.fm, 2) + '</b>';
+  }
+  setH($('botRisk'), h);
+  /* KPI */
+  cls = old ? ' old' : '';
+  setT($('kBal'), s ? bN(s.bal, 2) : 'N/A'); setC($('kBal'), 'val xs' + cls); setT($('kBalS'), s && s.acc && s.acc.cur ? s.acc.cur : '\u00a0');
+  setT($('kEq'), s ? bN(s.eq, 2) : 'N/A'); setC($('kEq'), 'val xs' + cls); setT($('kEqS'), s ? 'FREE MARGIN ' + bN(s.fm, 2) : '\u00a0');
+  setT($('kFl'), s ? bSg(s.fl, 2) : 'N/A'); setC($('kFl'), 'val xs' + (s ? bCls(s.fl) : '') + cls); setT($('kFlS'), s ? 'ทั้งบัญชี (MT5)' : '\u00a0');
+  setT($('kRt'), s ? bSg(s.rt, 2) : 'N/A'); setC($('kRt'), 'val xs' + (s ? bCls(s.rt) : '') + cls); setT($('kRtS'), s ? (s.rt === null || s.rt === undefined ? 'N/A' : (s.rtc || 0) + ' ไม้ปิด รวม swap+คอม') : '\u00a0');
+  setT($('kN'), s ? bN(ag.n, 0) : 'N/A'); setC($('kN'), 'val xs' + cls); setT($('kNS'), s ? 'BUY ' + bN(ag.nb, 0) + '  SELL ' + bN(ag.ns, 0) + '  PEND ' + bN(ag.np, 0) : '\u00a0');
+  setT($('kLot'), s && ag.lb !== null && ag.ls !== null && ag.lb !== undefined ? fmt(ag.lb + ag.ls, 2) : 'N/A'); setC($('kLot'), 'val xs' + cls); setT($('kLotS'), s ? 'B ' + bN(ag.lb, 2) + '  S ' + bN(ag.ls, 2) : '\u00a0');
+  /* กริด */
+  h = '';
+  if (s){
+    h += 'GRID <b>' + bN(ag.n, 0) + ' / ' + (g.max > 0 ? g.max : 'N/A') + '</b> ไม้   STEP <b>' + (g.step > 0 ? fmt(g.step, d) + ' (ตั้งเอง)' : 'N/A') + '</b>';
+    h += '<br>BUY <b>' + bN(ag.nb, 0) + '</b> (' + bN(ag.lb, 2) + ' lot)  AVG <b>' + bN(ag.avgb, d) + '</b>';
+    h += '<br>SELL <b>' + bN(ag.ns, 0) + '</b> (' + bN(ag.ls, 2) + ' lot)  AVG <b>' + bN(ag.avgs, d) + '</b>';
+    h += '<br>BASKET TP <b>N/A</b> (EA ไม่ได้ส่งมา)';
+  }
+  setH($('botGrid'), h);
+  var lad = bLadder(), stale = old || (Bp && Bw && Bp.rx !== Bw.rx);
+  setH($('botLad'), lad || '<div class="sub">' + (s ? 'กำลังโหลดรายการไม้...' : 'ยังไม่มีข้อมูลกริด') + '</div>');
+  setC($('botLad'), 'gl' + (stale ? ' old' : ''));
+  setT($('botLadN'), lad ? 'ซ้าย=ราคา  ฟ้า=BUY ส้ม=SELL  เส้นประ=ออเดอร์รอ  *=ค่าที่คำนวณจาก STEP ที่ตั้งเอง (ต่ำสุดของ BUY - step / สูงสุดของ SELL + step)' : '\u00a0');
+  /* ไม้ที่เปิดอยู่ */
+  btns = $('posF').getElementsByTagName('button');
+  for (i = 0; i < btns.length; i++){
+    b = btns[i]; e = b.getAttribute('data-v');
+    b.className = 'btn' + (Bui[b.getAttribute('data-k')] === e ? ' on' : '') + (b.getAttribute('data-g') ? ' gap' : '');
+  }
+  pl = bPosList();
+  setT($('posSum'), pl.sum || '\u00a0');
+  setH($('posList'), pl.h || '<div class="sub">' + (s ? (Bp ? 'ไม่มีไม้ตามตัวกรองนี้' : 'กำลังโหลด...') : 'ยังไม่มีข้อมูล') + '</div>');
+  setC($('posList'), stale ? 'old' : '');
+  /* เหตุการณ์ */
+  h = '';
+  for (i = Blog.length - 1; i >= 0 && i > Blog.length - 16; i--){
+    e = Blog[i];
+    h += '<div class="ev">' + bChip(e.s === 'C' ? 2 : (e.s === 'W' ? 1 : 0), e.s === 'C' ? 'CRIT' : (e.s === 'W' ? 'WARN' : (e.s === 'S' ? 'OK' : 'INFO'))) +
+      '<span class="tm">' + new Date(e.t).getDate() + ' ' + MON[new Date(e.t).getMonth()] + ' ' + hhmm(e.t) + '</span> ' + esc(e.m) + '</div>';
+  }
+  setH($('botLog'), h || '<div class="sub">ยังไม่มีเหตุการณ์</div>');
+}
+
+/* ---- ปุ่ม/ฟอร์ม ---- */
+$('icoBot').innerHTML = sprite('coin', 3);
+$('icoHp').innerHTML = sprite('heart', 3);
+$('botCfg').onclick = function(){
+  var el = $('botSetup'), open = el.style.display !== 'block';
+  el.style.display = open ? 'block' : 'none';
+  if (open){ $('botUrl').value = Bcfg ? Bcfg.u : ''; $('botKey').value = ''; $('botSetupT').textContent = Bcfg ? 'เว้น READ KEY ว่างไว้ = ใช้ KEY เดิม' : 'KEY เก็บในเครื่องนี้เท่านั้น (ไม่อยู่ในไฟล์) หน้านี้ดูอย่างเดียว ไม่มีคำสั่งเทรด'; }
+};
+$('botSave').onclick = function(){
+  var u = $('botUrl').value.replace(/^\s+|\s+$/g, '').replace(/\/+$/, ''), k = $('botKey').value.replace(/^\s+|\s+$/g, '');
+  if (!k && Bcfg) k = Bcfg.k;
+  if (u.indexOf('https://') !== 0){ $('botSetupT').textContent = 'URL ต้องขึ้นต้นด้วย https://'; return; }
+  if (k.length < 8){ $('botSetupT').textContent = 'READ KEY สั้นเกินไป'; return; }
+  Bcfg = {u: u, k: k}; lsSet('pc_bot', Bcfg);
+  Bw = null; Bs = null; Bp = null; Bfail = 0; Berr = ''; Bprev = {}; Bbusy = false;
+  $('botKey').value = ''; $('botSetup').style.display = 'none';
+  bRender(); botPoll();
+};
+$('botDel').onclick = function(){
+  if (!confirm('ลบ URL/KEY ของหน้า BOT ออกจากเครื่องนี้?')) return;
+  Bcfg = null; lsSet('pc_bot', null); Bw = null; Bs = null; Bp = null; Bprev = {}; Bfail = 0;
+  $('botUrl').value = ''; $('botKey').value = ''; bEval(); bRender();
+};
+$('botLogClr').onclick = function(){ if (!confirm('ล้างเหตุการณ์ทั้งหมด?')) return; Blog = []; lsSet('pc_botlog', Blog); bRender(); };
+$('posF').onclick = function(e){
+  var t = e.target || e.srcElement, k = t && t.getAttribute ? t.getAttribute('data-k') : null;
+  if (!k) return;
+  Bui[k] = t.getAttribute('data-v'); lsSet('pc_botui', Bui); bRender();
+};
+$('posList').onclick = function(e){
+  var t = e.target || e.srcElement, tk = null;
+  while (t && t !== this){ if (t.getAttribute && t.getAttribute('data-t') !== null){ tk = t.getAttribute('data-t'); break; } t = t.parentNode; }
+  if (tk === null) return;
+  Bopen[tk] = !Bopen[tk]; bRender();
+};
+if (!CONFIG.bot){ $('tabs').getElementsByTagName('button')[5].style.display = 'none'; }
+setInterval(botPoll, Math.max(3, CONFIG.botEverySec) * 1000);
+setInterval(function(){ bEval(); if (pg === 5 && !(drag && drag.lock === 1)) bRender(); }, 1000);
+bRender();
 SPR.pcloud = ["..y..y.........", "...kkk.........", ".ykyyyk.kkk....", "..kyyykkWWWk...", "...kkkWWWWWWk..", "....kWWWWWWWWk.", "....kkkkkkkkkk."];
 SPR.cloud2 = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk"];
 SPR.rain = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk", "..b..b..b..b..", ".b..b..b..b..."];
