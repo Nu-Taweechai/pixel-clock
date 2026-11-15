@@ -288,6 +288,20 @@ input.num{width:120px}
   .cr,.dr{font-size:8px;margin-top:4px;padding:3px 5px;border-width:2px} .dh{font-size:8px;margin-top:6px} .hc{font-size:7px;border-width:2px}
 }
 
+/* ===== หน้า SETTINGS / SYSTEM STATUS (เปิดโดยแตะแถบสถานะด้านล่าง หรือปุ่ม SET) ===== */
+.status{cursor:pointer}
+body .status{padding-right:40px}
+.status.s1{background:#4a3a08;color:var(--gold)}
+.status.s2{background:#3a0a14;color:var(--down)}
+#setBtn{position:fixed;right:6px;bottom:calc(env(safe-area-inset-bottom,0px) + 5px);z-index:7;font-family:inherit;font-size:7px;line-height:1;background:#000;color:var(--dim);border:2px solid var(--edge);padding:5px 5px;cursor:pointer;-webkit-appearance:none;border-radius:0}
+.sys{position:fixed;left:0;right:0;top:0;bottom:0;z-index:12;display:none;background:var(--ink);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px calc(env(safe-area-inset-bottom,0px) + 14px)}
+.sysin{max-width:560px;margin:0 auto}
+.sysin .panel{margin-bottom:10px}
+.sr{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;padding:3px 0;font-size:9px;line-height:1.6;color:var(--text);border-bottom:2px solid #0b0820}
+.sr .bs{min-width:64px;text-align:center;margin:0 8px 0 0}
+.sr .sn{-webkit-flex:1;flex:1;min-width:0;overflow-wrap:anywhere}
+.sr .sa{color:var(--dim);text-align:right;margin-left:6px;font-size:8px}
+
 /* ===== หน้า BOT ===== */
 .bk{font-size:9px;line-height:2;color:var(--dim)}
 .bk b{font-weight:normal;color:var(--text)}
@@ -613,6 +627,33 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <div id="coins"></div>
 <div id="lvl"></div>
 <div id="netwarn"></div>
+<button type="button" id="setBtn">SET</button>
+<div class="sys" id="sys"><div class="sysin">
+  <div class="panel">
+    <div class="lab">SETTINGS<button type="button" class="btn" id="sysX">CLOSE</button></div>
+    <div class="sub">เปิดหน้านี้ได้จากการแตะแถบสถานะด้านล่าง หรือปุ่ม SET มุมขวาล่าง</div>
+  </div>
+  <div class="panel">
+    <div class="lab">SYSTEM STATUS</div>
+    <div id="sysRows"></div>
+    <div class="sub" id="sysNote">&nbsp;</div>
+  </div>
+  <div class="panel">
+    <div class="lab" id="sndLab">SOUND</div>
+    <div class="bk" id="sysSnd">&nbsp;</div>
+  </div>
+  <div class="panel">
+    <div class="lab">BOT</div>
+    <div class="bk" id="sysBot">&nbsp;</div>
+    <div class="ctl"><button type="button" class="btn" id="sysBotGo">OPEN BOT SETUP</button></div>
+  </div>
+  <div class="panel">
+    <div class="lab">ABOUT</div>
+    <div class="bk" id="sysAbout">&nbsp;</div>
+    <div class="ctl"><button type="button" class="btn" id="sysX2">CLOSE</button></div>
+  </div>
+</div></div>
+
 <div id="walker"><div id="wk"></div><div id="wz">Zzz</div></div>
 <div id="spider"><div id="spThread"></div><div id="spBody"></div></div>
 <div id="webL" class="web"></div><div id="webR" class="web r"></div>
@@ -2587,6 +2628,98 @@ if (!CONFIG.bot){ $('tabs').getElementsByTagName('button')[5].style.display = 'n
 setInterval(botPoll, Math.max(3, CONFIG.botEverySec) * 1000);
 setInterval(function(){ bEval(); if (pg === 5 && !(drag && drag.lock === 1)) bRender(); }, 1000);
 bRender();
+/* ---- SETTINGS / SYSTEM STATUS: บอกว่าแต่ละแหล่งข้อมูลยังสดอยู่ไหม + สีแถบสถานะ (เขียว=ปกติ เหลือง=ควรดู แดง=ราคาเงียบ/เน็ตหลุด/BOT ออฟไลน์) ---- */
+var sysIsOpen = false;
+function sChip(l, t){ return '<span class="bs ' + (['ok', 'wn', 'er', ''][l] || '') + '">' + esc(t) + '</span>'; }   /* l: 0 ปกติ 1 เตือน 2 ผิดปกติ 3 เฉยๆ (ปิด/ไม่เกี่ยว) */
+function sAge(ms){ return ms === null ? null : (Date.now() - ms) / 1000; }
+function sRow(n, l, t, a, d){ return {n: n, l: l, t: t, a: a, d: d || ''}; }
+function sysRows(){
+  var r = [], a, x, lk, b, ea, fa;
+  /* เครือข่าย */
+  r.push(navigator.onLine === false ? sRow('NETWORK', 2, 'OFFLINE', null, 'ไม่มีอินเทอร์เน็ต') : sRow('NETWORK', 0, 'ONLINE', null));
+  /* ราคาสด WebSocket (BTC + PAXG) */
+  if (!CONFIG.liveWS) r.push(sRow('PRICE LIVE (WS)', 3, 'OFF', null, 'ปิดใน CONFIG'));
+  else { a = lastTick ? (Date.now() - lastTick) / 1000 : null; r.push(a === null ? sRow('PRICE LIVE (WS)', 2, 'NO DATA', null) : (a <= 15 ? sRow('PRICE LIVE (WS)', 0, 'LIVE', a) : (a <= 60 ? sRow('PRICE LIVE (WS)', 1, 'STALE', a) : sRow('PRICE LIVE (WS)', 2, 'OFFLINE', a)))); }
+  /* ราคาทอง futures (XAUUSDT) */
+  if (!CONFIG.liveGoldFut) r.push(sRow('GOLD FUTURES', 3, 'OFF', null, 'ปิดใน CONFIG'));
+  else if (marketClosed()) r.push(sRow('GOLD FUTURES', 3, 'CLOSED', null, 'ตลาดทองปิด'));
+  else { a = xAt ? (Date.now() - xAt) / 1000 : null; r.push(a !== null && a <= 15 ? sRow('GOLD FUTURES', 0, 'LIVE', a) : sRow('GOLD FUTURES', 1, a === null ? 'NO DATA' : 'STALE', a, 'ใช้ PAXG แทน')); }
+  /* ราคาสำรอง REST + USD/THB */
+  a = lastPrice ? (Date.now() - lastPrice.getTime()) / 1000 : null;
+  if (!priceOk) r.push(sRow('PRICE REST', isLive() ? 1 : 2, 'ERROR', a));
+  else if (a === null) r.push(sRow('PRICE REST', 1, 'NO DATA', null));
+  else r.push(a <= CONFIG.priceEverySec * 2.5 ? sRow('PRICE REST', 0, 'OK', a) : sRow('PRICE REST', 1, 'STALE', a));
+  /* XAU spot */
+  if (!CONFIG.goldSpotUrl) r.push(sRow('XAU SPOT', 3, 'OFF', null, 'ปิดใน CONFIG'));
+  else if (marketClosed()) r.push(sRow('XAU SPOT', 3, 'CLOSED', null, 'ตลาดทองปิด'));
+  else { a = lastSpot ? (Date.now() - lastSpot.getTime()) / 1000 : null; r.push(a === null ? sRow('XAU SPOT', 1, 'NO DATA', null) : (a <= CONFIG.goldSpotEverySec * 2.5 ? sRow('XAU SPOT', 0, 'OK', a) : sRow('XAU SPOT', 1, 'OLD', a))); }
+  /* ข่าว */
+  a = lastNews ? (Date.now() - lastNews.getTime()) / 1000 : null;
+  if (!newsOk) r.push(sRow('NEWS', 2, 'ERROR', a, 'ดึงข่าวไม่สำเร็จ'));
+  else if (newsStale()) r.push(sRow('NEWS', 1, 'OLD', a, 'ข้อมูลข่าวค้างเกิน ' + CONFIG.newsStaleDays + ' วัน'));
+  else if (a === null) r.push(sRow('NEWS', 1, 'NO DATA', null));
+  else r.push(a <= CONFIG.newsEverySec * 3 ? sRow('NEWS', 0, 'OK', a) : sRow('NEWS', 1, 'STALE', a));
+  /* อุณหภูมิ/PM2.5 */
+  a = lastWeather ? (Date.now() - lastWeather.getTime()) / 1000 : null;
+  if (!wxOk) r.push(sRow('WEATHER / AIR', 1, 'ERROR', a));
+  else if (a === null) r.push(sRow('WEATHER / AIR', 1, 'NO DATA', null));
+  else r.push(a <= CONFIG.weatherEverySec * 3 ? sRow('WEATHER / AIR', 0, 'OK', a) : sRow('WEATHER / AIR', 1, 'STALE', a));
+  /* พยากรณ์ (โหลดเมื่อเปิดหน้า WEATHER) */
+  if (wxErr) r.push(sRow('FORECAST', 1, 'ERROR', WX ? (Date.now() - WX.at) / 1000 : null));
+  else if (!WX) r.push(sRow('FORECAST', 3, 'IDLE', null, 'โหลดเมื่อเปิดหน้า WEATHER'));
+  else r.push(sRow('FORECAST', 0, 'OK', (Date.now() - WX.at) / 1000));
+  /* ตำแหน่ง */
+  r.push(gpsState === 'GPS' ? sRow('LOCATION', 0, 'GPS', null) : (gpsState === 'NO GPS' ? sRow('LOCATION', 1, 'NO GPS', null, 'ใช้ตำแหน่งที่จำไว้') : (gpsState ? sRow('LOCATION', 3, gpsState, null) : sRow('LOCATION', 3, 'SAVED', null, 'ตำแหน่งที่จำไว้'))));
+  /* Fear & Greed */
+  if (!CONFIG.fngEverySec) r.push(sRow('FEAR & GREED', 3, 'OFF', null, 'ปิดใน CONFIG'));
+  else { fa = fngD && fngD.at ? (Date.now() - fngD.at) / 1000 : null; r.push(fa === null ? sRow('FEAR & GREED', 1, 'NO DATA', null) : (fa <= CONFIG.fngEverySec * 3 ? sRow('FEAR & GREED', 0, 'OK', fa) : sRow('FEAR & GREED', 1, 'STALE', fa))); }
+  /* BOT */
+  if (!CONFIG.bot) r.push(sRow('BOT (WORKER)', 3, 'OFF', null, 'ปิดใน CONFIG'));
+  else { lk = bLink(); r.push(lk.l === 3 ? sRow('BOT (WORKER)', 3, 'NOT SET', null, 'ยังไม่ได้ตั้งค่า') : sRow('BOT (WORKER)', lk.l === 0 ? 0 : (lk.l === 1 || lk.l === 4 ? 1 : 2), lk.t, lk.a)); }
+  return r;
+}
+function sysLevel(){   /* สีแถบสถานะ: 0 ปกติ | 1 เหลือง | 2 แดง (เฉพาะสิ่งที่กระทบการตัดสินใจ: เน็ต, ราคา, ข่าว, BOT) */
+  var lv = 0, now = Date.now(), p, wsOn = CONFIG.liveWS && window.WebSocket, restOk, b;
+  if (now - loadedAt < 30000) return 0;   /* ช่วงเปิดแอปใหม่ๆ ยังโหลดไม่ครบ ไม่เตือน */
+  if (navigator.onLine === false) return 2;
+  p = lastPrice ? (now - lastPrice.getTime()) / 1000 : null;
+  restOk = priceOk && p !== null && p <= CONFIG.priceEverySec * 2.5;
+  if (!(wsOn && isLive())) lv = restOk ? (wsOn ? 1 : 0) : 2;   /* WS ไม่สดแต่ REST ยังมา = เหลือง | ทั้งคู่เงียบ = แดง */
+  if (!newsOk || newsStale()) lv = Math.max(lv, 1);
+  if (CONFIG.bot && Bcfg && Bcfg.k){ b = bLink(); if (b.l === 2) lv = 2; else if (b.l === 1) lv = Math.max(lv, 1); }
+  return lv;
+}
+function sysBar(){ var e = $('status'), lv = sysLevel(), c = 'status' + (lv ? ' s' + lv : ''); if (e.className !== c) e.className = c; }
+function sysRender(){
+  var r = sysRows(), h = '', i, o, w = 0, bad = 0, lk, ea, t, d, n;
+  for (i = 0; i < r.length; i++){
+    o = r[i]; if (o.l === 1) w++; else if (o.l === 2) bad++;
+    h += '<div class="sr">' + sChip(o.l, o.t) + '<span class="sn">' + esc(o.n) + '</span><span class="sa">' + (o.a !== null ? bAgeT(o.a) : esc(o.d)) + '</span></div>';
+  }
+  setH($('sysRows'), h);
+  setT($('sysNote'), bad ? 'ผิดปกติ ' + bad + ' รายการ' + (w ? ' เตือน ' + w : '') : (w ? 'เตือน ' + w + ' รายการ' : 'ทุกแหล่งข้อมูลปกติ') + '  | แถวที่ไม่มีอายุ = ไม่ใช้/ไม่เกี่ยวตอนนี้');
+  /* เสียง */
+  t = 'SOUND ' + (soundOn ? sChip(0, 'ON') : sChip(1, 'OFF')) + '  QUIET HOURS ' + (CONFIG.quietHours ? '<b>' + pad(CONFIG.quietStart) + ':00-' + pad(CONFIG.quietEnd) + ':00</b> ' + (isQuiet() ? sChip(1, 'QUIET NOW') : sChip(0, 'ACTIVE')) : sChip(3, 'OFF'));
+  t += '<br>เบราว์เซอร์บังคับให้กด SOUND ON ใหม่ทุกครั้งที่เปิดแอป (รวมหลังรีโหลดอัตโนมัติตี ' + (CONFIG.autoReloadHour >= 0 ? CONFIG.autoReloadHour : '-') + ') ถ้าไม่กด เสียงเตือนและเสียงเหรียญจะไม่ดัง';
+  setH($('sysSnd'), t);
+  /* BOT */
+  if (!CONFIG.bot) t = 'ปิดอยู่ใน CONFIG (bot: false)';
+  else { lk = bLink(); ea = bEa(); t = lk.l === 3 ? 'ยังไม่ได้ตั้งค่า กดปุ่มด้านล่างเพื่อใส่ WORKER URL กับ READ KEY' : 'LINK ' + sChip(lk.l === 0 ? 0 : (lk.l === 2 ? 2 : 1), lk.t) + ' EA ' + sChip(ea.l, ea.t) + '<br>LAST <b>' + (lk.a !== null ? bAgeT(lk.a) + ' ago' : 'N/A') + '</b>'; }
+  setH($('sysBot'), t);
+  /* เกี่ยวกับ */
+  d = new Date(loadedAt);
+  setH($('sysAbout'), 'VERSION <b>' + esc(CONFIG.version) + '</b><br>OPEN SINCE <b>' + d.getDate() + ' ' + MON[d.getMonth()] + ' ' + hhmm(loadedAt) + '</b><br>AUTO RELOAD <b>' + (CONFIG.autoReloadHour >= 0 ? pad(CONFIG.autoReloadHour) + ':00' : 'OFF') + '</b><br>ค่าตั้งส่วนใหญ่ยังแก้ที่ CONFIG ต้นไฟล์ (ปรับจากหน้านี้ได้ในเวอร์ชันถัดไป)');
+}
+function sysOpen(){ sysIsOpen = true; $('sys').style.display = 'block'; $('sys').scrollTop = 0; sysRender(); }
+function sysClose(){ sysIsOpen = false; $('sys').style.display = 'none'; }
+$('sndLab').appendChild($('snd'));   /* ย้ายปุ่มเสียงเดิม (id เดิม โค้ดที่อ้างถึงยังทำงานเหมือนเดิม) จากหัวข้อ NEWS มาไว้ที่นี่ */
+$('status').onclick = sysOpen;
+$('setBtn').onclick = sysOpen;
+$('sysX').onclick = sysClose;
+$('sysX2').onclick = sysClose;
+$('sysBotGo').onclick = function(){ sysClose(); setPage(5, true); if ($('botSetup').style.display !== 'block') $('botCfg').onclick(); };
+document.addEventListener('keydown', function(e){ if (sysIsOpen && (e.keyCode === 27)) sysClose(); }, false);
+(function(){ var n = 0; setInterval(function(){ n++; if (sysIsOpen) sysRender(); if (n % 2 === 0) sysBar(); }, 1000); })();
 SPR.pcloud = ["..y..y.........", "...kkk.........", ".ykyyyk.kkk....", "..kyyykkWWWk...", "...kkkWWWWWWk..", "....kWWWWWWWWk.", "....kkkkkkkkkk."];
 SPR.cloud2 = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk"];
 SPR.rain = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk", "..b..b..b..b..", ".b..b..b..b..."];
