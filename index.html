@@ -301,6 +301,18 @@ body .status{padding-right:40px}
 .sr .bs{min-width:64px;text-align:center;margin:0 8px 0 0}
 .sr .sn{-webkit-flex:1;flex:1;min-width:0;overflow-wrap:anywhere}
 .sr .sa{color:var(--dim);text-align:right;margin-left:6px;font-size:8px}
+.cfh{cursor:pointer}
+.cfh .cfx{margin-left:auto;color:var(--gold);font-size:8px}
+.cf{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-flex-wrap:wrap;flex-wrap:wrap;padding:5px 0;border-bottom:2px solid #0b0820;font-size:9px;line-height:1.5}
+.cf .cn{-webkit-flex:1;flex:1;min-width:110px;overflow-wrap:anywhere}
+.cf .cn small{display:block;color:var(--dim);font-size:7px;line-height:1.5}
+.cf button{font-family:inherit;font-size:10px;line-height:1;background:#000;color:var(--text);border:2px solid var(--edge);padding:7px 9px;margin:2px 0 2px 4px;min-width:34px;border-radius:0;-webkit-appearance:none;cursor:pointer}
+.cf .cv{min-width:72px;color:var(--gold)}
+.cf .cv.on{background:var(--edge);color:#fff}
+.cf .cr{color:var(--down);border-color:var(--down);min-width:28px}
+.cf.pk .cn{-webkit-flex-basis:100%;flex-basis:100%}
+.cf.pk .cv{min-width:0;padding:7px 8px}
+#cfgMsg{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:13;display:none;padding:8px 10px;background:#000;border:3px solid var(--gold);color:var(--gold);font-size:9px;line-height:1.6;text-align:center;pointer-events:none}
 
 /* ===== หน้า BOT ===== */
 .bk{font-size:9px;line-height:2;color:var(--dim)}
@@ -642,6 +654,8 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
     <div class="lab" id="sndLab">SOUND</div>
     <div class="bk" id="sysSnd">&nbsp;</div>
   </div>
+  <div id="cfgBox"></div>
+  <div id="cfgMsg"></div>
   <div class="panel">
     <div class="lab">BOT</div>
     <div class="bk" id="sysBot">&nbsp;</div>
@@ -663,7 +677,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.14.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.15.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -717,6 +731,78 @@ var CONFIG = {
   botSigMaxAge: 1200,                 // สัญญาณเก่ากว่านี้ (วินาที) ถือว่า STALE ให้ตรงกับ SignalMaxAgeSec ของ EA
   newsStaleDays: 2                    // ถ้าข่าวล่าสุดในไฟล์เก่ากว่านี้ (วัน) ให้ขึ้นเตือนว่าข้อมูลค้าง
 };
+
+/* ===== ค่าที่ปรับได้จากหน้า SETTINGS (เก็บเฉพาะค่าที่ต่างจากไฟล์ไว้ใน localStorage 'pc_cfg' แล้วทับ CONFIG ตอนเริ่มแอป) =====
+   t: b=เปิด/ปิด n=ตัวเลข p=ตัวเลือกสำเร็จรูป | min/max/st=ช่วงที่ปลอดภัยและขนาดก้าว | off=ค่าที่แปลว่าปิด | r=ต้องรีโหลดหน้าถึงจะมีผลเต็มที่ | ck=ตรวจเงื่อนไขข้ามค่า */
+var SET_DEFS = [
+  {s: 'QUIET HOURS', it: [
+    {k: 'quietHours', t: 'b', n: 'ช่วงเงียบ (ไม่มีเสียง/สั่น)'},
+    {k: 'quietStart', t: 'n', n: 'เริ่มเวลา', u: 'น.', min: 0, max: 23, st: 1},
+    {k: 'quietEnd', t: 'n', n: 'สิ้นสุดเวลา', u: 'น.', min: 0, max: 23, st: 1}
+  ]},
+  {s: 'PRICE ALERTS', it: [
+    {k: 'moveAlerts.gold.usd', t: 'n', n: 'ทองขยับเกิน', u: '$', min: 1, max: 200, st: 1, show: function(){ return !!(CONFIG.moveAlerts && CONFIG.moveAlerts.gold); }},
+    {k: 'moveAlerts.gold.minutes', t: 'n', n: 'ทอง ภายใน', u: 'นาที', min: 1, max: 15, st: 1, h: 'สูงสุด 15 (แอปเก็บประวัติราคา 15 นาที)', show: function(){ return !!(CONFIG.moveAlerts && CONFIG.moveAlerts.gold); }},
+    {k: 'moveAlerts.btc.usd', t: 'n', n: 'BTC ขยับเกิน', u: '$', min: 50, max: 10000, st: 50, show: function(){ return !!(CONFIG.moveAlerts && CONFIG.moveAlerts.btc); }},
+    {k: 'moveAlerts.btc.minutes', t: 'n', n: 'BTC ภายใน', u: 'นาที', min: 1, max: 15, st: 1, h: 'สูงสุด 15 (แอปเก็บประวัติราคา 15 นาที)', show: function(){ return !!(CONFIG.moveAlerts && CONFIG.moveAlerts.btc); }},
+    {k: 'moveAlertShowSec', t: 'n', n: 'ป้ายเตือนขยับแรงปิดเองหลัง', u: 'วิ', min: 3, max: 60, st: 1},
+    {k: 'staleSec', t: 'n', n: 'ราคาเงียบเกินนี้ = ป้ายแดง', u: 'วิ', min: 60, max: 1800, st: 30, r: 1, h: 'ถ้าในไฟล์ปิดไว้ (0) ต้องแก้ที่ไฟล์'}
+  ]},
+  {s: 'NEWS ALERTS', it: [
+    {k: 'newsCurrencies.USD', t: 'b', n: 'ข่าวสกุล USD', ck: function(v){ return cfgLastCur('USD', v); }},
+    {k: 'newsCurrencies.EUR', t: 'b', n: 'ข่าวสกุล EUR', ck: function(v){ return cfgLastCur('EUR', v); }},
+    {k: 'newsCurrencies.GBP', t: 'b', n: 'ข่าวสกุล GBP', ck: function(v){ return cfgLastCur('GBP', v); }},
+    {k: 'newsCurrencies.JPY', t: 'b', n: 'ข่าวสกุล JPY', ck: function(v){ return cfgLastCur('JPY', v); }},
+    {k: 'newsImpacts.Medium', t: 'b', n: 'รวมข่าวสีส้ม (Medium)', h: 'ปิด = เฉพาะข่าวแดง (High)'},
+    {k: 'alertSteps', t: 'p', n: 'เตือนล่วงหน้า (นาทีก่อนข่าว)', o: [
+      {l: '15·5·1', v: [15, 5, 1], x: {alertMinutes: 15}}, {l: '30·10·5·1', v: [30, 10, 5, 1], x: {alertMinutes: 30}},
+      {l: '10·1', v: [10, 1], x: {alertMinutes: 10}}, {l: '5', v: [5], x: {alertMinutes: 5}}]},
+    {k: 'impactMin', t: 'n', n: 'News Impact จับราคาหลังข่าวออก', u: 'นาที', min: 1, max: 30, st: 1}
+  ]},
+  {s: 'BOT ALERTS', it: [
+    {k: 'botDdWarn', t: 'n', n: 'DRAWDOWN เตือน (WARN)', u: '%', min: 1, max: 90, st: 1, h: 'DD = (BALANCE - EQUITY) / BALANCE', ck: function(v){ return v >= CONFIG.botDdLimit ? 'WARN ต้องน้อยกว่าเพดาน (' + CONFIG.botDdLimit + '%)' : ''; }},
+    {k: 'botDdLimit', t: 'n', n: 'DRAWDOWN เพดาน (แถบ HP / CRIT)', u: '%', min: 5, max: 100, st: 1, ck: function(v){ return v <= CONFIG.botDdWarn ? 'เพดานต้องมากกว่า WARN (' + CONFIG.botDdWarn + '%)' : ''; }},
+    {k: 'botMlWarn', t: 'n', n: 'MARGIN LEVEL เตือน (WARN)', u: '%', min: 0, max: 5000, st: 10, off: 0, ck: function(v){ return (v > 0 && v <= CONFIG.botMlCrit) ? 'WARN ต้องมากกว่า CRIT (' + CONFIG.botMlCrit + '%)' : ''; }},
+    {k: 'botMlCrit', t: 'n', n: 'MARGIN LEVEL วิกฤต (CRIT)', u: '%', min: 10, max: 3000, st: 10, ck: function(v){ return (CONFIG.botMlWarn > 0 && v >= CONFIG.botMlWarn) ? 'CRIT ต้องน้อยกว่า WARN (' + CONFIG.botMlWarn + '%)' : ''; }},
+    {k: 'botGridNear', t: 'n', n: 'เตือนเมื่อกริดใกล้เต็ม เหลืออีก', u: 'ไม้', min: 0, max: 10, st: 1, off: 0},
+    {k: 'botStaleSec', t: 'n', n: 'ไม่มีข้อมูล BOT = STALE', u: 'วิ', min: 10, max: 300, st: 5, ck: function(v){ return v >= CONFIG.botOfflineSec ? 'ต้องน้อยกว่า OFFLINE (' + CONFIG.botOfflineSec + ' วิ)' : ''; }},
+    {k: 'botOfflineSec', t: 'n', n: 'ไม่มีข้อมูล BOT = OFFLINE', u: 'วิ', min: 30, max: 900, st: 10, ck: function(v){ return v <= CONFIG.botStaleSec ? 'ต้องมากกว่า STALE (' + CONFIG.botStaleSec + ' วิ)' : ''; }},
+    {k: 'botTpFx', t: 'b', n: 'ฉลองตอน BOT ปิดกำไร (แมว+เสียงเหรียญ)'},
+    {k: 'botTpMin', t: 'n', n: 'ฉลองเมื่อกำไรตั้งแต่', u: '', min: 0, max: 10000, st: 0.5, off: 0, h: 'หน่วยเงินบัญชี | OFF = ทุกครั้งที่เป็นบวก'}
+  ]},
+  {s: 'SCREEN & RELOAD', it: [
+    {k: 'spiderAfterSec', t: 'n', n: 'แมงมุมลงมาเมื่อไม่แตะจอ', u: 'วิ', min: 0, max: 3600, st: 60, off: 0, r: 1, h: 'ถ้าเดิมปิดอยู่ ต้องรีโหลดถึงจะเริ่มทำงาน'},
+    {k: 'webAfterSec', t: 'n', n: 'ใยแมงมุมที่มุมจอเมื่อไม่แตะจอ', u: 'วิ', min: 0, max: 7200, st: 300, off: 0, r: 1, h: 'ถ้าเดิมปิดอยู่ ต้องรีโหลดถึงจะเริ่มทำงาน'},
+    {k: 'autoReloadHour', t: 'n', n: 'รีโหลดหน้าเองวันละครั้งตอน', u: 'น.', min: -1, max: 23, st: 1, off: -1}
+  ]}
+];
+var CFG_DEF = {}, CFG_OK = {}, CFG_START = {}, CFG_OV = lsGet('pc_cfg');
+function cfgGet(pth){ var a = pth.split('.'), o = CONFIG, i; for (i = 0; i < a.length; i++){ if (o === null || o === undefined) return undefined; o = o[a[i]]; } return o; }
+function cfgPut(pth, v){ var a = pth.split('.'), o = CONFIG, i; for (i = 0; i < a.length - 1; i++){ if (!o[a[i]] || typeof o[a[i]] !== 'object') o[a[i]] = {}; o = o[a[i]]; } o[a[a.length - 1]] = v; }
+function cfgPutV(pth, v){ cfgPut(pth, typeof v === 'boolean' && pth.indexOf('news') === 0 ? (v ? 1 : 0) : v); }   /* newsCurrencies/newsImpacts เก็บเป็น 1/0 ตามของเดิม */
+function cfgNorm(d, v){ return d.t === 'b' ? !!v : v; }
+function cfgSnap(){ var i, j, d, o, x; for (i = 0; i < SET_DEFS.length; i++) for (j = 0; j < SET_DEFS[i].it.length; j++){
+  d = SET_DEFS[i].it[j]; CFG_OK[d.k] = d;
+  if (d.t === 'p') for (x = 0; x < d.o.length; x++) for (o in d.o[x].x) CFG_OK[o] = {t: 'n', min: 1, max: 120, hid: 1};
+} }
+function cfgValid(d, v){
+  if (d.t === 'b') return typeof v === 'boolean';
+  if (d.t === 'n') return typeof v === 'number' && isFinite(v) && v >= d.min && v <= d.max;
+  if (d.t === 'p') return v instanceof Array && v.length > 0 && v.length <= 6 && (function(){ var i; for (i = 0; i < v.length; i++) if (typeof v[i] !== 'number' || !(v[i] > 0 && v[i] <= 120)) return false; return true; })();
+  return false;
+}
+(function(){
+  var k, d;
+  cfgSnap();
+  for (k in CFG_OK){ d = CFG_OK[k]; CFG_DEF[k] = JSON.parse(JSON.stringify(cfgNorm(d, cfgGet(k)) === undefined ? null : cfgNorm(d, cfgGet(k)))); }
+  if (!CFG_OV || typeof CFG_OV !== 'object' || CFG_OV instanceof Array) CFG_OV = {};
+  for (k in CFG_OV){
+    d = CFG_OK[k];
+    if (!d || !cfgValid(d, CFG_OV[k])){ delete CFG_OV[k]; continue; }   /* ค่าที่ไม่รู้จัก/ผิดชนิด/เกินช่วง ทิ้ง ใช้ค่าในไฟล์ */
+    cfgPutV(k, CFG_OV[k]);
+  }
+  for (k in CFG_OK) CFG_START[k] = JSON.stringify(cfgNorm(CFG_OK[k], cfgGet(k)));
+})();
 /* ===== */
 
 var PAL = {p:'#ff8fb1',k:'#000',y:'#ffcf3a',w:'#fff6b8',o:'#c98a12',r:'#e8403f',R:'#ff8a8a',s:'#ff9d57',t:'#ffe0a8',g:'#4cf08a',b:'#6ac3ff',W:'#ffffff',d:'#3a2a86'};
@@ -2708,7 +2794,7 @@ function sysRender(){
   setH($('sysBot'), t);
   /* เกี่ยวกับ */
   d = new Date(loadedAt);
-  setH($('sysAbout'), 'VERSION <b>' + esc(CONFIG.version) + '</b><br>OPEN SINCE <b>' + d.getDate() + ' ' + MON[d.getMonth()] + ' ' + hhmm(loadedAt) + '</b><br>AUTO RELOAD <b>' + (CONFIG.autoReloadHour >= 0 ? pad(CONFIG.autoReloadHour) + ':00' : 'OFF') + '</b><br>ค่าตั้งส่วนใหญ่ยังแก้ที่ CONFIG ต้นไฟล์ (ปรับจากหน้านี้ได้ในเวอร์ชันถัดไป)');
+  setH($('sysAbout'), 'VERSION <b>' + esc(CONFIG.version) + '</b><br>OPEN SINCE <b>' + d.getDate() + ' ' + MON[d.getMonth()] + ' ' + hhmm(loadedAt) + '</b><br>AUTO RELOAD <b>' + (CONFIG.autoReloadHour >= 0 ? pad(CONFIG.autoReloadHour) + ':00' : 'OFF') + '</b><br>ค่าตั้งปรับได้ในหัวข้อด้านบน (QUIET HOURS ... SCREEN) ส่วนที่ไม่มีให้ปรับยังแก้ที่ CONFIG ต้นไฟล์');
 }
 function sysOpen(){ sysIsOpen = true; $('sys').style.display = 'block'; $('sys').scrollTop = 0; sysRender(); }
 function sysClose(){ sysIsOpen = false; $('sys').style.display = 'none'; }
@@ -2720,6 +2806,94 @@ $('sysX2').onclick = sysClose;
 $('sysBotGo').onclick = function(){ sysClose(); setPage(5, true); if ($('botSetup').style.display !== 'block') $('botCfg').onclick(); };
 document.addEventListener('keydown', function(e){ if (sysIsOpen && (e.keyCode === 27)) sysClose(); }, false);
 (function(){ var n = 0; setInterval(function(){ n++; if (sysIsOpen) sysRender(); if (n % 2 === 0) sysBar(); }, 1000); })();
+/* ---- ปรับค่าจากหน้า SETTINGS: ตัวเลขใช้ปุ่ม -/+ หรือแตะที่ค่าเพื่อพิมพ์ | * = ต่างจากค่าในไฟล์ (แตะ * คืนค่าเดิม) ---- */
+var CFG_UI = {}, cfgMsgT = null;
+function cfgLastCur(c, v){   /* ต้องเหลืออย่างน้อย 1 สกุล */
+  var k, n = 0, a = ['USD', 'EUR', 'GBP', 'JPY'];
+  for (k = 0; k < a.length; k++) if (a[k] !== c ? !!CONFIG.newsCurrencies[a[k]] : v) n++;
+  return n < 1 ? 'ต้องเลือกอย่างน้อย 1 สกุล' : '';
+}
+function newsRefilter(noUi){   /* คัดข่าวที่ใช้เตือนใหม่จากข่าวดิบที่เก็บไว้ (ไม่ต้องดึงจากเน็ต) */
+  var i, e, a = [];
+  if (!allEv || !allEv.length) return;
+  for (i = 0; i < allEv.length; i++){ e = allEv[i]; if (CONFIG.newsCurrencies[e.cur] && CONFIG.newsImpacts[e.impact]) a.push(e); }
+  news = a;
+  if (!noUi) showStatus();
+}
+function cfgVal(d){ return d.t === 'p' ? cfgGet(d.k) : cfgNorm(d, cfgGet(d.k)); }
+function cfgPick(d){ var i, v = JSON.stringify(cfgGet(d.k)); for (i = 0; i < d.o.length; i++) if (JSON.stringify(d.o[i].v) === v && JSON.stringify(cfgGet('alertMinutes')) === JSON.stringify(d.o[i].x.alertMinutes)) return i; return -1; }
+function cfgChanged(d){ return d.t === 'p' ? (JSON.stringify(cfgGet(d.k)) !== JSON.stringify(CFG_DEF[d.k]) || cfgGet('alertMinutes') !== CFG_DEF.alertMinutes) : JSON.stringify(cfgNorm(d, cfgGet(d.k))) !== JSON.stringify(CFG_DEF[d.k]); }
+function cfgFmt(v){ return String(Math.round(v * 100) / 100); }
+function cfgRow(d){
+  var v = cfgVal(d), hint = (d.h || '') + (d.r ? (d.h ? ' | ' : '') + 'ต้องรีโหลดบางกรณี' : ''), ctl = '', i, pi, kk = ' data-k="' + d.k + '"';
+  if (d.t === 'b') ctl = '<button type="button" class="cv' + (v ? ' on' : '') + '"' + kk + ' data-a="t">' + (v ? 'ON' : 'OFF') + '</button>';
+  else if (d.t === 'n') ctl = '<button type="button"' + kk + ' data-a="-">-</button><button type="button" class="cv"' + kk + ' data-a="t">' + ((d.off !== undefined && v === d.off) ? 'OFF' : cfgFmt(v) + (d.u ? ' ' + esc(d.u) : '')) + '</button><button type="button"' + kk + ' data-a="+">+</button>';
+  else { pi = cfgPick(d); for (i = 0; i < d.o.length; i++) ctl += '<button type="button" class="cv' + (i === pi ? ' on' : '') + '"' + kk + ' data-a="o' + i + '">' + esc(d.o[i].l) + '</button>'; if (pi < 0) hint += (hint ? ' | ' : '') + 'ตอนนี้ค่าจากไฟล์: ' + JSON.stringify(cfgGet(d.k)); }
+  return '<div class="cf' + (d.t === 'p' ? ' pk' : '') + '"><span class="cn">' + esc(d.n) + (hint ? '<small>' + esc(hint) + '</small>' : '') + '</span>' + ctl + (cfgChanged(d) ? '<button type="button" class="cr"' + kk + ' data-a="r">*</button>' : '') + '</div>';
+}
+function cfgNeedsReload(){ var k, d; for (k in CFG_OK){ d = CFG_OK[k]; if (d.r && JSON.stringify(cfgNorm(d, cfgGet(k))) !== CFG_START[k]) return true; } return false; }
+function cfgRender(){
+  var h = '', i, j, d, sc, ch, rows, a, any = false;
+  for (i = 0; i < SET_DEFS.length; i++){
+    sc = SET_DEFS[i]; ch = 0; rows = '';
+    for (j = 0; j < sc.it.length; j++){ d = sc.it[j]; if (d.show && !d.show()) continue; if (cfgChanged(d)) { ch++; any = true; } if (CFG_UI[i]) rows += cfgRow(d); }
+    h += '<div class="panel cfp"><div class="lab cfh" data-s="' + i + '">' + sc.s + '<span class="cfx">' + (ch ? '* ' + ch + '  ' : '') + (CFG_UI[i] ? '[-]' : '[+]') + '</span></div>' + rows + '</div>';
+  }
+  h += '<div class="panel"><div class="lab">SETTINGS</div><div class="bk">ค่าที่ปรับจากหน้านี้เก็บในเครื่องนี้เท่านั้น (ไม่ซิงก์ข้ามเครื่อง) * = ต่างจากค่าในไฟล์ แตะ * เพื่อคืนค่าเดิม</div><div class="ctl">' +
+    (cfgNeedsReload() ? '<button type="button" class="btn" data-x="reload">RELOAD TO APPLY</button>' : '') + '<button type="button" class="btn x" data-x="reset">' + (any ? 'RESET ALL' : 'RESET ALL (ไม่มีค่าที่เปลี่ยน)') + '</button></div></div>';
+  setH($('cfgBox'), h);
+}
+function cfgMsg(t){ var e = $('cfgMsg'); e.textContent = t; e.style.display = 'block'; clearTimeout(cfgMsgT); cfgMsgT = setTimeout(function(){ e.style.display = 'none'; }, 3500); }
+function cfgStore(k, v){ var d = CFG_OK[k]; cfgPutV(k, v); if (JSON.stringify(v) === JSON.stringify(CFG_DEF[k])) delete CFG_OV[k]; else CFG_OV[k] = v; lsSet('pc_cfg', CFG_OV); }
+function cfgAfter(k){ if (k.indexOf('news') === 0) newsRefilter(); else showStatus(); if (sysIsOpen) sysRender(); }
+function cfgFind(k){ var i, j; for (i = 0; i < SET_DEFS.length; i++) for (j = 0; j < SET_DEFS[i].it.length; j++) if (SET_DEFS[i].it[j].k === k) return SET_DEFS[i].it[j]; return null; }
+function cfgRestore(k){ if (CFG_DEF[k] !== null && CFG_DEF[k] !== undefined) cfgPutV(k, JSON.parse(JSON.stringify(CFG_DEF[k]))); delete CFG_OV[k]; }
+function cfgReset(d){ cfgRestore(d.k); if (d.t === 'p') cfgRestore('alertMinutes'); lsSet('pc_cfg', CFG_OV); }
+function cfgAct(k, a){
+  var d = cfgFind(k), cur, v, err = '', r, o;
+  if (!d) return;
+  if (a === 'r'){ cfgReset(d); cfgAfter(k); cfgRender(); cfgMsg(d.n + ': คืนค่าตามไฟล์แล้ว'); return; }
+  cur = cfgVal(d);
+  if (d.t === 'b') v = !cur;
+  else if (d.t === 'n'){
+    if (a === 't'){
+      r = prompt(d.n + (d.u ? ' (' + d.u + ')' : '') + '\nช่วงที่ตั้งได้ ' + d.min + ' ถึง ' + d.max, cfgFmt(cur));
+      if (r === null) return;
+      v = parseFloat(String(r).replace(/,/g, ''));
+      if (isNaN(v)){ cfgMsg('ไม่ใช่ตัวเลข'); return; }
+      if (v < d.min || v > d.max){ cfgMsg('ต้องอยู่ระหว่าง ' + d.min + ' ถึง ' + d.max); return; }
+      v = Math.round(v * 100) / 100;
+    } else {
+      v = Math.round((cur + (a === '+' ? 1 : -1) * d.st) * 100) / 100;
+      if (v < d.min || v > d.max){ cfgMsg(d.n + ': ถึงขีดจำกัด ' + (v < d.min ? 'ต่ำสุด ' + d.min : 'สูงสุด ' + d.max)); return; }
+    }
+  } else {
+    o = d.o[parseInt(a.slice(1), 10)]; if (!o) return;
+    cfgStore('alertMinutes', o.x.alertMinutes); cfgStore(d.k, o.v.slice(0)); cfgAfter(k); cfgRender(); return;
+  }
+  if (d.ck){ err = d.ck(v); if (err){ cfgMsg(err); return; } }
+  cfgStore(k, v); cfgAfter(k); cfgRender();
+}
+$('cfgBox').onclick = function(e){
+  var t = e.target || e.srcElement, n = 0, a, x, sIdx;
+  while (t && t !== this && n++ < 6){
+    if (t.getAttribute){
+      a = t.getAttribute('data-a'); if (a){ cfgAct(t.getAttribute('data-k'), a); return; }
+      x = t.getAttribute('data-x');
+      if (x === 'reload'){ location.reload(); return; }
+      if (x === 'reset'){
+        if (!confirm('คืนค่าทุกอย่างในหน้านี้ตามที่ตั้งไว้ในไฟล์?')) return;
+        for (a in CFG_OV) cfgRestore(a);
+        CFG_OV = {}; lsSet('pc_cfg', null); newsRefilter(); showStatus(); if (sysIsOpen) sysRender(); cfgRender(); cfgMsg('คืนค่าทั้งหมดแล้ว'); return;
+      }
+      sIdx = t.getAttribute('data-s');
+      if (sIdx !== null){ CFG_UI[sIdx] = !CFG_UI[sIdx]; cfgRender(); return; }
+    }
+    t = t.parentNode;
+  }
+};
+newsRefilter(true);   /* ตัวกรองข่าวที่ตั้งไว้ต้องใช้กับข่าวที่แคชไว้ตั้งแต่เปิดแอป */
+cfgRender();
 SPR.pcloud = ["..y..y.........", "...kkk.........", ".ykyyyk.kkk....", "..kyyykkWWWk...", "...kkkWWWWWWk..", "....kWWWWWWWWk.", "....kkkkkkkkkk."];
 SPR.cloud2 = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk"];
 SPR.rain = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk", "..b..b..b..b..", ".b..b..b..b..."];
