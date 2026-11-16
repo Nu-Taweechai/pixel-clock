@@ -314,6 +314,13 @@ body .status{padding-right:40px}
 .cf.pk .cv{min-width:0;padding:7px 8px}
 #cfgMsg{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:13;display:none;padding:8px 10px;background:#000;border:3px solid var(--gold);color:var(--gold);font-size:9px;line-height:1.6;text-align:center;pointer-events:none}
 
+/* ===== HEADLINES (FXSTREET) ===== */
+.hr{display:block;margin-top:4px;padding:5px 6px;background:#0b0820;border-left:6px solid var(--dim);font-family:'Chakra Petch','Press Start 2P',ui-monospace,monospace;font-size:12px;line-height:1.5;color:var(--text);text-decoration:none;overflow-wrap:anywhere}
+a.hr:active{background:#2a2457}
+.hr.nw{border-left-color:var(--up)}
+.hr .hw{display:block;color:var(--dim);font-size:10px}
+.hr .hg{display:block}
+.hr .hg .bs{margin-top:3px}
 /* ===== หน้า BOT ===== */
 .bk{font-size:9px;line-height:2;color:var(--dim)}
 .bk b{font-weight:normal;color:var(--text)}
@@ -585,6 +592,12 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
       <div id="impList"></div>
       <div class="sub" id="impNote">&nbsp;</div>
     </div>
+    <div class="panel wide" id="hlPanel">
+      <div class="lab">HEADLINES (FXSTREET)<button type="button" class="btn" id="hlRef">REFRESH</button></div>
+      <div class="ctl wr" id="hlF"><button type="button" class="btn" data-v="K">KEY</button><button type="button" class="btn" data-v="G">GOLD</button><button type="button" class="btn" data-v="U">USD</button><button type="button" class="btn" data-v="F">FED</button><button type="button" class="btn" data-v="A">ALL</button></div>
+      <div class="sub" id="hlSt">&nbsp;</div>
+      <div id="hlList"></div>
+    </div>
   </div>
   </div>
   <div class="pg off" id="pg5">
@@ -677,7 +690,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.16.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.17.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -717,6 +730,9 @@ var CONFIG = {
   alertSteps: [15, 5, 1],             // เตือนล่วงหน้าหลายรอบ (นาทีก่อนข่าวออก) เสียงจะถี่/สูงขึ้นเมื่อใกล้เวลา | [] = ใช้แค่ alertMinutes รอบเดียว
   impact: true,                       // News Impact Log: จดว่าข่าวแต่ละตัวทำให้ทอง/BTC วิ่งกี่ดอลลาร์หลังข่าวออก (ดูที่หน้า NEWS) false = ปิด
   impactMin: 5,                       // จับราคากี่นาทีหลังข่าวออก
+  headlines: true,                    // แผงหัวข้อข่าว (FXStreet ผ่าน Worker) ในหน้า NEWS ต้องตั้ง BOT (URL+READ KEY) ก่อน | false = ซ่อนการทำงาน
+  headlinesEverySec: 300,             // ดึงหัวข้อข่าวใหม่ทุกกี่วินาที (เฉพาะตอนเปิดหน้า NEWS)
+  headlinesMax: 25,                   // แสดงหัวข้อข่าวสูงสุดกี่รายการ
   impactKeep: 50,                     // เก็บประวัติกี่ครั้งล่าสุด
   bot: true,                          // หน้า BOT: ดูสถานะ EA Grid บน MT5 (ดูอย่างเดียว) ต้องตั้ง URL+KEY ที่หน้า BOT > SETUP | false = ปิด
   botEverySec: 10,                    // ดึงข้อมูลทุกกี่วินาที (หน้าอื่นดึงแบบย่อ ประหยัดข้อมูล)
@@ -760,7 +776,8 @@ var SET_DEFS = [
     {k: 'alertSteps', t: 'p', n: 'เตือนล่วงหน้า (นาทีก่อนข่าว)', o: [
       {l: '15·5·1', v: [15, 5, 1], x: {alertMinutes: 15}}, {l: '30·10·5·1', v: [30, 10, 5, 1], x: {alertMinutes: 30}},
       {l: '10·1', v: [10, 1], x: {alertMinutes: 10}}, {l: '5', v: [5], x: {alertMinutes: 5}}]},
-    {k: 'impactMin', t: 'n', n: 'News Impact จับราคาหลังข่าวออก', u: 'นาที', min: 1, max: 30, st: 1}
+    {k: 'impactMin', t: 'n', n: 'News Impact จับราคาหลังข่าวออก', u: 'นาที', min: 1, max: 30, st: 1},
+    {k: 'headlinesMax', t: 'n', n: 'จำนวนหัวข้อข่าว (HEADLINES) ที่แสดง', u: 'ข่าว', min: 5, max: 60, st: 5}
   ]},
   {s: 'BOT ALERTS', it: [
     {k: 'botDdWarn', t: 'n', n: 'DRAWDOWN เตือน (WARN)', u: '%', min: 1, max: 90, st: 1, h: 'DD = (BALANCE - EQUITY) / BALANCE', ck: function(v){ return v >= CONFIG.botDdLimit ? 'WARN ต้องน้อยกว่าเพดาน (' + CONFIG.botDdLimit + '%)' : ''; }},
@@ -2278,7 +2295,7 @@ function calRender(){
   setT($('calNote'), !newsOk ? 'โหลดข่าวไม่ได้ ใช้ข้อมูลที่เก็บไว้' : (newsStale() ? 'ข้อมูลข่าวค้าง ตรวจ GitHub Actions' :
     'แดง=High ส้ม=Medium  เวลาตามเครื่อง  จางลง=ออกแล้ว'));
 }
-function calOpen(){ syncCal(); calRender(); impRender(); }
+function calOpen(){ syncCal(); calRender(); impRender(); hlOpen(); }
 function calTick(){ if (pg !== 4 || (drag && drag.lock === 1)) return; calRender(); }
 setInterval(calTick, 1000);
 
@@ -2806,6 +2823,14 @@ function sysRows(){
   else if (newsStale()) r.push(sRow('NEWS', 1, 'OLD', a, 'ข้อมูลข่าวค้างเกิน ' + CONFIG.newsStaleDays + ' วัน'));
   else if (a === null) r.push(sRow('NEWS', 1, 'NO DATA', null));
   else r.push(a <= CONFIG.newsEverySec * 3 ? sRow('NEWS', 0, 'OK', a) : sRow('NEWS', 1, 'STALE', a));
+  /* หัวข้อข่าว (Worker -> ฟีด RSS ของ FXStreet) */
+  if (!CONFIG.headlines) r.push(sRow('HEADLINES', 3, 'OFF', null, 'ปิดใน CONFIG'));
+  else if (!Bcfg || !Bcfg.k) r.push(sRow('HEADLINES', 3, 'NO WORKER', null, 'ต้องตั้ง BOT ก่อน'));
+  else if (HL.err) r.push(sRow('HEADLINES', 1, 'ERROR', HL.got ? (Date.now() - HL.got) / 1000 : null, HL.err));
+  else if (HL.off) r.push(sRow('HEADLINES', 3, 'OFF', null, 'ปิดที่ Worker (HL_OFF)'));
+  else if (!HL.got) r.push(sRow('HEADLINES', 3, 'IDLE', null, 'โหลดเมื่อเปิดหน้า NEWS'));
+  else if (HL.serr) r.push(sRow('HEADLINES', 1, 'SRC ERR', HL.at ? (Date.now() - HL.at) / 1000 : null, 'Worker ดึง FXStreet ไม่ได้'));
+  else r.push((Date.now() - HL.at) / 1000 <= 1800 ? sRow('HEADLINES', 0, 'OK', (Date.now() - HL.at) / 1000) : sRow('HEADLINES', 1, 'STALE', (Date.now() - HL.at) / 1000));
   /* อุณหภูมิ/PM2.5 */
   a = lastWeather ? (Date.now() - lastWeather.getTime()) / 1000 : null;
   if (!wxOk) r.push(sRow('WEATHER / AIR', 1, 'ERROR', a));
@@ -2906,7 +2931,7 @@ function cfgRender(){
 }
 function cfgMsg(t){ var e = $('cfgMsg'); e.textContent = t; e.style.display = 'block'; clearTimeout(cfgMsgT); cfgMsgT = setTimeout(function(){ e.style.display = 'none'; }, 3500); }
 function cfgStore(k, v){ var d = CFG_OK[k]; cfgPutV(k, v); if (JSON.stringify(v) === JSON.stringify(CFG_DEF[k])) delete CFG_OV[k]; else CFG_OV[k] = v; lsSet('pc_cfg', CFG_OV); }
-function cfgAfter(k){ if (k.indexOf('news') === 0) newsRefilter(); else showStatus(); if (sysIsOpen) sysRender(); }
+function cfgAfter(k){ if (k.indexOf('news') === 0) newsRefilter(); else showStatus(); if (k === 'headlinesMax') hlRender(); if (sysIsOpen) sysRender(); }
 function cfgFind(k){ var i, j; for (i = 0; i < SET_DEFS.length; i++) for (j = 0; j < SET_DEFS[i].it.length; j++) if (SET_DEFS[i].it[j].k === k) return SET_DEFS[i].it[j]; return null; }
 function cfgRestore(k){ if (CFG_DEF[k] !== null && CFG_DEF[k] !== undefined) cfgPutV(k, JSON.parse(JSON.stringify(CFG_DEF[k]))); delete CFG_OV[k]; }
 function cfgReset(d){ cfgRestore(d.k); if (d.t === 'p') cfgRestore('alertMinutes'); lsSet('pc_cfg', CFG_OV); }
@@ -2955,6 +2980,72 @@ $('cfgBox').onclick = function(e){
 };
 newsRefilter(true);   /* ตัวกรองข่าวที่ตั้งไว้ต้องใช้กับข่าวที่แคชไว้ตั้งแต่เปิดแอป */
 cfgRender();
+/* ---- HEADLINES (FXSTREET): หัวข้อข่าวจาก Worker (ฟีด RSS สาธารณะของ FXStreet) แสดงเฉพาะหัวข้อ+เวลา+ลิงก์ไปต้นฉบับ ไม่แสดงเนื้อข่าว ---- */
+var HL = {items: [], at: 0, got: 0, tried: 0, busy: false, err: '', serr: null, off: false, f: lsGet('pc_hlf') || 'K', seen: lsGet('pc_hlseen') || 0, st: null};
+if (!/^[KGUFA]$/.test(String(HL.f))) HL.f = 'K';
+if (typeof HL.seen !== 'number') HL.seen = 0;
+var HLN = {K: 'KEY', G: 'GOLD', U: 'USD', F: 'FED', A: 'ALL'};
+function hlOk(it, f){ return f === 'A' || (f === 'K' ? it.k.length > 0 : it.k.indexOf(f) >= 0); }
+function hlSafe(u){ return (typeof u === 'string' && /^https:\/\/(www\.)?fxstreet\.com\/[^\s"'<>\\]*$/i.test(u)) ? u : ''; }   /* ใส่ใน href ได้เฉพาะ https ของ fxstreet.com ที่ไม่มีอักขระอันตราย (esc() ของแอปไม่ escape เครื่องหมายคำพูด) */
+function hlWhen(t){
+  var d = new Date(t), a = (Date.now() - t) / 1000, n = new Date(), same = n.getFullYear() === d.getFullYear() && n.getMonth() === d.getMonth() && n.getDate() === d.getDate();
+  return (same ? '' : d.getDate() + ' ' + MON[d.getMonth()] + ' ') + hhmm(t) + (a >= 0 && a < 3600 ? ' (' + Math.max(1, Math.floor(a / 60)) + 'm)' : '');
+}
+function hlLoad(force){
+  var n = Date.now();
+  if (!CONFIG.headlines || HL.busy || !Bcfg || !Bcfg.k) return;
+  if (!force && HL.got && n - HL.got < CONFIG.headlinesEverySec * 1000) return;
+  if (n - HL.tried < (force ? 15000 : 30000)) return;   /* กันกดถี่ / ลองซ้ำถี่เมื่อพลาด */
+  HL.busy = true; HL.tried = n;
+  bGet('/headlines', function(j){
+    var a = [], i, x;
+    HL.busy = false;
+    if (!j || j.ok !== true || !(j.items instanceof Array)){ HL.err = 'ข้อมูลจาก Worker ไม่ถูกต้อง'; hlRender(); return; }
+    for (i = 0; i < j.items.length && a.length < 60; i++){
+      x = j.items[i];
+      if (x && typeof x.ti === 'string' && typeof x.t === 'number' && typeof x.i === 'string') a.push({i: x.i, t: x.t, ti: x.ti, u: hlSafe(x.u), k: typeof x.k === 'string' ? x.k : ''});
+    }
+    HL.items = a; HL.at = (typeof j.at === 'number') ? j.at : 0; HL.serr = j.err || null; HL.err = ''; HL.off = !!j.off; HL.got = Date.now();
+    hlRender();
+  }, function(r){ HL.busy = false; HL.err = (r === 401 || r === 403) ? 'KEY ไม่ถูกต้อง' : 'เชื่อม Worker ไม่ได้ (' + r + ')'; hlRender(); });
+}
+function hlRender(){
+  var f = HL.f, i, it, h = '', c = 0, tot = 0, btns, b, st, tg, fr, nw = 0;
+  if (!CONFIG.headlines) return;
+  btns = $('hlF').getElementsByTagName('button');
+  for (i = 0; i < btns.length; i++){ b = btns[i]; b.className = 'btn' + (b.getAttribute('data-v') === f ? ' on' : ''); }
+  if (!Bcfg || !Bcfg.k){ setT($('hlSt'), 'ต้องตั้งค่า BOT (WORKER URL + READ KEY ที่ SET > BOT) ก่อน หัวข้อข่าวมาจาก Worker เดียวกัน'); setH($('hlList'), ''); return; }
+  for (i = 0; i < HL.items.length; i++){
+    it = HL.items[i];
+    if (!hlOk(it, f)) continue;
+    tot++;
+    if (c >= CONFIG.headlinesMax) continue;
+    c++;
+    fr = it.t > HL.seen; if (fr) nw++;
+    tg = (it.k.indexOf('G') >= 0 ? '<span class="bs wn">GOLD</span>' : '') + (it.k.indexOf('U') >= 0 ? '<span class="bs">USD</span>' : '') + (it.k.indexOf('F') >= 0 ? '<span class="bs">FED</span>' : '');
+    h += (it.u ? '<a href="' + it.u + '" target="_blank" rel="noopener noreferrer"' : '<div') + ' class="hr' + (fr ? ' nw' : '') + '"><span class="hw">' + hlWhen(it.t) + (fr ? ' <span class="bs ok">NEW</span>' : '') + '</span>' + esc(it.ti) + '<span class="hg">' + tg + '</span>' + (it.u ? '</a>' : '</div>');
+  }
+  if (!h) h = '<div class="sub">' + (HL.busy ? 'กำลังโหลด...' : (HL.got ? 'ไม่มีหัวข้อตามตัวกรองนี้ ลองกด ALL' : (HL.err ? '' : 'รอข้อมูล...'))) + '</div>';
+  setH($('hlList'), h);
+  st = esc((HL.err ? HL.err + '  |  ' : '') + 'FXSTREET  ' + (HL.busy ? 'กำลังโหลด...' : (HL.at ? 'Worker ดึงเมื่อ ' + bAgeT(Math.max(0, (Date.now() - HL.at) / 1000)) + ' ที่แล้ว' : 'ยังไม่มีข้อมูล')) + '  |  แสดง ' + c + ' จาก ' + tot + ' (' + HLN[f] + ')' + (nw ? '  |  ใหม่ ' + nw : ''));
+  if (HL.serr) st += '<br>' + esc('Worker ดึง FXStreet ไม่สำเร็จ (' + (HL.serr.m || '?') + ') กำลังแสดงข้อมูลเก่า');
+  if (HL.off) st += '<br>' + esc('ปิดการดึงข่าวที่ Worker (HL_OFF)');
+  setH($('hlSt'), st);
+  if (pg === 4 && HL.items.length && !HL.st){   /* อยู่หน้านี้นาน 8 วิ ถือว่าอ่านแล้ว ป้าย NEW หาย */
+    HL.st = setTimeout(function(){
+      var mx = 0, j; HL.st = null;
+      if (pg !== 4) return;
+      for (j = 0; j < HL.items.length; j++) if (HL.items[j].t > mx) mx = HL.items[j].t;
+      if (mx > HL.seen){ HL.seen = mx; lsSet('pc_hlseen', mx); hlRender(); }
+    }, 8000);
+  }
+}
+function hlOpen(){ hlLoad(false); hlRender(); }
+$('hlF').onclick = function(e){ var t = e.target || e.srcElement, v = (t && t.getAttribute) ? t.getAttribute('data-v') : null; if (!v || !HLN[v]) return; HL.f = v; lsSet('pc_hlf', v); hlRender(); };
+$('hlRef').onclick = function(){ hlLoad(true); };
+setInterval(function(){ if (pg === 4) hlLoad(false); }, 30000);
+if (!CONFIG.headlines) $('hlPanel').style.display = 'none';
+hlRender();
 SPR.pcloud = ["..y..y.........", "...kkk.........", ".ykyyyk.kkk....", "..kyyykkWWWk...", "...kkkWWWWWWk..", "....kWWWWWWWWk.", "....kkkkkkkkkk."];
 SPR.cloud2 = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk"];
 SPR.rain = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk", "..b..b..b..b..", ".b..b..b..b..."];
