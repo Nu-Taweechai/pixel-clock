@@ -481,7 +481,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
     <div class="panel wide arp" id="goldPanel"><span id="goldAr" class="far"></span><div class="sit" id="goldSit"></div><div id="lapCat"></div><div id="tpPop"></div>
       <div class="lab"><span id="icoGold"></span>GOLD (XAU/USD ต่อออนซ์)</div>
       <div class="val" id="goldUsd">$ ---</div>
-      <div class="sub"><span id="goldThb">฿ ---</span> /บาททอง&nbsp; <span id="goldChg" class="chg"></span><span class="note"><br>ราคาทองไทยประมาณจากราคาทองโลก ไม่ใช่ราคาสมาคมฯ</span></div>
+      <div class="sub"><span id="goldThb">฿ ---</span> /บาททอง&nbsp; <span id="goldChg" class="chg"></span> <span id="goldSrc"></span><span class="note"><br>ราคาทองไทยประมาณจากราคาทองโลก ไม่ใช่ราคาสมาคมฯ</span></div>
     </div>
 
     <div class="panel wide">
@@ -677,13 +677,16 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.15.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.16.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
   gpsEverySec: 1800,     // เช็กตำแหน่งใหม่ทุกกี่วินาที
   goldSpotUrl: 'https://xaus.com/api/v1/spot?compact=1',  // ราคา XAU/USD spot (ฟรี ไม่ต้องใช้ key) ใส่ '' เพื่อปิด
   goldSpotEverySec: 60,  // เซิร์ฟเวอร์แคชไว้ 60 วิ ดึงถี่กว่านี้ไม่ได้ข้อมูลใหม่ (ลิมิต 60 ครั้ง/นาที)
+  goldFromMt5: true,     // ถ้า BOT (Reporter) เชื่อมอยู่และข้อมูลสด ใช้ราคา bid ของ MT5 เป็นตัวยึดราคาทองแทน xaus spot (ระหว่างรอบยังขยับตามฟีด Binance) false = ใช้ xaus เหมือนเดิม
+  goldMt5MaxAge: 30,     // ราคาจาก MT5 เก่ากว่านี้ (วินาที) ให้กลับไปใช้ xaus spot อัตโนมัติ
+  goldMt5MaxDiff: 1,     // ราคา MT5 ต่างจากฟีดอิสระ (futures/PAXG/spot) เกินกี่ % ถือว่าผิดปกติ (เช่น Reporter ตั้ง symbol ผิดไม่ใช่ทอง) จะไม่นำมาใช้
   liveGoldFut: true,     // ราคาทอง realtime ผ่าน Binance Futures XAUUSDT (ติดตามราคาทองโลกใกล้กว่า PAXG) ตั้ง false เพื่อใช้ PAXG อย่างเดียว
   liveWS: true,          // ราคา BTC/ทอง realtime ผ่าน WebSocket (Binance) ตั้ง false ถ้าอยากใช้แบบดึงทุก priceEverySec เท่านั้น
   priceEverySec: 90,     // ดึงราคาสำรอง + อัตราแลกเปลี่ยน USD/THB (ใช้คำนวณราคาบาท)
@@ -769,6 +772,11 @@ var SET_DEFS = [
     {k: 'botOfflineSec', t: 'n', n: 'ไม่มีข้อมูล BOT = OFFLINE', u: 'วิ', min: 30, max: 900, st: 10, ck: function(v){ return v <= CONFIG.botStaleSec ? 'ต้องมากกว่า STALE (' + CONFIG.botStaleSec + ' วิ)' : ''; }},
     {k: 'botTpFx', t: 'b', n: 'ฉลองตอน BOT ปิดกำไร (แมว+เสียงเหรียญ)'},
     {k: 'botTpMin', t: 'n', n: 'ฉลองเมื่อกำไรตั้งแต่', u: '', min: 0, max: 10000, st: 0.5, off: 0, h: 'หน่วยเงินบัญชี | OFF = ทุกครั้งที่เป็นบวก'}
+  ]},
+  {s: 'GOLD PRICE SOURCE', it: [
+    {k: 'goldFromMt5', t: 'b', n: 'ใช้ราคา MT5 เป็นตัวยึด (ถ้า BOT เชื่อมอยู่)', h: 'ปิด = ใช้ xaus spot เหมือนเดิม'},
+    {k: 'goldMt5MaxAge', t: 'n', n: 'ราคา MT5 เก่าเกินนี้ = กลับไปใช้ spot', u: 'วิ', min: 10, max: 120, st: 5, h: 'Reporter ส่งทุก 10 วินาที ไม่ควรต่ำกว่า 20'},
+    {k: 'goldMt5MaxDiff', t: 'n', n: 'ราคา MT5 ต่างจากฟีดเกินนี้ = ไม่ใช้', u: '%', min: 0.5, max: 10, st: 0.5, h: 'กันกรณี Reporter ตั้ง symbol ผิด'}
   ]},
   {s: 'SCREEN & RELOAD', it: [
     {k: 'spiderAfterSec', t: 'n', n: 'แมงมุมลงมาเมื่อไม่แตะจอ', u: 'วิ', min: 0, max: 3600, st: 60, off: 0, r: 1, h: 'ถ้าเดิมปิดอยู่ ต้องรีโหลดถึงจะเริ่มทำงาน'},
@@ -1049,7 +1057,7 @@ function trackHL(v){
 var hlSeeded = '', hlSeedAt = 0;
 function closedAt(t){ var d = new Date(t), w = d.getUTCDay(), h = d.getUTCHours(); return w === 6 || (w === 5 && h >= 22) || (w === 0 && h < 22); }
 function seedHL(){
-  if (!CONFIG.hlSeed || spotOff === null || marketClosed() || Date.now() - hlSeedAt < 60000) return;
+  if (!CONFIG.hlSeed || goldOff() === null || marketClosed() || Date.now() - hlSeedAt < 60000) return;
   var day = todayStr(), mid = new Date();
   mid.setHours(0, 0, 0, 0); mid = mid.getTime();
   hlSeeded = day;
@@ -1059,7 +1067,7 @@ function seedHL(){
   }
   function go(hi){
     get(KHOSTS[hi] + '/api/v3/klines?symbol=' + KSYM.gold + '&interval=15m&limit=96', function(j){
-      var i, q, h = null, l = null, ph, pl, off = spotOff || 0;
+      var i, q, h = null, l = null, ph, pl, off = goldOff() || 0;
       if (j && j.length) for (i = 0; i < j.length; i++){
         q = j[i];
         if (q[0] < mid || closedAt(q[0])) continue;
@@ -1297,11 +1305,51 @@ var fx = null, prevP = {btc: null, gold: null}, curP = {btc: null, gold: null};
 var paxg = null, spotGold = null, spotOff = null, lastSpot = null;
 var xperp = null, xAt = 0, spotOffP = null;   // xperp = ราคาล่าสุดของ XAUUSDT perpetual (Binance Futures), spotOffP = ส่วนต่างจาก spot ของแหล่งนี้
 function xFresh(){ return xperp !== null && Date.now() - xAt < 15000; }
+/* ตัวยึดจาก MT5: ถ้า BOT เชื่อมอยู่และข้อมูลสด ใช้ bid ของ MT5 แทน xaus spot (mtOffP/mtOff = ส่วนต่างจากฟีด XAUUSDT/PAXG แบบเดียวกับที่ทำกับ spot)
+   ไม่สดหรือผิดปกติ -> กลับไปใช้ xaus spot เอง และผูกส่วนต่างกับราคาที่โชว์อยู่ ราคาจึงไม่กระโดด */
+var mtGold = null, mtOffP = null, mtOff = null, mtRx = 0, mtWhy = '', goldSrc = '';
+function mtFresh(){
+  var a;
+  if (!CONFIG.goldFromMt5 || mtGold === null || typeof Bw === 'undefined' || !Bw) return false;
+  a = bAge();
+  return a !== null && a <= CONFIG.goldMt5MaxAge;
+}
+function goldOff(){ return (mtFresh() && mtOff !== null) ? mtOff : spotOff; }   /* ส่วนต่างที่ใช้ปรับข้อมูล PAXG (H/L และกราฟ) ให้ตรงกับตัวยึดที่ใช้อยู่ */
+function mtFeed(sn){   /* เรียกเมื่อ BOT ได้ข้อมูลชุดใหม่ */
+  var b = (sn && sn.px) ? sn.px.b : null, ref, d, i, h = hist.gold;
+  mtWhy = '';
+  if (!CONFIG.goldFromMt5){ mtWhy = 'OFF'; mtGold = null; return; }
+  if (b === null || b === undefined || !(b > 0)){ mtWhy = 'NO PRICE'; mtGold = null; return; }
+  if (sn.ea && sn.ea.conn === false){ mtWhy = 'BROKER DOWN'; mtGold = null; return; }
+  /* ตัวเทียบต้องเป็นอิสระจากราคาที่โชว์ (ไม่งั้นราคาที่โชว์ตาม MT5 แล้วเทียบกับตัวเองจะผ่านเสมอ): ตลาดปิด = spot ที่ค้างอยู่ (PAXG ยังขยับเสาร์-อาทิตย์) | ตลาดเปิด = futures -> PAXG -> spot */
+  ref = marketClosed() ? (spotGold !== null ? spotGold : null) : (xFresh() ? xperp : (paxg !== null ? paxg : spotGold));
+  if (ref === null || ref === undefined){ mtWhy = 'NO REF'; mtGold = null; return; }
+  if (Math.abs(b - ref) / ref * 100 > CONFIG.goldMt5MaxDiff){ mtWhy = 'MISMATCH'; mtGold = null; return; }   /* ไม่ใช่ราคาทอง (symbol ผิด) หรือผิดปกติ ไม่นำมาใช้ */
+  if (goldSrc !== 'MT5' && curP.gold !== null){ d = b - curP.gold; for (i = 0; i < h.length; i++) h[i].p += d; }   /* เพิ่งเปลี่ยนมาใช้ MT5: เลื่อนประวัติราคาตามส่วนต่าง ไม่ให้เตือนขยับแรงปลอม */
+  mtGold = b;
+  mtOffP = xFresh() ? b - xperp : null;
+  mtOff = paxg !== null ? b - paxg : null;
+  applyPrices(null, null, null, null);
+}
 function marketClosed(){   // ตลาดทอง spot ปิดประมาณ ศุกร์ 22:00 UTC ถึง อาทิตย์ 22:00 UTC
   var d = new Date(), w = d.getUTCDay(), h = d.getUTCHours();
   return w === 6 || (w === 5 && h >= 22) || (w === 0 && h < 22);
 }
 function goldCalc(){
+  var mt = mtFresh(), src = mt ? 'MT5' : 'SPOT';
+  if (src !== goldSrc){
+    if (goldSrc === 'MT5' && curP.gold !== null){   // MT5 หลุด: ผูกส่วนต่างของ spot กับราคาที่โชว์อยู่ ไม่ให้ราคากระโดด
+      spotOffP = xFresh() ? curP.gold - xperp : null;
+      spotOff = paxg !== null ? curP.gold - paxg : null;
+    }
+    goldSrc = src;
+  }
+  if (mt){                                                  // ตัวยึด = bid ของ MT5 (ลำดับฟีดเหมือนตอนใช้ spot)
+    if (marketClosed()) return mtGold;
+    if (xFresh()){ if (mtOffP === null) mtOffP = mtGold - xperp; return xperp + mtOffP; }
+    if (paxg !== null){ if (mtOff === null) mtOff = mtGold - paxg; return paxg + mtOff; }
+    return mtGold;
+  }
   if (spotGold === null) return xFresh() ? xperp : paxg;   // ยังไม่มี spot -> ใช้ feed สดล้วน
   if (marketClosed()) return spotGold;                      // ตลาดปิด -> ราคา spot นิ่ง
   if (xFresh()){                                            // ลำดับแรก: XAUUSDT perpetual (tick ทุกวินาที)
@@ -1326,6 +1374,9 @@ function loadSpot(){
     showStatus();
   }, function(){});
 }
+function goldTag(){   /* ป้ายบอกว่าราคาทองตอนนี้อิงตัวยึดไหน */
+  setH($('goldSrc'), mtFresh() ? '<span class="bs ok">MT5</span>' : (spotGold !== null ? '<span class="bs">SPOT</span>' : '<span class="bs wn">FEED</span>'));
+}
 function flash(el, up){
   el.style.color = up ? '#4cf08a' : '#ff5f6d';
   clearTimeout(el._t);
@@ -1340,19 +1391,21 @@ function applyPrices(bu, gu, bc, gc){
   }
   if (gu !== null && gu !== undefined && !isNaN(gu)) paxg = gu;
   if (spotOff === null && spotGold !== null && paxg !== null) spotOff = spotGold - paxg;   /* กราฟทองใช้ค่านี้ปรับแท่งเก่า ถ้าว่างแท่งสุดท้ายจะกระโดดจากแท่งอื่น */
+  if (mtOff === null && mtGold !== null && paxg !== null) mtOff = mtGold - paxg;
   if (gc !== null && gc !== undefined){ chg($('goldChg'), gc); goldPct = gc; }
   var gd = goldCalc();
   if (gd !== null){
     if (curP.gold !== null && gd !== curP.gold) flash($('goldUsd'), gd > curP.gold);
     curP.gold = gd;
     $('goldUsd').textContent = '$ ' + fmt(gd, 2);
+    goldTag();
   }
   if (fx){
     if (curP.btc !== null) $('btcThb').textContent = '฿ ' + fmt(curP.btc * fx);
     if (curP.gold !== null) $('goldThb').textContent = '฿ ' + fmt(curP.gold * fx * (BAHT_G / OZ) * PURITY);
     $('fxv').textContent = '฿ ' + fx.toFixed(2);
   }
-  if (curP.gold !== null && (spotGold !== null || !CONFIG.goldSpotUrl)) trackHL(curP.gold);
+  if (curP.gold !== null && (spotGold !== null || mtFresh() || !CONFIG.goldSpotUrl)) trackHL(curP.gold);
   pushHist();
   checkPriceAlerts();
 }
@@ -1748,7 +1801,8 @@ function loadWeather(){
 function showStatus(){
   var s = '';
   if (!priceOk || !wxOk) s += '<b>OFFLINE</b> ลองใหม่อัตโนมัติ  ';
-  if (lastSpot) s += (marketClosed() ? '<b>XAU CLOSED</b>  ' : 'XAU ' + pad(lastSpot.getHours()) + ':' + pad(lastSpot.getMinutes()) + '  ');
+  if (mtFresh() && !marketClosed()) s += 'XAU MT5 ' + hhmm(Bw.rx) + '  ';
+  else if (lastSpot) s += (marketClosed() ? '<b>XAU CLOSED</b>  ' : 'XAU ' + pad(lastSpot.getHours()) + ':' + pad(lastSpot.getMinutes()) + '  ');
   if (isLive()) s += '<b>LIVE</b>  ';
   if (xFresh() && !marketClosed()) s += 'XAUFUT  ';
   if (isQuiet()) s += 'QUIET  ';
@@ -1905,7 +1959,7 @@ function loadK(force){
 }
 function chSeries(e){
   /* ทอง: PAXG ปรับด้วยส่วนต่างจากราคา spot ให้ตรงกับตัวเลขหน้าแรก | แท่งล่าสุดใช้ราคาสดตัวเดียวกับหน้าแรก */
-  var off = (CH.a === 'gold' && spotOff !== null) ? spotOff : 0, live = curP[CH.a], k = [], i, q;
+  var off = (CH.a === 'gold' && goldOff() !== null) ? goldOff() : 0, live = curP[CH.a], k = [], i, q;
   for (i = 0; i < e.k.length; i++){ q = e.k[i]; k.push({o: q.o + off, h: q.h + off, l: q.l + off, c: q.c + off}); }
   if (live !== null && live !== undefined){
     q = k[k.length - 1]; q.c = live;
@@ -2504,6 +2558,7 @@ function bSet(j, full){
   if (j.snap){
     Bs = j.snap;
     if (full) Bp = {rx: j.rx, pos: j.snap.pos || [], pend: j.snap.pend || [], trunc: !!j.snap.trunc};
+    if (j.rx !== mtRx){ mtRx = j.rx; mtFeed(j.snap); }   /* ชุดข้อมูลใหม่เท่านั้น (ชุดเดิมซ้ำไม่นำมาตั้งตัวยึดซ้ำ) */
   } else Bs = null;
   bEval();
   if (pg === 5) bRender();
@@ -2739,6 +2794,12 @@ function sysRows(){
   if (!CONFIG.goldSpotUrl) r.push(sRow('XAU SPOT', 3, 'OFF', null, 'ปิดใน CONFIG'));
   else if (marketClosed()) r.push(sRow('XAU SPOT', 3, 'CLOSED', null, 'ตลาดทองปิด'));
   else { a = lastSpot ? (Date.now() - lastSpot.getTime()) / 1000 : null; r.push(a === null ? sRow('XAU SPOT', 1, 'NO DATA', null) : (a <= CONFIG.goldSpotEverySec * 2.5 ? sRow('XAU SPOT', 0, 'OK', a) : sRow('XAU SPOT', 1, 'OLD', a))); }
+  /* ตัวยึดราคาทอง: MT5 (ผ่าน BOT) หรือ xaus spot */
+  if (!CONFIG.goldFromMt5) r.push(sRow('GOLD ANCHOR', 3, 'SPOT', null, 'ปิดใช้ราคา MT5'));
+  else if (mtFresh()) r.push(sRow('GOLD ANCHOR', 0, 'MT5', bAge(), 'bid ' + fmt(mtGold, 2)));
+  else if (!CONFIG.bot || !Bcfg || !Bcfg.k) r.push(sRow('GOLD ANCHOR', 3, 'SPOT', null, 'ยังไม่ได้ตั้ง BOT'));
+  else if (mtWhy === 'MISMATCH') r.push(sRow('GOLD ANCHOR', 1, 'MISMATCH', null, 'ราคา MT5 ต่างจากฟีด > ' + CONFIG.goldMt5MaxDiff + '% (เช็ก InpSymbol)'));
+  else r.push(sRow('GOLD ANCHOR', 3, 'SPOT', null, mtWhy ? 'MT5: ' + mtWhy : 'รอข้อมูลจาก MT5'));
   /* ข่าว */
   a = lastNews ? (Date.now() - lastNews.getTime()) / 1000 : null;
   if (!newsOk) r.push(sRow('NEWS', 2, 'ERROR', a, 'ดึงข่าวไม่สำเร็จ'));
