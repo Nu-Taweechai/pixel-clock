@@ -162,7 +162,7 @@
   {
     "title": "Cleveland Fed Inflation Expectations",
     "country": "USD",
-    "date": "2026-11-16T09:48:00-05:00",
+    "date": "2026-11-16T09:45:00-05:00",
     "impact": "Low",
     "forecast": "",
     "previous": "3.3%"
@@ -789,7 +789,7 @@
     "date": "2026-11-19T10:30:00-05:00",
     "impact": "Low",
     "forecast": "",
-    "previous": ""
+    "previous": "61B"
   },
   {
     "title": "FOMC Member Goolsbee Speaks",
@@ -1340,7 +1340,7 @@
     "impact": "low",
     "title": "3-Month Bill Auction",
     "forecast": "",
-    "previous": "",
+    "previous": "4.155%",
     "actual": "",
     "id": "usd-3-month-bill-auction.20261123T1630",
     "status": "scheduled",
@@ -1357,7 +1357,7 @@
     "impact": "low",
     "title": "6-Month Bill Auction",
     "forecast": "",
-    "previous": "",
+    "previous": "4.31%",
     "actual": "",
     "id": "usd-6-month-bill-auction.20261123T1630",
     "status": "scheduled",
@@ -2635,10 +2635,10 @@
     "previous": "91.9",
     "actual": "",
     "id": "eur-business-confidence-it.20261126T0900",
-    "status": "scheduled",
+    "status": "tentative",
     "moved_from": "",
     "period": "2026-11",
-    "confidence": "sources_agree",
+    "confidence": "sources_disagree",
     "date": "2026-11-26T09:00:00Z",
     "country": "EUR"
   },
@@ -2652,10 +2652,10 @@
     "previous": "90.3",
     "actual": "",
     "id": "eur-consumer-confidence-it.20261126T0900",
-    "status": "scheduled",
+    "status": "tentative",
     "moved_from": "",
     "period": "2026-11",
-    "confidence": "sources_agree",
+    "confidence": "sources_disagree",
     "date": "2026-11-26T09:00:00Z",
     "country": "EUR"
   },
@@ -2777,6 +2777,23 @@
     "confidence": "sources_agree",
     "date": "2026-11-26T10:30:00Z",
     "country": "GBP"
+  },
+  {
+    "ts": 1795696200,
+    "time": "2026-11-26T12:30:00Z",
+    "currency": "EUR",
+    "impact": "medium",
+    "title": "ECB Monetary Policy Meeting Accounts",
+    "forecast": "",
+    "previous": "",
+    "actual": "",
+    "id": "eur-ecb-monetary-policy-meeting-accounts.20261126T1230",
+    "status": "scheduled",
+    "moved_from": "",
+    "period": "",
+    "confidence": "single_source",
+    "date": "2026-11-26T12:30:00Z",
+    "country": "EUR"
   },
   {
     "ts": 1795726800,
@@ -3233,7 +3250,7 @@
     "status": "moved",
     "moved_from": "2026-11-30T09:00:00Z",
     "period": "2026-10",
-    "confidence": "sources_agree",
+    "confidence": "sources_disagree",
     "date": "2026-11-27T09:00:00Z",
     "country": "EUR"
   },
