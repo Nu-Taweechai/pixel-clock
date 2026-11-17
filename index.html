@@ -107,6 +107,7 @@ body:not(.day) .cloud{opacity:.18}
 .tick{position:fixed;left:0;right:0;bottom:0;z-index:6;display:none;width:100%;max-width:100%;overflow:hidden;contain:paint;background:#000;border-top:2px solid var(--gold);padding-bottom:env(safe-area-inset-bottom,0px);pointer-events:none}
 #tkT{display:inline-block;white-space:nowrap;padding:8px 0 8px 100%;font-size:8px;line-height:1.6;color:var(--text)}   /* padding-left:100% = ตัวหนังสือเริ่มที่ขอบขวาของกล่อง ไม่ใช้หน่วย vw */
 #tkT b{color:var(--gold);font-weight:normal}
+#tkT i{font-style:normal;color:#8fd3ff;font-size:10px}
 @-webkit-keyframes tkLR{from{-webkit-transform:translate3d(-100%,0,0)}to{-webkit-transform:translate3d(0,0,0)}}
 @keyframes tkLR{from{transform:translate3d(-100%,0,0)}to{transform:translate3d(0,0,0)}}
 @-webkit-keyframes tkRL{from{-webkit-transform:translate3d(0,0,0)}to{-webkit-transform:translate3d(-100%,0,0)}}
@@ -328,6 +329,7 @@ a.hr:active{background:#2a2457}
 .hr.nw{border-left-color:var(--up)}
 .hr .hw{display:block;color:var(--dim);font-size:10px}
 .hr .hg{display:block}
+.hr .ht{display:block;margin-top:2px;color:#8fd3ff;font-size:11px;line-height:1.5}
 .hr .hg .bs{margin-top:3px}
 /* ===== หน้า BOT ===== */
 .bk{font-size:9px;line-height:2;color:var(--dim)}
@@ -700,7 +702,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.19.1',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.19.2',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -743,6 +745,8 @@ var CONFIG = {
   headlines: true,                    // แผงหัวข้อข่าว (FXStreet ผ่าน Worker) ในหน้า NEWS ต้องตั้ง BOT (URL+READ KEY) ก่อน | false = ซ่อนการทำงาน
   headlinesEverySec: 120,             // ดึงหัวข้อข่าวใหม่ทุกกี่วินาที (ดึงเบื้องหลังทุกหน้า และตอนเปิดหน้า NEWS)
   headlinesMax: 25,                   // แสดงหัวข้อข่าวสูงสุดกี่รายการ
+  headlinesThai: true,                // แสดงคำแปลไทยใต้หัวข้อข่าวภาษาอังกฤษ (Worker แปลให้ ต้องผูก Workers AI ที่ Worker ถึงจะมีคำแปล)
+  headlinesTickerThai: false,         // ข่าวใหม่ที่วิ่งล่างจอ ต่อท้ายด้วยคำแปลไทย (ถ้ามี)
   headlinesTicker: true,              // ข่าวใหม่ที่เข้ามาวิ่งเป็นตัวหนังสือที่แถบล่างจอ แล้วหายไป | false = ปิด
   headlinesTickerLoops: 2,            // วิ่งกี่รอบแล้วหาย
   headlinesTickerSound: true,         // มีเสียงเตือนตอนข่าวใหม่วิ่ง (ต้องกด SOUND ON ก่อน และไม่ดังในช่วงเงียบ) | false = วิ่งเงียบ
@@ -795,8 +799,10 @@ var SET_DEFS = [
       {l: '10·1', v: [10, 1], x: {alertMinutes: 10}}, {l: '5', v: [5], x: {alertMinutes: 5}}]},
     {k: 'impactMin', t: 'n', n: 'News Impact จับราคาหลังข่าวออก', u: 'นาที', min: 1, max: 30, st: 1},
     {k: 'headlinesMax', t: 'n', n: 'จำนวนหัวข้อข่าว (HEADLINES) ที่แสดง', u: 'ข่าว', min: 5, max: 60, st: 5},
+    {k: 'headlinesThai', t: 'b', n: 'แสดงคำแปลไทยใต้หัวข้อข่าว', h: 'แปลอัตโนมัติโดย Worker (ต้องเปิด Workers AI)'},
     {k: 'headlinesTicker', t: 'b', n: 'ข่าวใหม่วิ่งที่แถบล่างจอ', h: 'ทิศทางและความเร็วแก้ใน CONFIG'},
     {k: 'headlinesTickerLoops', t: 'n', n: 'ข่าวใหม่วิ่งกี่รอบแล้วหาย', u: 'รอบ', min: 1, max: 5, st: 1},
+    {k: 'headlinesTickerThai', t: 'b', n: 'ข่าววิ่งต่อท้ายด้วยคำแปลไทย', show: function(){ return !!CONFIG.headlinesTicker; }},
     {k: 'headlinesTickerSound', t: 'b', n: 'เสียงเตือนตอนข่าวใหม่วิ่ง', h: 'ต้องกด SOUND ON ก่อน และไม่ดังในช่วงเงียบ', show: function(){ return !!CONFIG.headlinesTicker; }}
   ]},
   {s: 'BOT ALERTS', it: [
@@ -3116,7 +3122,7 @@ function cfgRender(){
 }
 function cfgMsg(t){ var e = $('cfgMsg'); e.textContent = t; e.style.display = 'block'; clearTimeout(cfgMsgT); cfgMsgT = setTimeout(function(){ e.style.display = 'none'; }, 3500); }
 function cfgStore(k, v){ var d = CFG_OK[k]; cfgPutV(k, v); if (JSON.stringify(v) === JSON.stringify(CFG_DEF[k])) delete CFG_OV[k]; else CFG_OV[k] = v; lsSet('pc_cfg', CFG_OV); }
-function cfgAfter(k){ if (k.indexOf('news') === 0) newsRefilter(); else showStatus(); if (k === 'headlinesMax') hlRender(); if (k === 'headlinesTicker' && !CONFIG.headlinesTicker) tkStop(); if (sysIsOpen) sysRender(); }
+function cfgAfter(k){ if (k.indexOf('news') === 0) newsRefilter(); else showStatus(); if (k === 'headlinesMax' || k === 'headlinesThai') hlRender(); if (k === 'headlinesTicker' && !CONFIG.headlinesTicker) tkStop(); if (sysIsOpen) sysRender(); }
 function cfgFind(k){ var i, j; for (i = 0; i < SET_DEFS.length; i++) for (j = 0; j < SET_DEFS[i].it.length; j++) if (SET_DEFS[i].it[j].k === k) return SET_DEFS[i].it[j]; return null; }
 function cfgRestore(k){ if (CFG_DEF[k] !== null && CFG_DEF[k] !== undefined) cfgPutV(k, JSON.parse(JSON.stringify(CFG_DEF[k]))); delete CFG_OV[k]; }
 function cfgReset(d){ cfgRestore(d.k); if (d.t === 'p') cfgRestore('alertMinutes'); lsSet('pc_cfg', CFG_OV); }
@@ -3188,7 +3194,7 @@ function hlLoad(force){
     if (!j || j.ok !== true || !(j.items instanceof Array)){ HL.err = 'ข้อมูลจาก Worker ไม่ถูกต้อง'; hlRender(); return; }
     for (i = 0; i < j.items.length && a.length < 60; i++){
       x = j.items[i];
-      if (x && typeof x.ti === 'string' && typeof x.t === 'number' && typeof x.i === 'string') a.push({i: x.i, t: x.t, ti: x.ti, u: hlSafe(x.u), k: typeof x.k === 'string' ? x.k : ''});
+      if (x && typeof x.ti === 'string' && typeof x.t === 'number' && typeof x.i === 'string') a.push({i: x.i, t: x.t, ti: x.ti, th: typeof x.th === 'string' ? x.th.slice(0, 300) : '', u: hlSafe(x.u), k: typeof x.k === 'string' ? x.k : ''});
     }
     HL.items = a; HL.at = (typeof j.at === 'number') ? j.at : 0; HL.serr = j.err || null; HL.err = ''; HL.off = !!j.off; HL.got = Date.now();
     try { tkCheck(a); } catch(e){}   /* ตัวหนังสือวิ่งพังก็ไม่กระทบการแสดงหัวข้อข่าว */
@@ -3209,7 +3215,7 @@ function hlRender(){
     c++;
     fr = it.t > HL.seen; if (fr) nw++;
     tg = (it.k.indexOf('G') >= 0 ? '<span class="bs wn">GOLD</span>' : '') + (it.k.indexOf('U') >= 0 ? '<span class="bs">USD</span>' : '') + (it.k.indexOf('F') >= 0 ? '<span class="bs">FED</span>' : '') + (it.k.indexOf('B') >= 0 ? '<span class="bs">BTC</span>' : '');
-    h += (it.u ? '<a href="' + it.u + '" target="_blank" rel="noopener noreferrer"' : '<div') + ' class="hr' + (fr ? ' nw' : '') + '"><span class="hw">' + hlWhen(it.t) + (fr ? ' <span class="bs ok">NEW</span>' : '') + '</span>' + esc(it.ti) + '<span class="hg">' + tg + '</span>' + (it.u ? '</a>' : '</div>');
+    h += (it.u ? '<a href="' + it.u + '" target="_blank" rel="noopener noreferrer"' : '<div') + ' class="hr' + (fr ? ' nw' : '') + '"><span class="hw">' + hlWhen(it.t) + (fr ? ' <span class="bs ok">NEW</span>' : '') + '</span>' + esc(it.ti) + (CONFIG.headlinesThai && it.th ? '<span class="ht">' + esc(it.th) + '</span>' : '') + '<span class="hg">' + tg + '</span>' + (it.u ? '</a>' : '</div>');
   }
   if (!h) h = '<div class="sub">' + (HL.busy ? 'กำลังโหลด...' : (HL.got ? 'ไม่มีหัวข้อตามตัวกรองนี้ ลองกด ALL' : (HL.err ? '' : 'รอข้อมูล...'))) + '</div>';
   setH($('hlList'), h);
@@ -3246,7 +3252,7 @@ function tkNext(){
   if (it.k.indexOf('F') >= 0) tg += ' FED';
   if (it.k.indexOf('B') >= 0) tg += ' BTC';
   s.style.webkitAnimation = 'none'; s.style.animation = 'none';
-  setH(s, '<b>NEW' + tg + '</b>  ' + esc(it.ti));
+  setH(s, '<b>NEW' + tg + '</b>  ' + esc(it.ti) + (CONFIG.headlinesTickerThai && it.th ? '  \u00B7  <i>' + esc(it.th) + '</i>' : ''));
   e.style.display = 'block';
   dur = Math.max(4, s.offsetWidth / sp);   /* ระยะที่วิ่ง = ความกว้างของกล่องตัวหนังสือ (กว้างกล่อง + กว้างข้อความ) */
   an = (CONFIG.headlinesTickerDir === 'RL' ? 'tkRL ' : 'tkLR ') + dur.toFixed(2) + 's linear ' + loops + ' forwards';
