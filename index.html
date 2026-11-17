@@ -603,7 +603,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
     </div>
     <div class="panel wide" id="hlPanel">
       <div class="lab">HEADLINES (FXSTREET)<button type="button" class="btn" id="hlRef">REFRESH</button></div>
-      <div class="ctl wr" id="hlF"><button type="button" class="btn" data-v="K">KEY</button><button type="button" class="btn" data-v="G">GOLD</button><button type="button" class="btn" data-v="U">USD</button><button type="button" class="btn" data-v="F">FED</button><button type="button" class="btn" data-v="A">ALL</button></div>
+      <div class="ctl wr" id="hlF"><button type="button" class="btn" data-v="K">KEY</button><button type="button" class="btn" data-v="G">GOLD</button><button type="button" class="btn" data-v="U">USD</button><button type="button" class="btn" data-v="F">FED</button><button type="button" class="btn" data-v="B">BTC</button><button type="button" class="btn" data-v="A">ALL</button></div>
       <div class="sub" id="hlSt">&nbsp;</div>
       <div id="hlList"></div>
     </div>
@@ -700,7 +700,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.19.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.19.1',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -741,13 +741,14 @@ var CONFIG = {
   impact: true,                       // News Impact Log: จดว่าข่าวแต่ละตัวทำให้ทอง/BTC วิ่งกี่ดอลลาร์หลังข่าวออก (ดูที่หน้า NEWS) false = ปิด
   impactMin: 5,                       // จับราคากี่นาทีหลังข่าวออก
   headlines: true,                    // แผงหัวข้อข่าว (FXStreet ผ่าน Worker) ในหน้า NEWS ต้องตั้ง BOT (URL+READ KEY) ก่อน | false = ซ่อนการทำงาน
-  headlinesEverySec: 300,             // ดึงหัวข้อข่าวใหม่ทุกกี่วินาที (ดึงเบื้องหลังทุกหน้า และตอนเปิดหน้า NEWS)
+  headlinesEverySec: 120,             // ดึงหัวข้อข่าวใหม่ทุกกี่วินาที (ดึงเบื้องหลังทุกหน้า และตอนเปิดหน้า NEWS)
   headlinesMax: 25,                   // แสดงหัวข้อข่าวสูงสุดกี่รายการ
   headlinesTicker: true,              // ข่าวใหม่ที่เข้ามาวิ่งเป็นตัวหนังสือที่แถบล่างจอ แล้วหายไป | false = ปิด
   headlinesTickerLoops: 2,            // วิ่งกี่รอบแล้วหาย
+  headlinesTickerSound: true,         // มีเสียงเตือนตอนข่าวใหม่วิ่ง (ต้องกด SOUND ON ก่อน และไม่ดังในช่วงเงียบ) | false = วิ่งเงียบ
   headlinesTickerSpeed: 70,           // ความเร็ววิ่ง (พิกเซลต่อวินาที) ยิ่งมากยิ่งเร็ว
   headlinesTickerDir: 'RL',           // ทิศทาง: 'RL' = ขวาไปซ้าย (อ่านได้ปกติ) | 'LR' = ซ้ายไปขวา
-  headlinesTickerKeyOnly: true,       // true = เฉพาะข่าวที่ติดแท็ก GOLD/USD/FED | false = ทุกข่าวใหม่
+  headlinesTickerKeyOnly: true,       // true = เฉพาะข่าวที่ติดแท็ก GOLD/USD/FED/BTC | false = ทุกข่าวใหม่
   headlinesTickerMaxAgeMin: 30,       // ข้ามข่าวที่เก่ากว่านี้ (นาที) กันวิ่งข่าวเก่าตอนเปิดแอปหลังปิดไปนาน
   impactKeep: 50,                     // เก็บประวัติกี่ครั้งล่าสุด
   bot: true,                          // หน้า BOT: ดูสถานะ EA Grid บน MT5 (ดูอย่างเดียว) ต้องตั้ง URL+KEY ที่หน้า BOT > SETUP | false = ปิด
@@ -795,7 +796,8 @@ var SET_DEFS = [
     {k: 'impactMin', t: 'n', n: 'News Impact จับราคาหลังข่าวออก', u: 'นาที', min: 1, max: 30, st: 1},
     {k: 'headlinesMax', t: 'n', n: 'จำนวนหัวข้อข่าว (HEADLINES) ที่แสดง', u: 'ข่าว', min: 5, max: 60, st: 5},
     {k: 'headlinesTicker', t: 'b', n: 'ข่าวใหม่วิ่งที่แถบล่างจอ', h: 'ทิศทางและความเร็วแก้ใน CONFIG'},
-    {k: 'headlinesTickerLoops', t: 'n', n: 'ข่าวใหม่วิ่งกี่รอบแล้วหาย', u: 'รอบ', min: 1, max: 5, st: 1}
+    {k: 'headlinesTickerLoops', t: 'n', n: 'ข่าวใหม่วิ่งกี่รอบแล้วหาย', u: 'รอบ', min: 1, max: 5, st: 1},
+    {k: 'headlinesTickerSound', t: 'b', n: 'เสียงเตือนตอนข่าวใหม่วิ่ง', h: 'ต้องกด SOUND ON ก่อน และไม่ดังในช่วงเงียบ', show: function(){ return !!CONFIG.headlinesTicker; }}
   ]},
   {s: 'BOT ALERTS', it: [
     {k: 'botDdWarn', t: 'n', n: 'DRAWDOWN เตือน (WARN)', u: '%', min: 1, max: 90, st: 1, h: 'DD = (BALANCE - EQUITY) / BALANCE', ck: function(v){ return v >= CONFIG.botDdLimit ? 'WARN ต้องน้อยกว่าเพดาน (' + CONFIG.botDdLimit + '%)' : ''; }},
@@ -1698,6 +1700,22 @@ function beepCoin(){   /* เสียงเหรียญ/เงินเข�
   } catch(e){}
   try { if (navigator.vibrate) navigator.vibrate([60, 40, 120]); } catch(e){}
   try { muDuck(3); } catch(e){}
+}
+function beepTick(){   /* เสียงข่าวใหม่วิ่งที่แถบล่าง: "ติ๊ง-ต่อง" 2 โน้ตไล่ลง คลื่นไซน์นุ่ม ไม่ซ้ำกับเตือนราคา/เตือนข่าวล่วงหน้า/เหรียญ (เคารพ SOUND ON/OFF และช่วงเงียบ) */
+  if (!soundOn || !audioCtx || isQuiet()) return;
+  var N = [[1568, 0, .16], [1175, .15, .30]], i, o, g, t0;
+  try {
+    if (audioCtx.state === 'suspended' && audioCtx.resume) audioCtx.resume();
+    for (i = 0; i < N.length; i++){
+      o = audioCtx.createOscillator(); g = audioCtx.createGain(); t0 = audioCtx.currentTime + N[i][1];
+      o.type = 'sine'; o.frequency.value = N[i][0];
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.13, t0 + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + N[i][2]);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0); o.stop(t0 + N[i][2] + 0.02);
+    }
+  } catch(e){}
+  try { if (navigator.vibrate) navigator.vibrate([80]); } catch(e){}
+  try { muDuck(2); } catch(e){}
 }
 function checkAlerts(){
   var now = Date.now(), pre = CONFIG.alertMinutes * 60000, show = null, i, e, d, ns, st, s, nw;
@@ -3149,9 +3167,9 @@ newsRefilter(true);   /* ตัวกรองข่าวที่ตั้ง�
 cfgRender();
 /* ---- HEADLINES (FXSTREET): หัวข้อข่าวจาก Worker (ฟีด RSS สาธารณะของ FXStreet) แสดงเฉพาะหัวข้อ+เวลา+ลิงก์ไปต้นฉบับ ไม่แสดงเนื้อข่าว ---- */
 var HL = {items: [], at: 0, got: 0, tried: 0, busy: false, err: '', serr: null, off: false, f: lsGet('pc_hlf') || 'K', seen: lsGet('pc_hlseen') || 0, st: null};
-if (!/^[KGUFA]$/.test(String(HL.f))) HL.f = 'K';
+if (!/^[KGUFBA]$/.test(String(HL.f))) HL.f = 'K';
 if (typeof HL.seen !== 'number') HL.seen = 0;
-var HLN = {K: 'KEY', G: 'GOLD', U: 'USD', F: 'FED', A: 'ALL'};
+var HLN = {K: 'KEY', G: 'GOLD', U: 'USD', F: 'FED', B: 'BTC', A: 'ALL'};
 function hlOk(it, f){ return f === 'A' || (f === 'K' ? it.k.length > 0 : it.k.indexOf(f) >= 0); }
 function hlSafe(u){ return (typeof u === 'string' && /^https:\/\/(www\.)?fxstreet\.com\/[^\s"'<>\\]*$/i.test(u)) ? u : ''; }   /* ใส่ใน href ได้เฉพาะ https ของ fxstreet.com ที่ไม่มีอักขระอันตราย (esc() ของแอปไม่ escape เครื่องหมายคำพูด) */
 function hlWhen(t){
@@ -3190,7 +3208,7 @@ function hlRender(){
     if (c >= CONFIG.headlinesMax) continue;
     c++;
     fr = it.t > HL.seen; if (fr) nw++;
-    tg = (it.k.indexOf('G') >= 0 ? '<span class="bs wn">GOLD</span>' : '') + (it.k.indexOf('U') >= 0 ? '<span class="bs">USD</span>' : '') + (it.k.indexOf('F') >= 0 ? '<span class="bs">FED</span>' : '');
+    tg = (it.k.indexOf('G') >= 0 ? '<span class="bs wn">GOLD</span>' : '') + (it.k.indexOf('U') >= 0 ? '<span class="bs">USD</span>' : '') + (it.k.indexOf('F') >= 0 ? '<span class="bs">FED</span>' : '') + (it.k.indexOf('B') >= 0 ? '<span class="bs">BTC</span>' : '');
     h += (it.u ? '<a href="' + it.u + '" target="_blank" rel="noopener noreferrer"' : '<div') + ' class="hr' + (fr ? ' nw' : '') + '"><span class="hw">' + hlWhen(it.t) + (fr ? ' <span class="bs ok">NEW</span>' : '') + '</span>' + esc(it.ti) + '<span class="hg">' + tg + '</span>' + (it.u ? '</a>' : '</div>');
   }
   if (!h) h = '<div class="sub">' + (HL.busy ? 'กำลังโหลด...' : (HL.got ? 'ไม่มีหัวข้อตามตัวกรองนี้ ลองกด ALL' : (HL.err ? '' : 'รอข้อมูล...'))) + '</div>';
@@ -3226,6 +3244,7 @@ function tkNext(){
   if (it.k.indexOf('G') >= 0) tg += ' GOLD';
   if (it.k.indexOf('U') >= 0) tg += ' USD';
   if (it.k.indexOf('F') >= 0) tg += ' FED';
+  if (it.k.indexOf('B') >= 0) tg += ' BTC';
   s.style.webkitAnimation = 'none'; s.style.animation = 'none';
   setH(s, '<b>NEW' + tg + '</b>  ' + esc(it.ti));
   e.style.display = 'block';
@@ -3250,6 +3269,7 @@ function tkCheck(a){
     q.sort(function(x, y){ return x.t - y.t; });
     q = q.slice(-3);   /* เอาแค่ 3 ข่าวล่าสุด */
     for (i = 0; i < q.length; i++) TK.q.push(q[i]);
+    if (q.length && CONFIG.headlinesTickerSound) beepTick();   /* ดัง 1 ครั้งต่อรอบที่มีข่าวใหม่ ไม่ดังซ้ำทุกข่าวในคิว */
     if (q.length && !TK.on) tkNext();
   }
   if (mx > t0) lsSet('pc_hltick', mx);
