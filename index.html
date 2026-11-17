@@ -103,6 +103,13 @@ body:not(.day) .cloud{opacity:.18}
 .status{position:fixed;left:0;right:0;bottom:0;padding:8px 10px calc(env(safe-area-inset-bottom) + 8px);
   background:#000;font-size:8px;color:var(--dim);text-align:center;line-height:1.6;z-index:5}
 .status b{color:var(--gold);font-weight:normal}
+.tick{position:fixed;left:0;right:0;bottom:0;z-index:6;display:none;overflow:hidden;background:#000;border-top:2px solid var(--gold);padding-bottom:env(safe-area-inset-bottom,0px);pointer-events:none}
+#tkT{display:inline-block;white-space:nowrap;padding:8px 0;font-size:8px;line-height:1.6;color:var(--text)}
+#tkT b{color:var(--gold);font-weight:normal}
+@-webkit-keyframes tkLR{from{-webkit-transform:translate3d(-100%,0,0)}to{-webkit-transform:translate3d(100vw,0,0)}}
+@keyframes tkLR{from{transform:translate3d(-100%,0,0)}to{transform:translate3d(100vw,0,0)}}
+@-webkit-keyframes tkRL{from{-webkit-transform:translate3d(100vw,0,0)}to{-webkit-transform:translate3d(-100%,0,0)}}
+@keyframes tkRL{from{transform:translate3d(100vw,0,0)}to{transform:translate3d(-100%,0,0)}}
 .ground{position:fixed;left:0;right:0;bottom:0;height:60px;z-index:1;pointer-events:none;
   background:linear-gradient(to bottom,var(--ground) 0,var(--ground) 14px,var(--ground2) 14px,var(--ground2) 20px,var(--dirt) 20px)}
 .blink{-webkit-animation:bl 1s steps(1) infinite;animation:bl 1s steps(1) infinite}
@@ -686,11 +693,12 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <div id="webL" class="web"></div><div id="webR" class="web r"></div>
 <div class="ground"></div>
 <div class="status" id="status">LOADING...</div>
+<div class="tick" id="tick"><span id="tkT"></span></div>
 
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.17.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.18.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -731,8 +739,14 @@ var CONFIG = {
   impact: true,                       // News Impact Log: จดว่าข่าวแต่ละตัวทำให้ทอง/BTC วิ่งกี่ดอลลาร์หลังข่าวออก (ดูที่หน้า NEWS) false = ปิด
   impactMin: 5,                       // จับราคากี่นาทีหลังข่าวออก
   headlines: true,                    // แผงหัวข้อข่าว (FXStreet ผ่าน Worker) ในหน้า NEWS ต้องตั้ง BOT (URL+READ KEY) ก่อน | false = ซ่อนการทำงาน
-  headlinesEverySec: 300,             // ดึงหัวข้อข่าวใหม่ทุกกี่วินาที (เฉพาะตอนเปิดหน้า NEWS)
+  headlinesEverySec: 300,             // ดึงหัวข้อข่าวใหม่ทุกกี่วินาที (ดึงเบื้องหลังทุกหน้า และตอนเปิดหน้า NEWS)
   headlinesMax: 25,                   // แสดงหัวข้อข่าวสูงสุดกี่รายการ
+  headlinesTicker: true,              // ข่าวใหม่ที่เข้ามาวิ่งเป็นตัวหนังสือที่แถบล่างจอ แล้วหายไป | false = ปิด
+  headlinesTickerLoops: 2,            // วิ่งกี่รอบแล้วหาย
+  headlinesTickerSpeed: 70,           // ความเร็ววิ่ง (พิกเซลต่อวินาที) ยิ่งมากยิ่งเร็ว
+  headlinesTickerDir: 'RL',           // ทิศทาง: 'RL' = ขวาไปซ้าย (อ่านได้ปกติ) | 'LR' = ซ้ายไปขวา
+  headlinesTickerKeyOnly: true,       // true = เฉพาะข่าวที่ติดแท็ก GOLD/USD/FED | false = ทุกข่าวใหม่
+  headlinesTickerMaxAgeMin: 30,       // ข้ามข่าวที่เก่ากว่านี้ (นาที) กันวิ่งข่าวเก่าตอนเปิดแอปหลังปิดไปนาน
   impactKeep: 50,                     // เก็บประวัติกี่ครั้งล่าสุด
   bot: true,                          // หน้า BOT: ดูสถานะ EA Grid บน MT5 (ดูอย่างเดียว) ต้องตั้ง URL+KEY ที่หน้า BOT > SETUP | false = ปิด
   botEverySec: 10,                    // ดึงข้อมูลทุกกี่วินาที (หน้าอื่นดึงแบบย่อ ประหยัดข้อมูล)
@@ -777,7 +791,9 @@ var SET_DEFS = [
       {l: '15·5·1', v: [15, 5, 1], x: {alertMinutes: 15}}, {l: '30·10·5·1', v: [30, 10, 5, 1], x: {alertMinutes: 30}},
       {l: '10·1', v: [10, 1], x: {alertMinutes: 10}}, {l: '5', v: [5], x: {alertMinutes: 5}}]},
     {k: 'impactMin', t: 'n', n: 'News Impact จับราคาหลังข่าวออก', u: 'นาที', min: 1, max: 30, st: 1},
-    {k: 'headlinesMax', t: 'n', n: 'จำนวนหัวข้อข่าว (HEADLINES) ที่แสดง', u: 'ข่าว', min: 5, max: 60, st: 5}
+    {k: 'headlinesMax', t: 'n', n: 'จำนวนหัวข้อข่าว (HEADLINES) ที่แสดง', u: 'ข่าว', min: 5, max: 60, st: 5},
+    {k: 'headlinesTicker', t: 'b', n: 'ข่าวใหม่วิ่งที่แถบล่างจอ', h: 'ทิศทางและความเร็วแก้ใน CONFIG'},
+    {k: 'headlinesTickerLoops', t: 'n', n: 'ข่าวใหม่วิ่งกี่รอบแล้วหาย', u: 'รอบ', min: 1, max: 5, st: 1}
   ]},
   {s: 'BOT ALERTS', it: [
     {k: 'botDdWarn', t: 'n', n: 'DRAWDOWN เตือน (WARN)', u: '%', min: 1, max: 90, st: 1, h: 'DD = (BALANCE - EQUITY) / BALANCE', ck: function(v){ return v >= CONFIG.botDdLimit ? 'WARN ต้องน้อยกว่าเพดาน (' + CONFIG.botDdLimit + '%)' : ''; }},
@@ -1772,48 +1788,197 @@ function locate(){
 }
 $('city').onclick = function(){ gpsTries = 0; gpsState = ''; locate(); };   // แตะชื่อเมืองเพื่อลองหาตำแหน่งใหม่
 
+
 function loadWeather(){
   var q = 'latitude=' + loc.lat + '&longitude=' + loc.lon;
-  get('https://api.open-meteo.com/v1/forecast?' + q + '&current=temperature_2m,apparent_temperature&daily=sunrise,sunset,precipitation_probability_max&timezone=auto',
+
+  // Weather forecast
+  get(
+    'https://api.open-meteo.com/v1/forecast?' + q +
+    '&current=temperature_2m,apparent_temperature' +
+    '&daily=sunrise,sunset,precipitation_probability_max,precipitation_sum' +
+    '&hourly=precipitation_probability,precipitation' +
+    '&timezone=auto',
     function(j){
+
+      // Current temperature
       var c = j && j.current;
-      if (c && c.temperature_2m !== null && c.temperature_2m !== undefined){
-        $('temp').textContent = Math.round(c.temperature_2m) + '°C';
-        $('feel').textContent = (c.apparent_temperature !== null && c.apparent_temperature !== undefined) ?
-          'รู้สึกเหมือน ' + Math.round(c.apparent_temperature) + '°C' : '';
+
+      if (c && c.temperature_2m !== null &&
+          c.temperature_2m !== undefined){
+
+        $('temp').textContent =
+          Math.round(c.temperature_2m) + '°C';
+
+        $('feel').textContent =
+          c.apparent_temperature !== null &&
+          c.apparent_temperature !== undefined
+          ? 'รู้สึกเหมือน ' +
+            Math.round(c.apparent_temperature) + '°C'
+          : '';
+
       } else {
         $('temp').textContent = '--°';
         $('feel').textContent = 'ไม่มีข้อมูล';
       }
-      var dl = j.daily;
-      if (dl && dl.sunrise && dl.sunrise[0] && dl.sunset && dl.sunset[0]){
-        var pp = dl.precipitation_probability_max ? dl.precipitation_probability_max[0] : null;
-        $('wx2').textContent = (pp !== null && pp !== undefined ? 'ฝน ' + pp + '%  ' : '') +
-          'ขึ้น ' + dl.sunrise[0].substring(11, 16) + ' ตก ' + dl.sunset[0].substring(11, 16);
+
+      // Daily forecast
+      var dl = j && j.daily;
+      var hr = j && j.hourly;
+
+      if (dl) {
+        var max = dl.precipitation_probability_max
+          ? dl.precipitation_probability_max[0] : null;
+
+        var rain = dl.precipitation_sum
+          ? dl.precipitation_sum[0] : null;
+
+        var sunrise = dl.sunrise && dl.sunrise[0]
+          ? dl.sunrise[0].substring(11,16) : '--:--';
+
+        var sunset = dl.sunset && dl.sunset[0]
+          ? dl.sunset[0].substring(11,16) : '--:--';
+
+        // Calculate mean probability from hourly values
+        var mean = null;
+        var values = [];
+
+        if (hr && hr.time && hr.precipitation_probability) {
+          var today = dl.time ? dl.time[0] : '';
+
+          for (var i = 0; i < hr.time.length; i++) {
+            if (hr.time[i].substring(0,10) === today) {
+              var p = hr.precipitation_probability[i];
+
+              if (p !== null && p !== undefined) {
+                values.push(p);
+              }
+            }
+          }
+        }
+
+        if (values.length > 0) {
+          var total = 0;
+          for (var k = 0; k < values.length; k++) {
+            total += values[k];
+          }
+          mean = Math.round(total / values.length);
+        }
+
+        // Display weather information
+        var msg = '';
+
+        if (max !== null && max !== undefined) {
+          msg += 'ฝนสูงสุด ' + max + '%';
+        }
+
+        if (mean !== null) {
+          msg += ' | เฉลี่ย ' + mean + '%';
+        }
+
+        if (rain !== null && rain !== undefined) {
+          msg += ' | ฝนสะสม ' + rain + ' มม.';
+        }
+
+        msg += ' | ขึ้น ' + sunrise + ' ตก ' + sunset;
+
+        $('wx2').textContent = msg;
+
+        // Hourly rain details
+        var hourlyText = [];
+
+        if (hr && hr.time && hr.precipitation_probability) {
+          for (var h = 0; h < hr.time.length; h++) {
+            if (hr.time[h].substring(0,10) ===
+                (dl.time ? dl.time[0] : '')) {
+
+              var hp = hr.precipitation_probability[h];
+              var time = hr.time[h].substring(11,16);
+
+              if (hp !== null && hp !== undefined) {
+                hourlyText.push(time + ' ' + hp + '%');
+              }
+            }
+          }
+        }
+
+        // Optional: show hourly details in an existing element
+        var hourlyEl = $('wxHourly');
+
+        if (hourlyEl) {
+          hourlyEl.textContent = hourlyText.length
+            ? 'โอกาสฝนรายชั่วโมง: ' + hourlyText.join(' | ')
+            : 'ไม่มีข้อมูลรายชั่วโมง';
+        }
       }
-      lastWeather = new Date(); wxOk = true; showStatus();
-    }, function(){ wxOk = false; showStatus(); });
-  get('https://air-quality-api.open-meteo.com/v1/air-quality?' + q + '&current=pm2_5&timezone=auto',
+
+      lastWeather = new Date();
+      wxOk = true;
+      showStatus();
+
+    },
+    function(){
+      wxOk = false;
+      showStatus();
+    }
+  );
+
+  // Air quality PM2.5 (original logic)
+  get(
+    'https://air-quality-api.open-meteo.com/v1/air-quality?' +
+    q + '&current=pm2_5&timezone=auto',
+
     function(j){
-      var v = j && j.current ? j.current.pm2_5 : null, lv = LV[LV.length-1], idx = LV.length-1, i;
+
+      var v = j && j.current
+        ? j.current.pm2_5 : null;
+
+      var lv = LV[LV.length-1];
+      var idx = LV.length-1;
+      var i;
+
       if (v === null || v === undefined || isNaN(v)){
-        $('pm').textContent = '--'; $('pm').style.color = '';
+        $('pm').textContent = '--';
+        $('pm').style.color = '';
         $('pmTxt').textContent = 'ไม่มีข้อมูล';
         $('hp').innerHTML = '';
         return;
       }
-      for (i = 0; i < LV.length; i++){ if (v <= LV[i].max){ lv = LV[i]; idx = i; break; } }
+
+      for (i = 0; i < LV.length; i++){
+        if (v <= LV[i].max){
+          lv = LV[i];
+          idx = i;
+          break;
+        }
+      }
+
       $('pm').textContent = Math.round(v) + ' µg';
       $('pm').style.color = lv.col;
       $('pmTxt').textContent = lv.txt;
-      var segs = '', full = 10 - idx * 2;
+
+      var segs = '';
+      var full = 10 - idx * 2;
+
       for (i = 0; i < 10; i++){
-        segs += i < full ? '<div class="seg on" style="background:'+lv.col+'"></div>' : '<div class="seg"></div>';
+        segs += i < full
+          ? '<div class="seg on" style="background:' +
+            lv.col + '"></div>'
+          : '<div class="seg"></div>';
       }
+
       $('hp').innerHTML = segs;
-      wxOk = true; showStatus();
-    }, function(){ wxOk = false; showStatus(); });
+      wxOk = true;
+      showStatus();
+
+    },
+    function(){
+      wxOk = false;
+      showStatus();
+    }
+  );
 }
+
 
 function showStatus(){
   var s = '';
@@ -2931,7 +3096,7 @@ function cfgRender(){
 }
 function cfgMsg(t){ var e = $('cfgMsg'); e.textContent = t; e.style.display = 'block'; clearTimeout(cfgMsgT); cfgMsgT = setTimeout(function(){ e.style.display = 'none'; }, 3500); }
 function cfgStore(k, v){ var d = CFG_OK[k]; cfgPutV(k, v); if (JSON.stringify(v) === JSON.stringify(CFG_DEF[k])) delete CFG_OV[k]; else CFG_OV[k] = v; lsSet('pc_cfg', CFG_OV); }
-function cfgAfter(k){ if (k.indexOf('news') === 0) newsRefilter(); else showStatus(); if (k === 'headlinesMax') hlRender(); if (sysIsOpen) sysRender(); }
+function cfgAfter(k){ if (k.indexOf('news') === 0) newsRefilter(); else showStatus(); if (k === 'headlinesMax') hlRender(); if (k === 'headlinesTicker' && !CONFIG.headlinesTicker) tkStop(); if (sysIsOpen) sysRender(); }
 function cfgFind(k){ var i, j; for (i = 0; i < SET_DEFS.length; i++) for (j = 0; j < SET_DEFS[i].it.length; j++) if (SET_DEFS[i].it[j].k === k) return SET_DEFS[i].it[j]; return null; }
 function cfgRestore(k){ if (CFG_DEF[k] !== null && CFG_DEF[k] !== undefined) cfgPutV(k, JSON.parse(JSON.stringify(CFG_DEF[k]))); delete CFG_OV[k]; }
 function cfgReset(d){ cfgRestore(d.k); if (d.t === 'p') cfgRestore('alertMinutes'); lsSet('pc_cfg', CFG_OV); }
@@ -3006,6 +3171,7 @@ function hlLoad(force){
       if (x && typeof x.ti === 'string' && typeof x.t === 'number' && typeof x.i === 'string') a.push({i: x.i, t: x.t, ti: x.ti, u: hlSafe(x.u), k: typeof x.k === 'string' ? x.k : ''});
     }
     HL.items = a; HL.at = (typeof j.at === 'number') ? j.at : 0; HL.serr = j.err || null; HL.err = ''; HL.off = !!j.off; HL.got = Date.now();
+    try { tkCheck(a); } catch(e){}   /* ตัวหนังสือวิ่งพังก็ไม่กระทบการแสดงหัวข้อข่าว */
     hlRender();
   }, function(r){ HL.busy = false; HL.err = (r === 401 || r === 403) ? 'KEY ไม่ถูกต้อง' : 'เชื่อม Worker ไม่ได้ (' + r + ')'; hlRender(); });
 }
@@ -3040,12 +3206,64 @@ function hlRender(){
     }, 8000);
   }
 }
+/* ---- ข่าวใหม่วิ่งที่แถบล่างจอ: หัวข้อที่เพิ่งเข้ามาวิ่ง CONFIG.headlinesTickerLoops รอบ แล้วหายไป (ข่าวถัดไปในคิวต่อทันที) ---- */
+var TK = {q: [], on: false, tm: null, id: 0, ended: 0};
+function tkOff(){
+  var e = $('tick'), s = $('tkT');
+  e.style.display = 'none';
+  s.style.webkitAnimation = 'none'; s.style.animation = 'none';
+}
+function tkStop(){ clearTimeout(TK.tm); TK.tm = null; TK.on = false; TK.q = []; TK.id++; tkOff(); }
+function tkNext(){
+  var it, e = $('tick'), s = $('tkT'), w, tw, dur, loops, sp, an, id, tg = '';
+  clearTimeout(TK.tm); TK.tm = null;
+  if (!CONFIG.headlinesTicker || !TK.q.length){ TK.on = false; tkOff(); return; }
+  it = TK.q.shift(); TK.on = true; id = ++TK.id;
+  loops = Math.max(1, Math.round(CONFIG.headlinesTickerLoops) || 2);
+  sp = Math.max(20, CONFIG.headlinesTickerSpeed || 70);
+  if (it.k.indexOf('G') >= 0) tg += ' GOLD';
+  if (it.k.indexOf('U') >= 0) tg += ' USD';
+  if (it.k.indexOf('F') >= 0) tg += ' FED';
+  s.style.webkitAnimation = 'none'; s.style.animation = 'none';
+  setH(s, '<b>NEW' + tg + '</b>  ' + esc(it.ti));
+  e.style.display = 'block';
+  w = e.clientWidth; tw = s.offsetWidth;
+  dur = Math.max(4, (w + tw) / sp);
+  an = (CONFIG.headlinesTickerDir === 'RL' ? 'tkRL ' : 'tkLR ') + dur.toFixed(2) + 's linear ' + loops + ' forwards';
+  void s.offsetWidth;   /* ให้เริ่มแอนิเมชันใหม่ทุกข่าว */
+  s.style.webkitAnimation = an; s.style.animation = an;
+  TK.tm = setTimeout(function(){ tkEnd(id); }, dur * loops * 1000 + 1500);   /* กันกรณีเบราว์เซอร์ไม่ยิง animationend */
+}
+function tkEnd(id){ if (id !== TK.id || TK.ended === id) return; TK.ended = id; tkNext(); }
+function tkCheck(a){
+  var t0 = lsGet('pc_hltick'), mx = 0, i, it, q = [], now = Date.now(), age = (CONFIG.headlinesTickerMaxAgeMin > 0 ? CONFIG.headlinesTickerMaxAgeMin : 30) * 60000;
+  if (typeof t0 !== 'number') t0 = 0;
+  for (i = 0; i < a.length; i++) if (a[i].t > mx) mx = a[i].t;
+  if (!mx) return;
+  if (t0 && CONFIG.headlinesTicker){   /* t0 = 0 คือเปิดครั้งแรก ใช้ข่าวที่มีอยู่เป็นฐาน ไม่วิ่งย้อนหลัง */
+    for (i = 0; i < a.length; i++){
+      it = a[i];
+      if (it.t > t0 && now - it.t <= age && (!CONFIG.headlinesTickerKeyOnly || it.k.length > 0)) q.push(it);
+    }
+    q.sort(function(x, y){ return x.t - y.t; });
+    q = q.slice(-3);   /* เอาแค่ 3 ข่าวล่าสุด */
+    for (i = 0; i < q.length; i++) TK.q.push(q[i]);
+    if (q.length && !TK.on) tkNext();
+  }
+  if (mx > t0) lsSet('pc_hltick', mx);
+}
+(function(){
+  var s = $('tkT'), f = function(e){ if (e && e.target && e.target !== s) return; tkEnd(TK.id); };
+  s.addEventListener('animationend', f, false);
+  s.addEventListener('webkitAnimationEnd', f, false);
+})();
 function hlOpen(){ hlLoad(false); hlRender(); }
 $('hlF').onclick = function(e){ var t = e.target || e.srcElement, v = (t && t.getAttribute) ? t.getAttribute('data-v') : null; if (!v || !HLN[v]) return; HL.f = v; lsSet('pc_hlf', v); hlRender(); };
 $('hlRef').onclick = function(){ hlLoad(true); };
-setInterval(function(){ if (pg === 4) hlLoad(false); }, 30000);
+setInterval(function(){ hlLoad(false); }, 30000);   /* ดึงเบื้องหลังทุกหน้า ไม่ต้องรอเปิดหน้า NEWS (hlLoad คุมช่วงห่างด้วย headlinesEverySec เอง) */
 if (!CONFIG.headlines) $('hlPanel').style.display = 'none';
 hlRender();
+hlLoad(false);   /* โหลดทันทีตอนเปิดแอป สถานะ HEADLINES ใน SYS จะไม่ค้าง IDLE */
 SPR.pcloud = ["..y..y.........", "...kkk.........", ".ykyyyk.kkk....", "..kyyykkWWWk...", "...kkkWWWWWWk..", "....kWWWWWWWWk.", "....kkkkkkkkkk."];
 SPR.cloud2 = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk"];
 SPR.rain = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk", "..b..b..b..b..", ".b..b..b..b..."];
