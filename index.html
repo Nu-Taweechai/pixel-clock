@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Pixel Clock</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -42,6 +42,7 @@ body.day{
 body.dim::after{content:"";position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);pointer-events:none;z-index:15}
 
 #stars{position:absolute;left:0;top:0;width:100%;height:50%;pointer-events:none}
+#clouds{position:absolute;left:0;top:0;width:100%;height:100%;overflow:hidden;contain:paint;pointer-events:none}   /* เมฆวิ่งเลยขอบจอ (drift ถึง 130vw) ต้องถูกตัดในกล่องนี้ ไม่งั้น Chrome Android ขยายหน้าตามเมฆที่ล้นขอบขวา */
 .star{position:absolute;width:4px;height:4px;background:#fff;opacity:.8}
 body.day .star{display:none}
 .cloud{position:absolute;left:-120px;pointer-events:none;opacity:.9;
@@ -103,13 +104,13 @@ body:not(.day) .cloud{opacity:.18}
 .status{position:fixed;left:0;right:0;bottom:0;padding:8px 10px calc(env(safe-area-inset-bottom) + 8px);
   background:#000;font-size:8px;color:var(--dim);text-align:center;line-height:1.6;z-index:5}
 .status b{color:var(--gold);font-weight:normal}
-.tick{position:fixed;left:0;right:0;bottom:0;z-index:6;display:none;overflow:hidden;background:#000;border-top:2px solid var(--gold);padding-bottom:env(safe-area-inset-bottom,0px);pointer-events:none}
-#tkT{display:inline-block;white-space:nowrap;padding:8px 0;font-size:8px;line-height:1.6;color:var(--text)}
+.tick{position:fixed;left:0;right:0;bottom:0;z-index:6;display:none;width:100%;max-width:100%;overflow:hidden;contain:paint;background:#000;border-top:2px solid var(--gold);padding-bottom:env(safe-area-inset-bottom,0px);pointer-events:none}
+#tkT{display:inline-block;white-space:nowrap;padding:8px 0 8px 100%;font-size:8px;line-height:1.6;color:var(--text)}   /* padding-left:100% = ตัวหนังสือเริ่มที่ขอบขวาของกล่อง ไม่ใช้หน่วย vw */
 #tkT b{color:var(--gold);font-weight:normal}
-@-webkit-keyframes tkLR{from{-webkit-transform:translate3d(-100%,0,0)}to{-webkit-transform:translate3d(100vw,0,0)}}
-@keyframes tkLR{from{transform:translate3d(-100%,0,0)}to{transform:translate3d(100vw,0,0)}}
-@-webkit-keyframes tkRL{from{-webkit-transform:translate3d(100vw,0,0)}to{-webkit-transform:translate3d(-100%,0,0)}}
-@keyframes tkRL{from{transform:translate3d(100vw,0,0)}to{transform:translate3d(-100%,0,0)}}
+@-webkit-keyframes tkLR{from{-webkit-transform:translate3d(-100%,0,0)}to{-webkit-transform:translate3d(0,0,0)}}
+@keyframes tkLR{from{transform:translate3d(-100%,0,0)}to{transform:translate3d(0,0,0)}}
+@-webkit-keyframes tkRL{from{-webkit-transform:translate3d(0,0,0)}to{-webkit-transform:translate3d(-100%,0,0)}}
+@keyframes tkRL{from{transform:translate3d(0,0,0)}to{transform:translate3d(-100%,0,0)}}
 .ground{position:fixed;left:0;right:0;bottom:0;height:60px;z-index:1;pointer-events:none;
   background:linear-gradient(to bottom,var(--ground) 0,var(--ground) 14px,var(--ground2) 14px,var(--ground2) 20px,var(--dirt) 20px)}
 .blink{-webkit-animation:bl 1s steps(1) infinite;animation:bl 1s steps(1) infinite}
@@ -406,6 +407,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 </head>
 <body>
 <div id="stars"></div>
+<div id="clouds"></div>
 <div class="alert" id="alert"></div>
 <div class="wrap">
   <div class="hud">
@@ -698,7 +700,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.18.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.19.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -981,7 +983,7 @@ $('icoFng').innerHTML = sprite('therm', 3);
   for (var j = 0; j < 3; j++){
     c += '<div class="cloud" style="top:'+tops[j]+'px;-webkit-animation-duration:'+durs[j]+'s;animation-duration:'+durs[j]+'s;-webkit-animation-delay:'+dels[j]+'s;animation-delay:'+dels[j]+'s">'+sprite('cloud', 6)+'</div>';
   }
-  $('stars').insertAdjacentHTML('beforeend', c);
+  $('clouds').innerHTML = c;
 })();
 
 /* ---- นาฬิกา ---- */
@@ -3207,7 +3209,7 @@ function hlRender(){
   }
 }
 /* ---- ข่าวใหม่วิ่งที่แถบล่างจอ: หัวข้อที่เพิ่งเข้ามาวิ่ง CONFIG.headlinesTickerLoops รอบ แล้วหายไป (ข่าวถัดไปในคิวต่อทันที) ---- */
-var TK = {q: [], on: false, tm: null, id: 0, ended: 0};
+var TK = {q: [], on: false, tm: null, id: 0, ended: 0, until: 0};
 function tkOff(){
   var e = $('tick'), s = $('tkT');
   e.style.display = 'none';
@@ -3215,7 +3217,7 @@ function tkOff(){
 }
 function tkStop(){ clearTimeout(TK.tm); TK.tm = null; TK.on = false; TK.q = []; TK.id++; tkOff(); }
 function tkNext(){
-  var it, e = $('tick'), s = $('tkT'), w, tw, dur, loops, sp, an, id, tg = '';
+  var it, e = $('tick'), s = $('tkT'), dur, loops, sp, an, id, tg = '';
   clearTimeout(TK.tm); TK.tm = null;
   if (!CONFIG.headlinesTicker || !TK.q.length){ TK.on = false; tkOff(); return; }
   it = TK.q.shift(); TK.on = true; id = ++TK.id;
@@ -3227,11 +3229,11 @@ function tkNext(){
   s.style.webkitAnimation = 'none'; s.style.animation = 'none';
   setH(s, '<b>NEW' + tg + '</b>  ' + esc(it.ti));
   e.style.display = 'block';
-  w = e.clientWidth; tw = s.offsetWidth;
-  dur = Math.max(4, (w + tw) / sp);
+  dur = Math.max(4, s.offsetWidth / sp);   /* ระยะที่วิ่ง = ความกว้างของกล่องตัวหนังสือ (กว้างกล่อง + กว้างข้อความ) */
   an = (CONFIG.headlinesTickerDir === 'RL' ? 'tkRL ' : 'tkLR ') + dur.toFixed(2) + 's linear ' + loops + ' forwards';
   void s.offsetWidth;   /* ให้เริ่มแอนิเมชันใหม่ทุกข่าว */
   s.style.webkitAnimation = an; s.style.animation = an;
+  TK.until = Date.now() + dur * loops * 1000 + 2000;
   TK.tm = setTimeout(function(){ tkEnd(id); }, dur * loops * 1000 + 1500);   /* กันกรณีเบราว์เซอร์ไม่ยิง animationend */
 }
 function tkEnd(id){ if (id !== TK.id || TK.ended === id) return; TK.ended = id; tkNext(); }
@@ -3257,6 +3259,9 @@ function tkCheck(a){
   s.addEventListener('animationend', f, false);
   s.addEventListener('webkitAnimationEnd', f, false);
 })();
+/* กันค้าง: เลยเวลาที่ควรวิ่งจบแล้วยังแสดงอยู่ (เช่น iOS พักหน้าเว็บแล้วตัวจับเวลาไม่ทำงาน) ให้ปิด/ไปข่าวถัดไป และเมื่อแอปไปอยู่เบื้องหลังให้เลิกวิ่งเลย */
+setInterval(function(){ if (TK.on && Date.now() > TK.until) tkNext(); }, 1000);
+document.addEventListener('visibilitychange', function(){ if (document.hidden) tkStop(); }, false);
 function hlOpen(){ hlLoad(false); hlRender(); }
 $('hlF').onclick = function(e){ var t = e.target || e.srcElement, v = (t && t.getAttribute) ? t.getAttribute('data-v') : null; if (!v || !HLN[v]) return; HL.f = v; lsSet('pc_hlf', v); hlRender(); };
 $('hlRef').onclick = function(){ hlLoad(true); };
@@ -3572,6 +3577,30 @@ function tpCelebrate(txt, tries){
   setTimeout(function(){ gBusy = false; }, 6200);
 }
 syncCtl(); relayout();
+/* ---- โหมดวินิจฉัย: เปิดด้วยการต่อ ?dbg=1 ท้าย URL (ปิดด้วย ?dbg=0) แสดงขนาดจอ/viewport/ตำแหน่งแถบล่างแบบสด ไว้อัดวิดีโอตอนเกิดอาการ ไม่ได้เปิดเองถ้าไม่ใส่ ---- */
+(function(){
+  var m = location.search.match(/[?&]dbg=(\d)/), box, probe, vv = window.visualViewport, maxSW = 0;
+  if (m) lsSet('pc_dbg', m[1] === '1' ? 1 : 0);
+  if (lsGet('pc_dbg') !== 1) return;
+  box = document.createElement('div'); probe = document.createElement('div');
+  box.style.cssText = 'position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top) + 44px);z-index:99;background:rgba(0,0,0,.82);color:#0f0;font:9px/1.35 monospace;padding:3px 6px;pointer-events:none;white-space:pre';
+  probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;padding-bottom:env(safe-area-inset-bottom)';
+  document.body.appendChild(box); document.body.appendChild(probe);
+  function r(n){ return Math.round(n * 10) / 10; }
+  function dbgTick(){
+    var de = document.documentElement, st = $('status').getBoundingClientRect(), wk = $('walker').getBoundingClientRect(),
+        sb = document.getElementById('setBtn'), sr = sb ? sb.getBoundingClientRect() : null, gap = window.innerHeight - st.bottom,
+        vb = vv ? vv.offsetTop + vv.height : 0, t = new Date(), a = [];
+    if (de.scrollWidth > maxSW) maxSW = de.scrollWidth;
+    a.push(('0' + t.getMinutes()).slice(-2) + ':' + ('0' + t.getSeconds()).slice(-2) + '  inner ' + innerWidth + 'x' + innerHeight + '  doc ' + de.clientWidth + 'x' + de.clientHeight + '  scrollW ' + de.scrollWidth + ' (max ' + maxSW + ')' + (de.scrollWidth > innerWidth + 1 ? ' !!X-OVERFLOW' : ''));
+    a.push('vv ' + (vv ? r(vv.width) + 'x' + r(vv.height) + ' off ' + r(vv.offsetLeft) + ',' + r(vv.offsetTop) + ' scale ' + r(vv.scale) : 'none') + '  scroll ' + r(scrollX) + ',' + r(scrollY));
+    a.push('screen ' + screen.width + 'x' + screen.height + '  outer ' + outerWidth + 'x' + outerHeight + '  dpr ' + devicePixelRatio + '  safeB ' + getComputedStyle(probe).paddingBottom + '  pwa ' + (window.matchMedia && matchMedia('(display-mode: standalone)').matches ? 1 : 0));
+    a.push('status top ' + r(st.top) + ' bottom ' + r(st.bottom) + ' h ' + r(st.height) + '  cat bottom ' + r(wk.bottom) + (sr ? '  SET r ' + r(sr.right) + ' b ' + r(sr.bottom) : ''));
+    a.push('gap(inner-status.bottom) ' + r(gap) + (Math.abs(gap) > 1 ? ' !!Y' : '') + '   gap(vv-status.bottom) ' + (vv ? r(vb - st.bottom) : '-'));
+    box.textContent = a.join('\n');
+  }
+  setInterval(dbgTick, 250); dbgTick();
+})();
 setPage(2, false);   // เปิดมาที่หน้า MARKET ทุกครั้ง
 
 /* ---- v2.0 ความมีชีวิต ---- */
