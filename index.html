@@ -702,7 +702,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.19.4',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.19.5',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -767,7 +767,7 @@ var CONFIG = {
   botMlCrit: 150,                     // ต่ำกว่ากี่ % เตือน CRITICAL
   botGridNear: 2,                     // เหลือไม้อีกกี่ไม้ก่อนถึง max grid ให้เตือน (ต้องตั้ง InpMaxGrid ใน Reporter)
   botRows: 60,                        // แสดงรายการไม้สูงสุดกี่แถว
-  botTpFx: true,                      // BOT ปิดกำไร (take profit): แมวมานั่งตัก 5 วิ + ตัวเลขกำไรลอย 2 วิ + เสียงเหรียญ | false = ปิด
+  botTpFx: true,                      // BOT ปิดกำไร (take profit): แมวมานั่งตัก 5 วิ + ตัวเลขกำไรลอย 3 วิ + เสียงเหรียญ | false = ปิด
   botTpMin: 0,                        // ฉลองเมื่อกำไรจริงตั้งแต่เท่านี้ขึ้นไป (หน่วยเงินบัญชี) 0 = ทุกครั้งที่ปิดเป็นบวก
   botTpFresh: 90,                     // ฉลองเฉพาะเหตุการณ์ที่เพิ่งเกิดภายในกี่วินาที (กันฉลองของเก่าตอนเปิดแอปใหม่)
   botSigMaxAge: 1200,                 // สัญญาณเก่ากว่านี้ (วินาที) ถือว่า STALE ให้ตรงกับ SignalMaxAgeSec ของ EA
@@ -3592,12 +3592,12 @@ function catVisit(){
   setTimeout(function(){ gBusy = false; }, 6200);
 }
 $('wk').onclick = catVisit;
-/* BOT ปิดกำไร (take profit): แมวกระโดดมานั่งตักเอง 5 วิ คนดีใจ มีตัวเลขกำไรจริงลอยข้างหัว 2 วิ + เสียงเหรียญ
+/* BOT ปิดกำไร (take profit): แมวกระโดดมานั่งตักเอง 5 วิ คนดีใจ มีตัวเลขกำไรจริงลอยข้างหัว 3 วิ + เสียงเหรียญ
    เรียกจากหน้า BOT (bClose) | ทำงานแม้อยู่ช่วงเงียบ (ภาพ) แต่เสียงยังเคารพ quiet hours | ถ้าแมวกำลังเล่นอยู่ รอให้จบก่อน */
 function tpPop(txt){
   var e = $('tpPop');
   e.textContent = txt; e.style.display = 'block'; e.className = ''; void e.offsetWidth; e.className = 'go';
-  clearTimeout(tpPop._t); tpPop._t = setTimeout(function(){ e.style.display = 'none'; e.className = ''; }, 2000);
+  clearTimeout(tpPop._t); tpPop._t = setTimeout(function(){ e.style.display = 'none'; e.className = ''; }, 3000);
 }
 function tpCelebrate(txt, tries){
   var w = $('walker'), l = $('lapCat');
