@@ -333,6 +333,7 @@ a.hr:active{background:#2a2457}
 .hr .hg .bs{margin-top:3px}
 /* ===== หน้า BOT ===== */
 .bk{font-size:9px;line-height:2;color:var(--dim)}
+#xpBox{display:block;width:100%;-webkit-box-sizing:border-box;box-sizing:border-box;height:96px;margin-bottom:6px;padding:6px;background:#000;color:var(--text);border:2px solid var(--edge);border-radius:0;font-family:inherit;font-size:9px;line-height:1.5;word-break:break-all;resize:none;-webkit-appearance:none;-webkit-user-select:text;user-select:text}
 .bk b{font-weight:normal;color:var(--text)}
 .bs{display:inline-block;padding:1px 5px;margin:0 6px 2px 0;border:2px solid #000;font-size:8px;line-height:1.6;background:#2a2457;color:var(--dim)}
 .bs.ok{background:#103a24;color:var(--up)} .bs.wn{background:#4a3a08;color:var(--gold)} .bs.er{background:#3a0a14;color:var(--down)}
@@ -680,6 +681,12 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
   </div>
   <div id="cfgBox"></div>
   <div id="cfgMsg"></div>
+  <div class="panel" id="xpPanel">
+    <div class="lab">EXPORT / IMPORT</div>
+    <div class="ctl"><button type="button" class="btn" id="xpExp">EXPORT</button><button type="button" class="btn" id="xpImp">IMPORT</button><button type="button" class="btn" id="xpGo" style="display:none">COPY</button></div>
+    <textarea id="xpBox" spellcheck="false" autocomplete="off" autocapitalize="off" style="display:none"></textarea>
+    <div class="bk" id="xpNote">ส่งเตือนราคา + ค่าตั้งต่างๆ + สถิติ NEWS IMPACT ข้ามเครื่องผ่านข้อความ: EXPORT แล้วคัดลอก ไปวางที่เครื่องอื่นด้วย IMPORT</div>
+  </div>
   <div class="panel">
     <div class="lab">BOT</div>
     <div class="bk" id="sysBot">&nbsp;</div>
@@ -702,7 +709,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.19.6',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.19.7',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -3173,6 +3180,97 @@ $('cfgBox').onclick = function(e){
     }
     t = t.parentNode;
   }
+};
+/* ---- EXPORT / IMPORT: เตือนราคา (pc_alerts) + ค่าตั้งจากหน้า SETTINGS (pc_cfg) เป็นข้อความ PCX1:<base64> คัดลอกส่งข้ามเครื่องได้ ---- */
+var XP_PRE = 'PCX1:', xpMode = '';
+function xpBuild(){
+  var al = [], i, a, o;
+  for (i = 0; i < alerts.length; i++){ a = alerts[i]; al.push({a: a.a, dir: a.dir, p: a.p}); }
+  o = {v: 1, alerts: al, cfg: CFG_OV, imp: impLog};
+  return XP_PRE + btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+}
+function xpStr(v, n){ return typeof v === 'string' && v.length <= n; }
+function xpNum(v){ return typeof v === 'number' && isFinite(v); }
+function xpImpOk(x){   /* ตรวจ+ทำความสะอาดหนึ่งรายการสถิติข่าว (รูปแบบเดียวกับ impFinish) คืน null ถ้าใช้ไม่ได้ */
+  var o, i, k, q, j;
+  if (!x || typeof x !== 'object' || !xpNum(x.t) || x.t <= 0 || !(x.n instanceof Array) || !x.n.length || x.n.length > 8 || !(x.k instanceof Array) || x.k.length > 8) return null;
+  for (i = 0; i < x.n.length; i++) if (!xpStr(x.n[i], 200)) return null;
+  for (i = 0; i < x.k.length; i++) if (!xpStr(x.k[i], 200)) return null;
+  o = {t: x.t, n: x.n.slice(0), k: x.k.slice(0), cur: xpStr(x.cur, 8) ? x.cur : '', im: xpStr(x.im, 16) ? x.im : '', ap: x.ap ? 1 : 0, pt: x.pt ? 1 : 0};
+  for (j = 0; j < IMP_K.length; j++){
+    k = IMP_K[j]; q = x[k];
+    if (q === undefined || q === null) continue;
+    if (typeof q !== 'object' || !xpNum(q.b) || !xpNum(q.u) || !xpNum(q.d) || !xpNum(q.c)) return null;
+    o[k] = {b: q.b, u: q.u, d: q.d, c: q.c};
+  }
+  return o;
+}
+function xpParse(txt){   /* คืน {alerts, cfg, nAl, nCfg} หรือ {err} (ตรวจทุกค่าก่อน ไม่แตะของเดิมถ้าไม่ผ่าน) */
+  var s = String(txt || '').replace(/\s+/g, ''), o, i, a, k, d, al = [], cf = {}, nCfg = 0, skip = 0, im = null, e;
+  if (s.indexOf(XP_PRE) !== 0) return {err: 'ข้อความไม่ถูกต้อง (ต้องขึ้นต้นด้วย ' + XP_PRE + ')'};
+  try { o = JSON.parse(decodeURIComponent(escape(atob(s.slice(XP_PRE.length))))); } catch(e){ return {err: 'อ่านข้อความไม่ได้ ลองคัดลอกใหม่ให้ครบ'}; }
+  if (!o || o.v !== 1 || !(o.alerts instanceof Array) || !o.cfg || typeof o.cfg !== 'object' || o.cfg instanceof Array) return {err: 'รูปแบบข้อมูลไม่ตรง (เวอร์ชันไม่รองรับ)'};
+  for (i = 0; i < o.alerts.length && al.length < 50; i++){
+    a = o.alerts[i];
+    if (a && (a.a === 'gold' || a.a === 'btc') && (a.dir === 'up' || a.dir === 'down') && typeof a.p === 'number' && isFinite(a.p) && a.p > 0) al.push({id: Date.now() + i, a: a.a, dir: a.dir, p: a.p});
+    else skip++;
+  }
+  for (k in o.cfg){
+    d = CFG_OK[k];
+    if (d && cfgValid(d, o.cfg[k])){ cf[k] = o.cfg[k]; nCfg++; } else skip++;   /* ค่าที่ไม่รู้จัก/เกินช่วง ข้าม */
+  }
+  if (o.imp !== undefined){
+    if (!(o.imp instanceof Array)) return {err: 'รูปแบบสถิติข่าวไม่ตรง'};
+    im = [];
+    for (i = 0; i < o.imp.length && i < 200; i++){ e = xpImpOk(o.imp[i]); if (e) im.push(e); else skip++; }
+    im = im.slice(-(CONFIG.impactKeep || 50));
+  }
+  return {alerts: al, cfg: cf, imp: im, nAl: al.length, nCfg: nCfg, nImp: im ? im.length : -1, skip: skip};
+}
+function xpApply(r){
+  var ks = [], k, i;
+  for (k in CFG_OV) ks.push(k);
+  for (i = 0; i < ks.length; i++) cfgRestore(ks[i]);   /* เริ่มจากค่าในไฟล์ แล้วใส่ค่าที่นำเข้าทับ ให้เครื่องนี้เหมือนต้นทาง */
+  CFG_OV = {};
+  for (k in r.cfg){ cfgStore(k, r.cfg[k]); ks.push(k); }
+  lsSet('pc_cfg', CFG_OV);
+  for (i = 0; i < ks.length; i++) cfgAfter(ks[i]);
+  cfgRender();
+  alerts = r.alerts; saveAlerts(); renderAlerts(); checkPriceAlerts();
+  if (r.imp){ impLog = r.imp; impIdx(); impSave(); impRender(); }   /* ข้อความรุ่นก่อนไม่มีสถิติข่าว = ไม่แตะของเดิม */
+}
+function xpCopy(box){
+  var ok = false;
+  try { box.focus(); box.select(); box.setSelectionRange(0, box.value.length); ok = document.execCommand('copy'); } catch(e){}
+  if (ok){ cfgMsg('คัดลอกแล้ว'); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(box.value).then(function(){ cfgMsg('คัดลอกแล้ว'); }, function(){ cfgMsg('คัดลอกไม่ได้ แตะกล่องข้อความแล้วคัดลอกเอง'); }); return; }
+  cfgMsg('คัดลอกไม่ได้ แตะกล่องข้อความแล้วคัดลอกเอง');
+}
+function xpShow(m){
+  var box = $('xpBox'), go = $('xpGo');
+  xpMode = m; box.style.display = 'block'; go.style.display = '';
+  if (m === 'exp'){
+    box.readOnly = true; box.value = xpBuild(); go.textContent = 'COPY';
+    setT($('xpNote'), 'เตือนราคา ' + alerts.length + ' รายการ + ค่าตั้ง ' + Object.keys(CFG_OV).length + ' ค่า + สถิติข่าว ' + impLog.length + ' ครั้ง | แตะ COPY แล้วนำไปวางที่เครื่องอื่นด้วย IMPORT');
+  } else {
+    box.readOnly = false; box.value = ''; go.textContent = 'APPLY';
+    setT($('xpNote'), 'วางข้อความที่ EXPORT มา แล้วแตะ APPLY (จะทับเตือนราคา ค่าตั้ง และสถิติข่าวของเครื่องนี้)');
+  }
+}
+$('xpExp').onclick = function(){ xpShow('exp'); };
+$('xpImp').onclick = function(){ xpShow('imp'); $('xpBox').focus(); };
+$('xpBox').onfocus = function(){ if (xpMode === 'exp'){ var b = this; setTimeout(function(){ try { b.select(); } catch(e){} }, 0); } };
+$('xpGo').onclick = function(){
+  var box = $('xpBox'), r;
+  if (xpMode === 'exp'){ xpCopy(box); return; }
+  if (xpMode !== 'imp') return;
+  r = xpParse(box.value);
+  if (r.err){ cfgMsg(r.err); return; }
+  if (!confirm('นำเข้า: เตือนราคา ' + r.nAl + ' รายการ + ค่าตั้ง ' + r.nCfg + ' ค่า' + (r.nImp >= 0 ? ' + สถิติข่าว ' + r.nImp + ' ครั้ง' : '') + (r.skip ? ' (ข้ามที่ใช้ไม่ได้ ' + r.skip + ')' : '') + '\nจะทับของเดิมในเครื่องนี้' + (r.nImp >= 0 ? ' (รวมสถิติข่าว)' : '') + ' ตกลงไหม?')) return;
+  xpApply(r);
+  box.value = ''; box.style.display = 'none'; $('xpGo').style.display = 'none'; xpMode = '';
+  setT($('xpNote'), 'นำเข้าแล้ว: เตือนราคา ' + r.nAl + ' รายการ + ค่าตั้ง ' + r.nCfg + ' ค่า' + (r.nImp >= 0 ? ' + สถิติข่าว ' + r.nImp + ' ครั้ง' : '') + (cfgNeedsReload() ? ' | บางค่าต้องรีโหลดถึงมีผลเต็มที่' : ''));
+  cfgMsg('นำเข้าสำเร็จ');
 };
 newsRefilter(true);   /* ตัวกรองข่าวที่ตั้งไว้ต้องใช้กับข่าวที่แคชไว้ตั้งแต่เปิดแอป */
 cfgRender();
