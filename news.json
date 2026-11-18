@@ -520,14 +520,6 @@
     "previous": "3.9%"
   },
   {
-    "title": "Foreign Direct Investment ytd/y",
-    "country": "CNY",
-    "date": "2026-11-18T02:02:00-05:00",
-    "impact": "Low",
-    "forecast": "",
-    "previous": "-4.3%"
-  },
-  {
     "title": "BOE Gov Bailey Speaks",
     "country": "GBP",
     "date": "2026-11-18T02:30:00-05:00",
@@ -718,6 +710,14 @@
     "impact": "High",
     "forecast": "4.7%",
     "previous": "4.7%"
+  },
+  {
+    "title": "Foreign Direct Investment ytd/y",
+    "country": "CNY",
+    "date": "2026-11-19T02:02:00-05:00",
+    "impact": "Low",
+    "forecast": "",
+    "previous": "-4.3%"
   },
   {
     "title": "Current Account",
@@ -1889,7 +1889,7 @@
     "currency": "EUR",
     "impact": "medium",
     "title": "Gross Domestic Product QoQ (DE)",
-    "forecast": "",
+    "forecast": "0.2%",
     "previous": "0.2%",
     "actual": "",
     "id": "eur-gross-domestic-product-qoq-de.20261125T0700",
@@ -1906,7 +1906,7 @@
     "currency": "EUR",
     "impact": "medium",
     "title": "Gross Domestic Product YoY (DE)",
-    "forecast": "",
+    "forecast": "1.2%",
     "previous": "1.2%",
     "actual": "",
     "id": "eur-gross-domestic-product-yoy-de.20261125T0700",
