@@ -483,7 +483,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
       <div class="sub" id="sunL">&nbsp;</div>
     </div>
     <div class="panel wide">
-      <div class="lab"><span id="icoDay"></span>3 DAYS</div>
+      <div class="lab"><span id="icoDay"></span>5 DAYS</div>
       <div id="wxDays"></div>
     </div>
   </div>
@@ -702,7 +702,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.19.5',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.19.6',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -3307,7 +3307,7 @@ SPR.storm = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWW
 SPR.snow = ["....kkkk......", "...kWWWWk.kk..", "..kWWWWWWkWWk.", ".kWWWWWWWWWWWk", "kWWWWWWWWWWWWk", "kkkkkkkkkkkkkk", "..W...W...W...", "....W...W.....", "..W...W...W..."];
 SPR.fog = ["..WWWWWWWWWW..", "..............", ".WWWWWWWWWWWW.", "..............", "...WWWWWWWW..."];
 
-/* ---- หน้า WEATHER: อากาศตอนนี้ + 12 ชม.ข้างหน้า + ฝุ่น + แสงแดด + 3 วัน (Open-Meteo) ---- */
+/* ---- หน้า WEATHER: อากาศตอนนี้ + 12 ชม.ข้างหน้า + ฝุ่น + แสงแดด + 5 วัน (Open-Meteo) ---- */
 var WX = null, AQ = null, wxErr = false, wxRetry = null, spC = {};
 $('icoWx').innerHTML = sprite('sun', 2);
 $('icoHr').innerHTML = sprite('cloud2', 2);
@@ -3373,7 +3373,7 @@ function wxRender(){
   setT($('sunL'), nm < sr ? 'ดวงอาทิตย์ยังไม่ขึ้น อีก ' + fmtM(Math.round(sr - nm)) + ' ชม.' :
     (nm >= ss ? 'ดวงอาทิตย์ตกแล้ว' : 'เหลือแสงแดดอีก ' + fmtM(Math.round(ss - nm)) + ' ชม.'));
   h = '';
-  for (i = 0; i < D.time.length && i < 3; i++){
+  for (i = 0; i < D.time.length && i < 5; i++){
     dt = new Date(+D.time[i].substring(0, 4), +D.time[i].substring(5, 7) - 1, +D.time[i].substring(8, 10));
     inf = wxInfo(D.weather_code[i], true); pp = D.precipitation_probability_max[i];
     h += '<div class="dr"><span class="dn">' + (i === 0 ? 'วันนี้' : (i === 1 ? 'พรุ่งนี้' : DAYS[dt.getDay()])) + '</span>' +
@@ -3403,7 +3403,7 @@ function loadWx2(){
   var q = 'latitude=' + loc.lat + '&longitude=' + loc.lon;
   get('https://api.open-meteo.com/v1/forecast?' + q + '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m' +
     '&hourly=temperature_2m,precipitation_probability,weather_code' +
-    '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,sunrise,sunset&forecast_days=3&timezone=auto',
+    '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,sunrise,sunset&forecast_days=5&timezone=auto',
     function(j){
       if (!j || !j.current || !j.hourly || !j.daily || !j.daily.sunrise || !j.daily.sunrise[0]){ wxBad(); return; }
       j.at = Date.now(); WX = j; wxErr = false; wxRender();
@@ -3746,7 +3746,7 @@ function webClear(){
   webStage = 0; $('webL').style.display = 'none'; $('webR').style.display = 'none';
 }
 function webCheck(){
-  var after = CONFIG.webAfterSec, idle = Date.now() - sp.last, st, h;
+  var after = CONFIG.webAfterSec * 1000, idle = Date.now() - sp.last, st, h;   /* webAfterSec เป็นวินาที แต่ idle เป็นมิลลิวินาที */
   if (!after || document.hidden) return;
   if (idle < after){ webClear(); return; }
   st = Math.min(4, 1 + Math.floor((idle - after) / 15000));   /* ถักเพิ่มทุก 15 วินาที */
