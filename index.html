@@ -107,7 +107,7 @@ body:not(.day) .cloud{opacity:.18}
 .tick{position:fixed;left:0;right:0;bottom:0;z-index:6;display:none;width:100%;max-width:100%;overflow:hidden;contain:paint;background:#000;border-top:2px solid var(--gold);padding-bottom:env(safe-area-inset-bottom,0px);pointer-events:none}
 #tkT{display:inline-block;white-space:nowrap;padding:8px 0 8px 100%;font-size:8px;line-height:1.6;color:var(--text)}   /* padding-left:100% = ตัวหนังสือเริ่มที่ขอบขวาของกล่อง ไม่ใช้หน่วย vw */
 #tkT b{color:var(--gold);font-weight:normal}
-#tkT i{font-style:normal;color:#8fd3ff;font-size:10px}
+#tkT i{font-style:normal;color:#8fd3ff;font-size:13px;line-height:1}   /* ขนาดจริงตั้งจาก CONFIG.headlinesTickerThaiPx ผ่าน style ในตัว */
 @-webkit-keyframes tkLR{from{-webkit-transform:translate3d(-100%,0,0)}to{-webkit-transform:translate3d(0,0,0)}}
 @keyframes tkLR{from{transform:translate3d(-100%,0,0)}to{transform:translate3d(0,0,0)}}
 @-webkit-keyframes tkRL{from{-webkit-transform:translate3d(0,0,0)}to{-webkit-transform:translate3d(-100%,0,0)}}
@@ -702,7 +702,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.19.2',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.19.3',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -746,7 +746,9 @@ var CONFIG = {
   headlinesEverySec: 120,             // ดึงหัวข้อข่าวใหม่ทุกกี่วินาที (ดึงเบื้องหลังทุกหน้า และตอนเปิดหน้า NEWS)
   headlinesMax: 25,                   // แสดงหัวข้อข่าวสูงสุดกี่รายการ
   headlinesThai: true,                // แสดงคำแปลไทยใต้หัวข้อข่าวภาษาอังกฤษ (Worker แปลให้ ต้องผูก Workers AI ที่ Worker ถึงจะมีคำแปล)
+  headlinesTickerExt: false,          // ข่าว BTC จากเว็บอื่น (Cointelegraph/CoinDesk/Decrypt/The Block) ให้วิ่งที่ล่างจอและมีเสียงด้วย | false = โชว์แค่ในหน้า NEWS (กันรบกวน)
   headlinesTickerThai: false,         // ข่าวใหม่ที่วิ่งล่างจอ ต่อท้ายด้วยคำแปลไทย (ถ้ามี)
+  headlinesTickerThaiPx: 13,          // ขนาดตัวหนังสือไทยในข่าววิ่ง (พิกเซล) | อังกฤษคงที่ 8px
   headlinesTicker: true,              // ข่าวใหม่ที่เข้ามาวิ่งเป็นตัวหนังสือที่แถบล่างจอ แล้วหายไป | false = ปิด
   headlinesTickerLoops: 2,            // วิ่งกี่รอบแล้วหาย
   headlinesTickerSound: true,         // มีเสียงเตือนตอนข่าวใหม่วิ่ง (ต้องกด SOUND ON ก่อน และไม่ดังในช่วงเงียบ) | false = วิ่งเงียบ
@@ -802,7 +804,9 @@ var SET_DEFS = [
     {k: 'headlinesThai', t: 'b', n: 'แสดงคำแปลไทยใต้หัวข้อข่าว', h: 'แปลอัตโนมัติโดย Worker (ต้องเปิด Workers AI)'},
     {k: 'headlinesTicker', t: 'b', n: 'ข่าวใหม่วิ่งที่แถบล่างจอ', h: 'ทิศทางและความเร็วแก้ใน CONFIG'},
     {k: 'headlinesTickerLoops', t: 'n', n: 'ข่าวใหม่วิ่งกี่รอบแล้วหาย', u: 'รอบ', min: 1, max: 5, st: 1},
+    {k: 'headlinesTickerExt', t: 'b', n: 'ข่าว BTC จากเว็บอื่นวิ่งล่างจอด้วย', h: 'เว็บอื่นมีข่าว BTC บ่อย ปิดไว้จะแสดงแค่ในหน้า NEWS', show: function(){ return !!CONFIG.headlinesTicker; }},
     {k: 'headlinesTickerThai', t: 'b', n: 'ข่าววิ่งต่อท้ายด้วยคำแปลไทย', show: function(){ return !!CONFIG.headlinesTicker; }},
+    {k: 'headlinesTickerThaiPx', t: 'n', n: 'ขนาดตัวหนังสือไทยในข่าววิ่ง', u: 'px', min: 9, max: 24, st: 1, show: function(){ return !!CONFIG.headlinesTicker && !!CONFIG.headlinesTickerThai; }},
     {k: 'headlinesTickerSound', t: 'b', n: 'เสียงเตือนตอนข่าวใหม่วิ่ง', h: 'ต้องกด SOUND ON ก่อน และไม่ดังในช่วงเงียบ', show: function(){ return !!CONFIG.headlinesTicker; }}
   ]},
   {s: 'BOT ALERTS', it: [
@@ -3177,7 +3181,7 @@ if (!/^[KGUFBA]$/.test(String(HL.f))) HL.f = 'K';
 if (typeof HL.seen !== 'number') HL.seen = 0;
 var HLN = {K: 'KEY', G: 'GOLD', U: 'USD', F: 'FED', B: 'BTC', A: 'ALL'};
 function hlOk(it, f){ return f === 'A' || (f === 'K' ? it.k.length > 0 : it.k.indexOf(f) >= 0); }
-function hlSafe(u){ return (typeof u === 'string' && /^https:\/\/(www\.)?fxstreet\.com\/[^\s"'<>\\]*$/i.test(u)) ? u : ''; }   /* ใส่ใน href ได้เฉพาะ https ของ fxstreet.com ที่ไม่มีอักขระอันตราย (esc() ของแอปไม่ escape เครื่องหมายคำพูด) */
+function hlSafe(u){ return (typeof u === 'string' && /^https:\/\/(www\.)?(fxstreet\.com|cointelegraph\.com|coindesk\.com|decrypt\.co|theblock\.co)\/[^\s"'<>\\]*$/i.test(u)) ? u : ''; }   /* ใส่ใน href ได้เฉพาะ https ของ fxstreet.com ที่ไม่มีอักขระอันตราย (esc() ของแอปไม่ escape เครื่องหมายคำพูด) */
 function hlWhen(t){
   var d = new Date(t), a = (Date.now() - t) / 1000, n = new Date(), same = n.getFullYear() === d.getFullYear() && n.getMonth() === d.getMonth() && n.getDate() === d.getDate();
   return (same ? '' : d.getDate() + ' ' + MON[d.getMonth()] + ' ') + hhmm(t) + (a >= 0 && a < 3600 ? ' (' + Math.max(1, Math.floor(a / 60)) + 'm)' : '');
@@ -3192,9 +3196,9 @@ function hlLoad(force){
     var a = [], i, x;
     HL.busy = false;
     if (!j || j.ok !== true || !(j.items instanceof Array)){ HL.err = 'ข้อมูลจาก Worker ไม่ถูกต้อง'; hlRender(); return; }
-    for (i = 0; i < j.items.length && a.length < 60; i++){
+    for (i = 0; i < j.items.length && a.length < 90; i++){
       x = j.items[i];
-      if (x && typeof x.ti === 'string' && typeof x.t === 'number' && typeof x.i === 'string') a.push({i: x.i, t: x.t, ti: x.ti, th: typeof x.th === 'string' ? x.th.slice(0, 300) : '', u: hlSafe(x.u), k: typeof x.k === 'string' ? x.k : ''});
+      if (x && typeof x.ti === 'string' && typeof x.t === 'number' && typeof x.i === 'string') a.push({i: x.i, t: x.t, ti: x.ti, th: typeof x.th === 'string' ? x.th.slice(0, 300) : '', u: hlSafe(x.u), s: typeof x.s === 'string' ? x.s.slice(0, 14) : '', k: typeof x.k === 'string' ? x.k : ''});
     }
     HL.items = a; HL.at = (typeof j.at === 'number') ? j.at : 0; HL.serr = j.err || null; HL.err = ''; HL.off = !!j.off; HL.got = Date.now();
     try { tkCheck(a); } catch(e){}   /* ตัวหนังสือวิ่งพังก็ไม่กระทบการแสดงหัวข้อข่าว */
@@ -3214,7 +3218,7 @@ function hlRender(){
     if (c >= CONFIG.headlinesMax) continue;
     c++;
     fr = it.t > HL.seen; if (fr) nw++;
-    tg = (it.k.indexOf('G') >= 0 ? '<span class="bs wn">GOLD</span>' : '') + (it.k.indexOf('U') >= 0 ? '<span class="bs">USD</span>' : '') + (it.k.indexOf('F') >= 0 ? '<span class="bs">FED</span>' : '') + (it.k.indexOf('B') >= 0 ? '<span class="bs">BTC</span>' : '');
+    tg = (it.k.indexOf('G') >= 0 ? '<span class="bs wn">GOLD</span>' : '') + (it.k.indexOf('U') >= 0 ? '<span class="bs">USD</span>' : '') + (it.k.indexOf('F') >= 0 ? '<span class="bs">FED</span>' : '') + (it.k.indexOf('B') >= 0 ? '<span class="bs">BTC</span>' : '') + (it.s ? '<span class="bs">' + esc(it.s) + '</span>' : '');
     h += (it.u ? '<a href="' + it.u + '" target="_blank" rel="noopener noreferrer"' : '<div') + ' class="hr' + (fr ? ' nw' : '') + '"><span class="hw">' + hlWhen(it.t) + (fr ? ' <span class="bs ok">NEW</span>' : '') + '</span>' + esc(it.ti) + (CONFIG.headlinesThai && it.th ? '<span class="ht">' + esc(it.th) + '</span>' : '') + '<span class="hg">' + tg + '</span>' + (it.u ? '</a>' : '</div>');
   }
   if (!h) h = '<div class="sub">' + (HL.busy ? 'กำลังโหลด...' : (HL.got ? 'ไม่มีหัวข้อตามตัวกรองนี้ ลองกด ALL' : (HL.err ? '' : 'รอข้อมูล...'))) + '</div>';
@@ -3252,7 +3256,7 @@ function tkNext(){
   if (it.k.indexOf('F') >= 0) tg += ' FED';
   if (it.k.indexOf('B') >= 0) tg += ' BTC';
   s.style.webkitAnimation = 'none'; s.style.animation = 'none';
-  setH(s, '<b>NEW' + tg + '</b>  ' + esc(it.ti) + (CONFIG.headlinesTickerThai && it.th ? '  \u00B7  <i>' + esc(it.th) + '</i>' : ''));
+  setH(s, '<b>NEW' + tg + '</b>  ' + esc(it.ti) + (CONFIG.headlinesTickerThai && it.th ? '  \u00B7  <i style="font-size:' + Math.min(24, Math.max(9, Math.round(CONFIG.headlinesTickerThaiPx) || 13)) + 'px">' + esc(it.th) + '</i>' : ''));
   e.style.display = 'block';
   dur = Math.max(4, s.offsetWidth / sp);   /* ระยะที่วิ่ง = ความกว้างของกล่องตัวหนังสือ (กว้างกล่อง + กว้างข้อความ) */
   an = (CONFIG.headlinesTickerDir === 'RL' ? 'tkRL ' : 'tkLR ') + dur.toFixed(2) + 's linear ' + loops + ' forwards';
@@ -3270,7 +3274,7 @@ function tkCheck(a){
   if (t0 && CONFIG.headlinesTicker){   /* t0 = 0 คือเปิดครั้งแรก ใช้ข่าวที่มีอยู่เป็นฐาน ไม่วิ่งย้อนหลัง */
     for (i = 0; i < a.length; i++){
       it = a[i];
-      if (it.t > t0 && now - it.t <= age && (!CONFIG.headlinesTickerKeyOnly || it.k.length > 0)) q.push(it);
+      if (it.t > t0 && now - it.t <= age && (!CONFIG.headlinesTickerKeyOnly || it.k.length > 0) && (!it.s || CONFIG.headlinesTickerExt)) q.push(it);
     }
     q.sort(function(x, y){ return x.t - y.t; });
     q = q.slice(-3);   /* เอาแค่ 3 ข่าวล่าสุด */
