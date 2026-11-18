@@ -702,7 +702,7 @@ html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:tr
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.19.3',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.19.4',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -758,7 +758,7 @@ var CONFIG = {
   headlinesTickerMaxAgeMin: 30,       // ข้ามข่าวที่เก่ากว่านี้ (นาที) กันวิ่งข่าวเก่าตอนเปิดแอปหลังปิดไปนาน
   impactKeep: 50,                     // เก็บประวัติกี่ครั้งล่าสุด
   bot: true,                          // หน้า BOT: ดูสถานะ EA Grid บน MT5 (ดูอย่างเดียว) ต้องตั้ง URL+KEY ที่หน้า BOT > SETUP | false = ปิด
-  botEverySec: 10,                    // ดึงข้อมูลทุกกี่วินาที (หน้าอื่นดึงแบบย่อ ประหยัดข้อมูล)
+  botEverySec: 5,                     // ดึงข้อมูลทุกกี่วินาที (หน้าอื่นดึงแบบย่อ ประหยัดข้อมูล)
   botStaleSec: 45,                    // ไม่มีข้อมูลใหม่เกินกี่วินาที = STALE (เตือนเหลือง)
   botOfflineSec: 120,                 // เกินกี่วินาที = OFFLINE (เตือนแดง มีเสียง)
   botDdLimit: 30,                     // เพดาน drawdown (%) ใช้กับแถบ HP | DD = (BALANCE - EQUITY) / BALANCE
@@ -1698,6 +1698,7 @@ function beepNews(st){   /* เสียงเตือนข่าวล่ว�
 }
 function beepCoin(){   /* เสียงเหรียญ/เงินเข้า: โน้ตสั้นสูง 2 ตัวแบบเกมเก็บเหรียญ + ประกายเสียงสูงตอนท้าย (เคารพ SOUND ON/OFF และช่วงเงียบ) */
   if (!soundOn || !audioCtx || isQuiet()) return;
+  try { if (audioCtx.state === 'suspended' && audioCtx.resume) audioCtx.resume(); } catch(e){}
   var N = [[988, 0, .07], [1319, .07, .42], [1976, .22, .30]], i, o, g, t0;
   try {
     for (i = 0; i < N.length; i++){
@@ -3602,7 +3603,7 @@ function tpCelebrate(txt, tries){
   var w = $('walker'), l = $('lapCat');
   if (gBusy){ if ((tries || 0) < 12) setTimeout(function(){ tpCelebrate(txt, (tries || 0) + 1); }, 1000); return; }
   gBusy = true; walkJump();
-  setTimeout(function(){ w.style.visibility = 'hidden'; setH(l, spr('walkSleep', 3)); l.style.display = 'block'; gMoodSet('play', 5000); tpPop(txt); beepCoin(); }, 500);
+  setTimeout(function(){ w.style.visibility = 'hidden'; setH(l, spr('walkSleep', 3)); l.style.display = 'block'; gMoodSet('play', 5000); tpPop(txt); beepCoin(); }, 150);
   setTimeout(function(){ l.style.display = 'none'; w.style.visibility = ''; walkJump(); }, 5500);
   setTimeout(function(){ gBusy = false; }, 6200);
 }
