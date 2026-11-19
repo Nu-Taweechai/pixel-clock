@@ -408,18 +408,18 @@ html.zen #zenwx:empty{display:none}
 html.zen .wrap{-webkit-transition:-webkit-transform 4s ease-in-out;transition:transform 4s ease-in-out}
 
 /* ---- ท้องฟ้าตามสภาพอากาศ ---- */
-#wx{position:fixed;left:0;top:0;right:0;bottom:0;z-index:1;pointer-events:none;overflow:hidden;contain:paint}
-#wx>div{position:absolute;left:0;top:0;right:0;bottom:0}
-#wxT,#wxH{background-color:rgba(0,0,0,0);-webkit-transition:background-color 4s linear;transition:background-color 4s linear}
+#sky{position:fixed;left:0;top:0;right:0;bottom:0;z-index:1;pointer-events:none;overflow:hidden;contain:paint}
+#sky>div{position:absolute;left:0;top:0;right:0;bottom:0}
+#skyT,#skyHz{background-color:rgba(0,0,0,0);-webkit-transition:background-color 4s linear;transition:background-color 4s linear}
 #sun,#stars{-webkit-transition:opacity 4s linear;transition:opacity 4s linear}
-.wx-ovc #wxT{background-color:rgba(70,72,95,.22)}
-.wx-fog #wxT{background-color:rgba(225,225,235,.32)}
-body:not(.day) .wx-fog #wxT{background-color:rgba(150,150,180,.2)}
-.wx-drz #wxT{background-color:rgba(60,68,92,.25)}
-.wx-rain #wxT{background-color:rgba(40,50,75,.36)}
-.wx-hvy #wxT{background-color:rgba(30,38,62,.46)}
-.wx-storm #wxT{background-color:rgba(15,18,40,.55)}
-.wx-snow #wxT{background-color:rgba(200,210,235,.18)}
+.wx-ovc #skyT{background-color:rgba(70,72,95,.22)}
+.wx-fog #skyT{background-color:rgba(225,225,235,.32)}
+body:not(.day) .wx-fog #skyT{background-color:rgba(150,150,180,.2)}
+.wx-drz #skyT{background-color:rgba(60,68,92,.25)}
+.wx-rain #skyT{background-color:rgba(40,50,75,.36)}
+.wx-hvy #skyT{background-color:rgba(30,38,62,.46)}
+.wx-storm #skyT{background-color:rgba(15,18,40,.55)}
+.wx-snow #skyT{background-color:rgba(200,210,235,.18)}
 .wd{position:absolute;top:-24px;width:3px;height:12px;background:#9fd0ff;opacity:.75;
   -webkit-animation:wxfall steps(14,end) infinite;animation:wxfall steps(14,end) infinite}
 .wx-hvy .wd,.wx-storm .wd{height:16px;opacity:.85}
@@ -428,8 +428,8 @@ body:not(.day) .wx-fog #wxT{background-color:rgba(150,150,180,.2)}
 .wb{position:absolute;left:-10%;right:-10%;height:48px;background:rgba(255,255,255,.22);
   -webkit-animation:wxfog 30s steps(30,end) infinite alternate;animation:wxfog 30s steps(30,end) infinite alternate}
 body:not(.day) .wb{background:rgba(190,190,230,.14)}
-#wxF{background:#fff;opacity:0}
-.wx-storm #wxF{-webkit-animation:wxflash 9s steps(1,end) infinite;animation:wxflash 9s steps(1,end) infinite}
+#skyF{background:#fff;opacity:0}
+.wx-storm #skyF{-webkit-animation:wxflash 9s steps(1,end) infinite;animation:wxflash 9s steps(1,end) infinite}
 @-webkit-keyframes wxfall{from{-webkit-transform:translate3d(0,0,0)}to{-webkit-transform:translate3d(-28px,115vh,0)}}
 @keyframes wxfall{from{transform:translate3d(0,0,0)}to{transform:translate3d(-28px,115vh,0)}}
 @-webkit-keyframes wxsnow{from{-webkit-transform:translate3d(0,0,0)}to{-webkit-transform:translate3d(-24px,112vh,0)}}
@@ -446,13 +446,13 @@ body:not(.day) #clouds.cl-clr .cloud{opacity:.08}
 body:not(.day) #clouds.cl-ovc .cloud{opacity:.4}
 #clouds.cl-wet .cloud{opacity:1;-webkit-filter:brightness(.5);filter:brightness(.5)}
 body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
-@media (prefers-reduced-motion:reduce){#wxP{display:none}#wxF,.wb{-webkit-animation:none!important;animation:none!important}}
+@media (prefers-reduced-motion:reduce){#skyP{display:none}#skyF,.wb{-webkit-animation:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 <div id="stars"></div>
 <div id="clouds"></div>
-<div id="wx"><div id="wxT"></div><div id="wxH"></div><div id="wxB"></div><div id="wxP"></div><div id="wxF"></div></div>
+<div id="sky"><div id="skyT"></div><div id="skyHz"></div><div id="skyP"></div><div id="skyF"></div></div>
 <div class="alert" id="alert"></div>
 <div class="wrap">
   <div class="hud">
@@ -751,7 +751,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.20.1',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.20.3',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -1051,10 +1051,10 @@ $('icoFng').innerHTML = sprite('therm', 3);
 })();
 
 /* ---- ท้องฟ้าตามสภาพอากาศ: weather_code (WMO) + PM2.5 ---- */
-var WX = {code:null, pm:null, temp:null, force:null, pmForce:null, tempForce:null, cold:false, kind:''};
-var WXK = ['clr','part','ovc','fog','drz','rain','hvy','snow','storm'];
-var WX_SUN = {clr:1, part:1, ovc:.5, fog:.35, drz:.35, rain:.25, hvy:.15, snow:.3, storm:.1};
-var WX_STAR = {clr:1, part:.85, ovc:.25, fog:0, drz:.15, rain:0, hvy:0, snow:0, storm:0};
+var SKY = {code:null, pm:null, temp:null, force:null, pmForce:null, tempForce:null, cold:false, kind:''};
+var SKYK = ['clr','part','ovc','fog','drz','rain','hvy','snow','storm'];
+var SKY_SUN = {clr:1, part:1, ovc:.5, fog:.35, drz:.35, rain:.25, hvy:.15, snow:.3, storm:.1};
+var SKY_STAR = {clr:1, part:.85, ovc:.25, fog:0, drz:.15, rain:0, hvy:0, snow:0, storm:0};
 (function(){   /* เมฆเสริม 4 ก้อน โผล่เฉพาะวันครึ้ม/ฝน */
   var c = '', tops = [20, 95, 170, 250], durs = [90, 75, 110, 80], dels = [-10, -55, -30, -65];
   for (var j = 0; j < 4; j++){
@@ -1095,30 +1095,30 @@ function wxNorth(){   /* กรอบภาคเหนือของไทย�
 function wxApply(){
   var k, pm, a, cl, t;
   if (CONFIG.weatherSky === false) return;
-  k = WX.force || (WX.code === null ? 'part' : wxKind(WX.code));
-  t = WX.tempForce !== null ? WX.tempForce : WX.temp;
+  k = SKY.force || (SKY.code === null ? 'part' : wxKind(SKY.code));
+  t = SKY.tempForce !== null ? SKY.tempForce : SKY.temp;
   if (t !== null && !isNaN(t)){   /* ฮิสเทอรีซิส: เริ่มตกที่ <= snowTempC หยุดเมื่อ > snowTempC+1 */
-    if (t <= CONFIG.snowTempC) WX.cold = true; else if (t > CONFIG.snowTempC + 1) WX.cold = false;
+    if (t <= CONFIG.snowTempC) SKY.cold = true; else if (t > CONFIG.snowTempC + 1) SKY.cold = false;
   }
-  if (!WX.force && CONFIG.snowCold !== false && WX.cold && wxNorth() && (k === 'clr' || k === 'part' || k === 'ovc' || k === 'fog' || k === 'drz')) k = 'snow';
-  pm = WX.pmForce !== null ? WX.pmForce : WX.pm;
-  if (k !== WX.kind){
-    WX.kind = k;
-    $('wx').className = 'wx-' + k;
-    $('wxP').innerHTML = wxParts(k);
+  if (!SKY.force && CONFIG.snowCold !== false && SKY.cold && wxNorth() && (k === 'clr' || k === 'part' || k === 'ovc' || k === 'fog' || k === 'drz')) k = 'snow';
+  pm = SKY.pmForce !== null ? SKY.pmForce : SKY.pm;
+  if (k !== SKY.kind){
+    SKY.kind = k;
+    $('sky').className = 'wx-' + k;
+    $('skyP').innerHTML = wxParts(k);
     cl = k === 'clr' ? 'cl-clr' : (k === 'ovc' || k === 'fog' || k === 'drz' || k === 'snow') ? 'cl-ovc' : (k === 'rain' || k === 'hvy' || k === 'storm') ? 'cl-wet' : '';
     $('clouds').className = cl;
-    $('sun').style.opacity = WX_SUN[k];
-    $('stars').style.opacity = WX_STAR[k];
+    $('sun').style.opacity = SKY_SUN[k];
+    $('stars').style.opacity = SKY_STAR[k];
   }
   a = pm > 150 ? .34 : pm > 75 ? .24 : pm > 37.5 ? .12 : 0;   /* เกณฑ์ PM2.5 ของไทย: >37.5 เริ่มมีผลต่อสุขภาพ, >75 มีผลต่อสุขภาพ */
-  $('wxH').style.backgroundColor = 'rgba(170,130,80,' + a + ')';
+  $('skyHz').style.backgroundColor = 'rgba(170,130,80,' + a + ')';
 }
 (function(){   /* โหมดทดสอบ: ?wx=storm&pm=90 */
   var m = /[?&]wx=(\w+)/.exec(location.search), p = /[?&]pm=(\d+)/.exec(location.search), tt = /[?&]t=(-?\d+)/.exec(location.search);
-  if (m && WXK.indexOf(m[1]) >= 0) WX.force = m[1];
-  if (p) WX.pmForce = +p[1];
-  if (tt) WX.tempForce = +tt[1];
+  if (m && SKYK.indexOf(m[1]) >= 0) SKY.force = m[1];
+  if (p) SKY.pmForce = +p[1];
+  if (tt) SKY.tempForce = +tt[1];
   wxApply();
 })();
 
@@ -1959,8 +1959,8 @@ function loadWeather(){
       // Current temperature
       var c = j && j.current;
       if (c){
-        if (c.temperature_2m !== null && c.temperature_2m !== undefined) WX.temp = c.temperature_2m;
-        if (c.weather_code !== null && c.weather_code !== undefined) WX.code = c.weather_code;
+        if (c.temperature_2m !== null && c.temperature_2m !== undefined) SKY.temp = c.temperature_2m;
+        if (c.weather_code !== null && c.weather_code !== undefined) SKY.code = c.weather_code;
         wxApply();
       }
 
@@ -2093,7 +2093,7 @@ function loadWeather(){
       var v = j && j.current
         ? j.current.pm2_5 : null;
 
-      if (v !== null && v !== undefined && !isNaN(v)){ WX.pm = v; wxApply(); }
+      if (v !== null && v !== undefined && !isNaN(v)){ SKY.pm = v; wxApply(); }
 
       var lv = LV[LV.length-1];
       var idx = LV.length-1;
