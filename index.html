@@ -447,6 +447,14 @@ body:not(.day) #clouds.cl-ovc .cloud{opacity:.4}
 #clouds.cl-wet .cloud{opacity:1;-webkit-filter:brightness(.5);filter:brightness(.5)}
 body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 @media (prefers-reduced-motion:reduce){#skyP{display:none}#skyF,.wb{-webkit-animation:none!important;animation:none!important}}
+
+/* ---- LIQUIDATION: ระเบิดพิกเซล ---- */
+#liqfx{position:fixed;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:19;overflow:hidden}
+#liqfx div{position:absolute}
+#liqlb{position:fixed;left:0;right:0;top:17%;text-align:center;z-index:19;pointer-events:none;display:none}
+#liqlb .box{display:inline-block;background:#000;border:4px solid var(--gold);padding:10px 16px;box-shadow:6px 6px 0 rgba(0,0,0,.5);-webkit-animation:lvin .4s steps(4);animation:lvin .4s steps(4)}
+#liqlb .lqt{font-size:11px;line-height:1.4}
+#liqlb .lqs{font-size:20px;line-height:1.4;margin-top:6px;color:#fff}
 </style>
 </head>
 <body>
@@ -705,6 +713,8 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 </div>
 <div id="coins"></div>
 <div id="lvl"></div>
+<div id="liqfx"></div>
+<div id="liqlb"></div>
 <div id="netwarn"></div>
 <button type="button" id="setBtn">SET</button>
 <div class="sys" id="sys"><div class="sysin">
@@ -751,7 +761,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.20.3',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.21.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -774,6 +784,9 @@ var CONFIG = {
   weatherSky: true,      // ท้องฟ้าตามสภาพอากาศจริง: ฝน/พายุ/หมอก/เมฆครึ้ม/ฝุ่น PM2.5 (false = ปิด) ทดสอบได้ด้วย ?wx=rain|hvy|storm|fog|ovc|drz|snow|clr&pm=90&t=8
   snowCold: true,        // หนาวจัดในภาคเหนือของไทย (พิกัดอยู่ในกรอบภาคเหนือ) ให้หิมะพิกเซลตกบนจอ false = ปิด (หิมะจริงตาม weather_code ยังทำงานปกติ)
   snowTempC: 18,         // อุณหภูมิ (°C) ที่ถือว่าหนาวจัด: ต่ำกว่าหรือเท่ากับค่านี้หิมะเริ่มตก และหยุดเมื่อสูงกว่า +1 องศา (กันสลับไปมา)
+  liveLiq: true,         // ระเบิดพิกเซลเมื่อมี Liquidation (การบังคับปิดสถานะ) รายการใหญ่ จาก Binance Futures forceOrder: BTC / ETH / ทอง XAUUSDT | false = ปิด
+  liqMinUsd: 250000,     // มูลค่าต่อรายการ (USD) ที่ถือว่า "ใหญ่" พอให้ระเบิด ยังไม่มีเกณฑ์มาตรฐานที่ยืนยันได้ ลองดูข้อมูลจริงสักวันแล้วปรับ
+  liqSound: true,        // เสียงตูมสั้นๆ ตอนระเบิด (ต้องกด SOUND ON และไม่ดังในช่วงเงียบ)
   spiderAfterSec: 600,   // ไม่แตะหน้าจอเกินกี่วินาที แมงมุมจะเกาะใยลงมา (0 = ปิด) แตะจอเมื่อไหร่ก็ไต่กลับขึ้นไป
 
   /* --- เตือนราคา / ช่วงเงียบ / รีโหลด --- */
@@ -876,6 +889,11 @@ var SET_DEFS = [
     {k: 'goldFromMt5', t: 'b', n: 'ใช้ราคา MT5 เป็นตัวยึด (ถ้า BOT เชื่อมอยู่)', h: 'ปิด = ใช้ xaus spot เหมือนเดิม'},
     {k: 'goldMt5MaxAge', t: 'n', n: 'ราคา MT5 เก่าเกินนี้ = กลับไปใช้ spot', u: 'วิ', min: 10, max: 120, st: 5, h: 'Reporter ส่งทุก 10 วินาที ไม่ควรต่ำกว่า 20'},
     {k: 'goldMt5MaxDiff', t: 'n', n: 'ราคา MT5 ต่างจากฟีดเกินนี้ = ไม่ใช้', u: '%', min: 0.5, max: 10, st: 0.5, h: 'กันกรณี Reporter ตั้ง symbol ผิด'}
+  ]},
+  {s: 'LIQUIDATION', it: [
+    {k: 'liveLiq', t: 'b', n: 'ระเบิดพิกเซลเมื่อมี Liquidation ใหญ่', r: 1, h: 'ข้อมูลจาก Binance Futures (BTC/ETH/ทอง) ตัวเลขที่เห็นคือเท่าที่สตรีมส่งมา ไม่ใช่ยอดรวมจริง และไม่ใช่สัญญาณเทรด'},
+    {k: 'liqMinUsd', t: 'n', n: 'ใหญ่แค่ไหนถึงระเบิด (ต่อรายการ)', u: 'USD', min: 50000, max: 10000000, st: 50000, show: function(){ return !!CONFIG.liveLiq; }},
+    {k: 'liqSound', t: 'b', n: 'เสียงตูมตอนระเบิด', h: 'ต้องกด SOUND ON ก่อน และไม่ดังในช่วงเงียบ', show: function(){ return !!CONFIG.liveLiq; }}
   ]},
   {s: 'SCREEN & RELOAD', it: [
     {k: 'spiderAfterSec', t: 'n', n: 'แมงมุมลงมาเมื่อไม่แตะจอ', u: 'วิ', min: 0, max: 3600, st: 60, off: 0, r: 1, h: 'ถ้าเดิมปิดอยู่ ต้องรีโหลดถึงจะเริ่มทำงาน'},
@@ -1121,6 +1139,104 @@ function wxApply(){
   if (tt) SKY.tempForce = +tt[1];
   wxApply();
 })();
+
+/* ---- LIQUIDATION: ฟัง <symbol>@forceOrder ของ Binance USDⓈ-M Futures (endpoint /market) แล้วระเบิดพิกเซลเมื่อมีรายการใหญ่ ----
+   หมายเหตุ: Binance ส่งเฉพาะรายการล่าสุดต่อสัญลักษณ์ใน 1000ms และไม่ส่งอะไรถ้าไม่มีเหตุการณ์ จึงเห็นไม่ครบทุกรายการ และเงียบเป็นปกติได้ */
+var LIQ = {ws: null, delay: 2000, log: [], last: 0, t: null, hid: 0};
+var LIQ_URL = 'wss://fstream.binance.com/market/stream?streams=btcusdt@forceOrder/ethusdt@forceOrder/xauusdt@forceOrder';
+var LIQ_NAME = {BTCUSDT: 'BTC', ETHUSDT: 'ETH', XAUUSDT: 'XAU'};
+function liqUsd(n){ return n >= 1e6 ? '$' + (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + 'M' : '$' + Math.round(n / 1000) + 'K'; }
+function liqConnect(){
+  var w;
+  if (!CONFIG.liveLiq || !window.WebSocket) return;
+  if (LIQ.ws && LIQ.ws.readyState < 2) return;
+  try { w = new WebSocket(LIQ_URL); } catch(e){ setTimeout(liqConnect, LIQ.delay); return; }
+  LIQ.ws = w;
+  w.onopen = function(){ LIQ.delay = 2000; };
+  w.onmessage = function(ev){
+    var m, o;
+    try { m = JSON.parse(ev.data); } catch(e){ return; }
+    o = m && m.data && m.data.o;
+    if (o && o.s) liqHandle(o);
+  };
+  w.onclose = function(){
+    if (LIQ.ws === w) LIQ.ws = null;
+    setTimeout(liqConnect, LIQ.delay); LIQ.delay = Math.min(LIQ.delay * 2, 30000);
+  };
+  w.onerror = function(){ try { w.close(); } catch(e){} };
+}
+document.addEventListener('visibilitychange', function(){   /* iOS มักตัด socket เงียบๆ ตอนจอหลับ และสตรีมนี้เงียบได้ตามปกติ จึงรีคอนเน็กต์ใหม่ถ้าซ่อนไปนานกว่า 1 นาที */
+  if (document.hidden){ LIQ.hid = Date.now(); return; }
+  if (LIQ.ws && LIQ.hid && Date.now() - LIQ.hid > 60000){
+    var w = LIQ.ws; LIQ.ws = null; w.onclose = null;
+    try { w.close(); } catch(e){}
+  }
+  liqConnect();
+}, false);
+function liqHandle(o){
+  var q = parseFloat(o.z) || parseFloat(o.q), p = parseFloat(o.ap) > 0 ? parseFloat(o.ap) : parseFloat(o.p), usd, long;
+  if (!(q > 0) || !(p > 0)) return;
+  usd = q * p;
+  long = o.S === 'SELL';   /* ตามหลักตลาด futures: long ที่โดนบังคับปิด = คำสั่ง SELL (เอกสาร Binance ไม่ได้อธิบายความหมายของฟิลด์ S ตรงนี้) */
+  LIQ.log.push({t: Date.now(), s: o.s, side: o.S, usd: usd, p: p});
+  if (LIQ.log.length > 50) LIQ.log.shift();
+  if (CONFIG.liveLiq === false || usd < CONFIG.liqMinUsd) return;
+  liqBoom(LIQ_NAME[o.s] || o.s, long, usd);
+}
+function beepLiq(tier){   /* เสียงตูม: คลื่นฟันเลื่อยไล่ลงเร็ว คนละโทนกับเตือนอื่น (เคารพ SOUND ON/OFF และช่วงเงียบ) */
+  if (!CONFIG.liqSound || !soundOn || !audioCtx || isQuiet()) return;
+  try { if (audioCtx.state === 'suspended' && audioCtx.resume) audioCtx.resume(); } catch(e){}
+  try {
+    var t0 = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(180 + tier * 40, t0); o.frequency.exponentialRampToValueAtTime(40, t0 + .35);
+    g.gain.setValueAtTime(.12, t0); g.gain.exponentialRampToValueAtTime(.0001, t0 + .4);
+    o.connect(g); g.connect(audioCtx.destination); o.start(t0); o.stop(t0 + .42);
+  } catch(e){}
+  try { if (navigator.vibrate) navigator.vibrate(tier ? [80, 40, 120] : 80); } catch(e){}
+  try { muDuck(2); } catch(e){}
+}
+function liqBoom(name, long, usd){
+  var now = Date.now(), host = $('liqfx'), lb = $('liqlb'), tier = usd >= 5e6 ? 2 : usd >= 1e6 ? 1 : 0,
+      pal = long ? ['#ff3b30', '#ff9500', '#ffd60a'] : ['#30d158', '#7cff9b', '#ffffff'],   /* แดง = long โดนบังคับปิด (ราคาถูกกดลง) เขียว = short โดนบังคับปิด */
+      W = window.innerWidth, H = window.innerHeight, cx = W * (.3 + Math.random() * .4), cy = H * (.28 + Math.random() * .16),
+      n = 14 + tier * 8, fr = [], i, a, sp, sz, el, fl, t0, still = false;
+  if (!host || !lb || now - LIQ.last < 700) return;   /* กันระเบิดรัว */
+  LIQ.last = now;
+  lb.innerHTML = '<div class="box" style="border-color:' + pal[0] + '"><div class="lqt" style="color:' + pal[0] + '">' + name + (long ? ' LONG' : ' SHORT') + ' LIQ</div><div class="lqs">' + liqUsd(usd) + '</div></div>';
+  lb.style.display = 'block';
+  clearTimeout(LIQ.t); LIQ.t = setTimeout(function(){ lb.style.display = 'none'; }, 2600);
+  beepLiq(tier);
+  try { still = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch(e){}
+  if (still) return;
+  fl = document.createElement('div'); fl.style.cssText = 'left:0;top:0;right:0;bottom:0;background:' + pal[0] + ';opacity:.35'; host.appendChild(fl);
+  el = document.createElement('div'); sz = 22 + tier * 10;   /* แกนกลางสีขาว */
+  el.style.cssText = 'left:' + (cx - sz / 2) + 'px;top:' + (cy - sz / 2) + 'px;width:' + sz + 'px;height:' + sz + 'px;background:#fff'; host.appendChild(el);
+  fr.push({e: el, vx: 0, vy: 0, core: 1});
+  for (i = 0; i < n; i++){
+    a = i / n * 6.2832 + Math.random() * .4; sp = (70 + Math.random() * 150) * (1 + tier * .35); sz = 6 + Math.floor(Math.random() * 3) * 4;
+    el = document.createElement('div');
+    el.style.cssText = 'left:' + (cx - sz / 2) + 'px;top:' + (cy - sz / 2) + 'px;width:' + sz + 'px;height:' + sz + 'px;background:' + pal[i % 3];
+    host.appendChild(el); fr.push({e: el, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40});
+  }
+  t0 = Date.now();
+  (function step(){
+    var k = Math.floor((Date.now() - t0) / 1000 * 14) / 14, j, f, tr, op;
+    if (k > 1.1){ host.innerHTML = ''; return; }
+    if (step.k !== k){
+      step.k = k;
+      fl.style.opacity = k < .15 ? .35 : 0;
+      op = k > .7 ? Math.max(0, 1 - (k - .7) / .4) : 1;
+      for (j = 0; j < fr.length; j++){
+        f = fr[j]; tr = 'translate3d(' + Math.round(f.vx * k) + 'px,' + Math.round(f.vy * k + 260 * k * k) + 'px,0)';
+        f.e.style.webkitTransform = tr; f.e.style.transform = tr;
+        f.e.style.opacity = f.core ? (k < .2 ? 1 : 0) : op;
+      }
+    }
+    (window.requestAnimationFrame || function(c){ setTimeout(c, 70); })(step);
+  })();
+}
+function liqTest(usd, long){ liqBoom('BTC', long !== false, usd || 1200000); }   /* ทดสอบ: liqTest(1200000) หรือ liqTest(6e6, false) */
+(function(){ var m = /[?&]liq=(\d+)/.exec(location.search); if (m) setTimeout(function(){ liqTest(+m[1], !/[?&]side=buy/i.test(location.search)); }, 1500); })();
 
 /* ---- นาฬิกา ---- */
 var DAYS = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
@@ -1615,7 +1731,7 @@ function connectWS(){
   w.onerror = function(){ try { w.close(); } catch(e){} };
 }
 /* ---- realtime ทอง: Binance Futures XAUUSDT (ไม่ต้องใช้ key) ---- */
-var XWS_URL = 'wss://fstream.binance.com/stream?streams=xauusdt@miniTicker';
+var XWS_URL = 'wss://fstream.binance.com/market/stream?streams=xauusdt@miniTicker';   /* Binance แยก endpoint เป็น /public /market /private และเลิกใช้ URL เดิม (ไม่มี path) ตั้งแต่ 2026-04-23 */
 var xws = null, xDelay = 2000, xAlive = 0;
 function connectGoldWS(){
   if (!CONFIG.liveWS || !CONFIG.liveGoldFut || !window.WebSocket) return;
@@ -4281,7 +4397,7 @@ try {   /* ปุ่มควบคุมบนหน้าจอล็อก */
 muRender();
 
 renderAlerts(); renderSess();
-loadPrice(); loadWeather(); connectWS(); connectGoldWS(); loadSpot(); locate();
+loadPrice(); loadWeather(); connectWS(); connectGoldWS(); liqConnect(); loadSpot(); locate();
 if (!nc || !allEv.length || Date.now() - nc.at > CONFIG.newsEverySec * 1000) loadNews(); else showStatus();
 setInterval(loadPrice, CONFIG.priceEverySec * 1000);
 setInterval(loadWeather, CONFIG.weatherEverySec * 1000);
