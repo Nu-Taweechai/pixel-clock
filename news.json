@@ -2510,7 +2510,7 @@
     "impact": "low",
     "title": "Baker Hughes US Oil Rig Count",
     "forecast": "",
-    "previous": "",
+    "previous": "469",
     "actual": "",
     "id": "usd-baker-hughes-us-oil-rig-count.20261127T1800",
     "status": "scheduled",
