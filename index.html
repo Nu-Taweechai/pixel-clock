@@ -761,7 +761,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.21.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.21.2',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -1183,16 +1183,28 @@ function liqHandle(o){
   if (CONFIG.liveLiq === false || usd < CONFIG.liqMinUsd) return;
   liqBoom(LIQ_NAME[o.s] || o.s, long, usd);
 }
-function beepLiq(tier){   /* เสียงตูม: คลื่นฟันเลื่อยไล่ลงเร็ว คนละโทนกับเตือนอื่น (เคารพ SOUND ON/OFF และช่วงเงียบ) */
+function beepLiq(tier){   /* เสียงระเบิด: เสียงซู่ (noise) + โทนไล่ลงช่วง 700→90Hz ที่ลำโพงมือถือได้ยินจริง ยาวประมาณ 1-1.6 วินาที ยิ่งรายการใหญ่ยิ่งยาว/ดัง (เคารพ SOUND ON/OFF และช่วงเงียบ) */
   if (!CONFIG.liqSound || !soundOn || !audioCtx || isQuiet()) return;
   try { if (audioCtx.state === 'suspended' && audioCtx.resume) audioCtx.resume(); } catch(e){}
   try {
-    var t0 = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.type = 'sawtooth'; o.frequency.setValueAtTime(180 + tier * 40, t0); o.frequency.exponentialRampToValueAtTime(40, t0 + .35);
-    g.gain.setValueAtTime(.12, t0); g.gain.exponentialRampToValueAtTime(.0001, t0 + .4);
-    o.connect(g); g.connect(audioCtx.destination); o.start(t0); o.stop(t0 + .42);
+    var t0 = audioCtx.currentTime, d = 1 + tier * .3, vol = .28 + tier * .06, sr = audioCtx.sampleRate, len = Math.floor(sr * d),
+        buf = audioCtx.createBuffer(1, len, sr), ch = buf.getChannelData(0), i, ns, lp, ng, o1, g1, o2, g2;
+    for (i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    ns = audioCtx.createBufferSource(); ns.buffer = buf;
+    lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(3500, t0); lp.frequency.exponentialRampToValueAtTime(250, t0 + d);
+    ng = audioCtx.createGain(); ng.gain.setValueAtTime(vol, t0); ng.gain.exponentialRampToValueAtTime(.0001, t0 + d);
+    ns.connect(lp); lp.connect(ng); ng.connect(audioCtx.destination); ns.start(t0);
+    o1 = audioCtx.createOscillator(); g1 = audioCtx.createGain(); o1.type = 'sawtooth';
+    o1.frequency.setValueAtTime(700, t0); o1.frequency.exponentialRampToValueAtTime(90, t0 + d * .85);
+    g1.gain.setValueAtTime(vol * .7, t0); g1.gain.exponentialRampToValueAtTime(.0001, t0 + d * .9);
+    o1.connect(g1); g1.connect(audioCtx.destination); o1.start(t0); o1.stop(t0 + d);
+    o2 = audioCtx.createOscillator(); g2 = audioCtx.createGain(); o2.type = 'square';
+    o2.frequency.setValueAtTime(320, t0); o2.frequency.exponentialRampToValueAtTime(70, t0 + .45);
+    g2.gain.setValueAtTime(vol * .5, t0); g2.gain.exponentialRampToValueAtTime(.0001, t0 + .5);
+    o2.connect(g2); g2.connect(audioCtx.destination); o2.start(t0); o2.stop(t0 + .55);
   } catch(e){}
-  try { if (navigator.vibrate) navigator.vibrate(tier ? [80, 40, 120] : 80); } catch(e){}
+  try { if (navigator.vibrate) navigator.vibrate(tier ? [120, 50, 160, 50, 200] : [90, 40, 120]); } catch(e){}
   try { muDuck(2); } catch(e){}
 }
 function liqBoom(name, long, usd){
@@ -1960,7 +1972,7 @@ function beepTick(){   /* เสียงข่าวใหม่วิ่งท
     for (i = 0; i < N.length; i++){
       o = audioCtx.createOscillator(); g = audioCtx.createGain(); t0 = audioCtx.currentTime + N[i][1];
       o.type = 'sine'; o.frequency.value = N[i][0];
-      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.13, t0 + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + N[i][2]);
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.32, t0 + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + N[i][2]);
       o.connect(g); g.connect(audioCtx.destination);
       o.start(t0); o.stop(t0 + N[i][2] + 0.02);
     }
