@@ -731,6 +731,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
     <div class="lab" id="sndLab">SOUND</div>
     <div class="bk" id="sysSnd">&nbsp;</div>
     <div class="ctl"><button type="button" class="btn" id="sysSay">SAY NOW</button></div>
+    <div class="ctl wr" id="voCtl"></div>
   </div>
   <div id="cfgBox"></div>
   <div id="cfgMsg"></div>
@@ -828,6 +829,9 @@ var CONFIG = {
   voiceOpen: true,                    // แตะจอครั้งแรกหลังเปิดแอป = พูดเวลา + ราคาทอง + อุณหภูมิ + ข่าวสำคัญถัดไป (ไม่พูดในช่วงเงียบ)
   voiceBtc: true,                     // รวมราคา BTC ในคำพูดสรุปด้วย
   voiceNews: true,                    // อ่านออกเสียงหัวข้อข่าวใหม่ตอนวิ่งที่แถบล่างจอ (ต้องเปิด headlinesTicker) ใช้คำแปลไทยถ้ามี ไม่มีก็อ่านอังกฤษ
+  voiceLiq: true,                     // พูดตอน Liquidation ใหญ่ เช่น "ล้างพอร์ต บิตคอยน์ ฝั่งลอง 1.2 ล้านดอลลาร์" (ต้องเปิด liveLiq) ไม่พูดในช่วงเงียบ และเว้นอย่างน้อย voiceLiqGapSec วินาทีระหว่างครั้ง
+  voiceLiqMinUsd: 1000000,            // พูดเฉพาะรายการที่ใหญ่ตั้งแต่เท่านี้ (USD) ต่ำกว่านี้ยังระเบิดพิกเซลตามปกติแต่ไม่พูด (กันพูดรัว)
+  voiceLiqGapSec: 20,                 // เว้นระหว่างพูด Liquidation อย่างน้อยกี่วินาที
   voiceRate: 1,                       // ความเร็วเสียงพูด 0.6 ช้า - 1.5 เร็ว (1 = ปกติ)
   impactKeep: 50,                     // เก็บประวัติกี่ครั้งล่าสุด
   bot: true,                          // หน้า BOT: ดูสถานะ EA Grid บน MT5 (ดูอย่างเดียว) ต้องตั้ง URL+KEY ที่หน้า BOT > SETUP | false = ปิด
@@ -888,6 +892,8 @@ var SET_DEFS = [
     {k: 'voiceOpen', t: 'b', n: 'พูดสรุปตอนเปิดแอป', h: 'เวลา + ทอง + อุณหภูมิ + ข่าวถัดไป', show: function(){ return VOICE_OK && !!CONFIG.voice; }},
     {k: 'voiceBtc', t: 'b', n: 'รวมราคา BTC ในคำพูดสรุป', show: function(){ return VOICE_OK && !!CONFIG.voice; }},
     {k: 'voiceNews', t: 'b', n: 'อ่านข่าวที่วิ่งล่างจอ', h: 'ต้องเปิด ข่าวใหม่วิ่งที่แถบล่างจอ ด้วย | ใช้คำแปลไทยถ้ามี', show: function(){ return VOICE_OK && !!CONFIG.voice; }},
+    {k: 'voiceLiq', t: 'b', n: 'พูดตอน Liquidation ใหญ่', h: 'ต้องเปิดระเบิดพิกเซลตอน Liquidation ด้วย', show: function(){ return VOICE_OK && !!CONFIG.voice && !!CONFIG.liveLiq; }},
+    {k: 'voiceLiqMinUsd', t: 'n', n: 'พูดเฉพาะรายการใหญ่ตั้งแต่', u: 'USD', min: 250000, max: 10000000, st: 250000, show: function(){ return VOICE_OK && !!CONFIG.voice && !!CONFIG.liveLiq && !!CONFIG.voiceLiq; }},
     {k: 'voiceRate', t: 'n', n: 'ความเร็วเสียงพูด', u: 'x', min: 0.6, max: 1.5, st: 0.1, show: function(){ return VOICE_OK && !!CONFIG.voice; }}
   ]},
   {s: 'BOT ALERTS', it: [
@@ -1234,6 +1240,7 @@ function liqBoom(name, long, usd){
   lb.style.display = 'block';
   clearTimeout(LIQ.t); LIQ.t = setTimeout(function(){ lb.style.display = 'none'; }, 2600);
   beepLiq(tier);
+  try { voLiq(name, long, usd); } catch(e){}
   try { still = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch(e){}
   if (still) return;
   fl = document.createElement('div'); fl.style.cssText = 'left:0;top:0;right:0;bottom:0;background:' + pal[0] + ';opacity:.35'; host.appendChild(fl);
@@ -3346,6 +3353,8 @@ function sysRender(){
   t += '<br>เบราว์เซอร์บังคับให้กด SOUND ON ใหม่ทุกครั้งที่เปิดแอป (รวมหลังรีโหลดอัตโนมัติตี ' + (CONFIG.autoReloadHour >= 0 ? CONFIG.autoReloadHour : '-') + ') ถ้าไม่กด เสียงเตือนและเสียงเหรียญจะไม่ดัง';
   if (typeof VO === 'object'){
     t += '<br>VOICE ' + (!VO.ok ? sChip(2, 'N/A') : (CONFIG.voice ? sChip(0, 'ON') : sChip(3, 'OFF'))) + (VO.ok ? ' TH ' + (VO.th ? sChip(0, 'OK') : sChip(1, VO.vs.length ? 'NONE' : '?')) + ' EN ' + (VO.en ? sChip(0, 'OK') : sChip(1, VO.vs.length ? 'NONE' : '?')) + ' ' + (VO.unlocked ? sChip(0, 'READY') : sChip(1, 'แตะจอ 1 ครั้ง')) : '');
+    voUi();
+    if (VO.ok && VO.pref.g !== 'a') t += '<br>เลือกเสียง' + (VO.pref.g === 'f' ? 'หญิง' : 'ชาย') + ': เบราว์เซอร์ไม่บอกเพศของเสียง แอปเดาจากชื่อ ถ้าเครื่องไม่มีเสียงที่ตรง จะปรับโทนเสียงให้แทน (ชายลดโทน) หรือกด TH/EN เลือกเสียงเองเพื่อฟังทีละตัว';
     if (VO.ok && VO.vs.length && !VO.th) t += '<br>เครื่องนี้ไม่มีเสียงภาษาไทย (ตั้งค่าเครื่อง > การช่วยเหลือพิเศษ/ภาษา > เสียงพูด) ข่าวจะอ่านเป็นอังกฤษแทน';
   }
   setH($('sysSnd'), t);
@@ -4434,18 +4443,39 @@ muRender();
    เบราว์เซอร์ห้ามพูดเองก่อนผู้ใช้แตะจอ (iOS ต้องสั่ง speak ภายในเหตุการณ์แตะเท่านั้น) จึงรอแตะครั้งแรกหลังเปิดแอปแล้วค่อยพูด
    ใช้เสียงที่มีในเครื่อง: ภาษาไทย (th-TH) สำหรับคำพูดและคำแปลข่าว, อังกฤษ (en-US) สำหรับหัวข้อข่าวดิบ */
 var MONF = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-var VO = {ok: VOICE_OK, unlocked: false, opening: false, openDone: false, act: 0, sumN: 0, gen: 0, th: null, en: null, vs: [], safeT: null};
+var VO = {ok: VOICE_OK, unlocked: false, opening: false, openDone: false, act: 0, sumN: 0, gen: 0, th: null, en: null, thL: [], enL: [], vs: [], safeT: null, pref: lsGet('pc_voice') || {}};
+if (['a', 'f', 'm'].indexOf(VO.pref.g) < 0) VO.pref.g = 'a';
+if (typeof VO.pref.th !== 'string') VO.pref.th = '';
+if (typeof VO.pref.en !== 'string') VO.pref.en = '';
+/* เบราว์เซอร์ไม่บอกเพศของเสียง เดาจากชื่อเสียงที่รู้จัก (Kanya/Narisa/Premwadee/Achara = หญิง, Pattara/Niwat = ชาย ฯลฯ) ชื่อที่ไม่รู้จักถือว่าไม่ทราบ */
+var VO_F = /kanya|narisa|premwadee|achara|samantha|karen|zira|hazel|susan|siri|aria|jenny|\bava\b|allison|victoria|moira|tessa|fiona|serena|libby|sonia|natasha|heera|female|woman|ภาษาไทย/i;
+var VO_M = /pattara|niwat|david|mark|alex|daniel|fred|\btom\b|guy|ryan|george|james|richard|rishi|oliver|arthur|\bmale\b|\bman\b/i;
+function voGuess(n){ n = String(n || ''); return VO_F.test(n) ? 'f' : (VO_M.test(n) ? 'm' : ''); }
+function voSave(){ lsSet('pc_voice', VO.pref); }
 function voLoad(){
   var a = [], i, v, l;
   if (!VO.ok) return;
   try { a = window.speechSynthesis.getVoices() || []; } catch(e){ a = []; }
-  VO.vs = a; VO.th = null; VO.en = null;
+  VO.vs = a; VO.th = null; VO.en = null; VO.thL = []; VO.enL = [];
   for (i = 0; i < a.length; i++){
     v = a[i]; l = String(v.lang || '').replace('_', '-').toLowerCase();
-    if (!VO.th && l.indexOf('th') === 0) VO.th = v;
-    if (!VO.en && l === 'en-us') VO.en = v;
+    if (l.indexOf('th') === 0) VO.thL.push(v);
+    else if (l === 'en-us') VO.enL.unshift(v);   /* en-US มาก่อน */
+    else if (l.indexOf('en') === 0) VO.enL.push(v);
   }
-  if (!VO.en) for (i = 0; i < a.length; i++) if (String(a[i].lang || '').toLowerCase().indexOf('en') === 0){ VO.en = a[i]; break; }
+  VO.th = VO.thL[0] || null; VO.en = VO.enL[0] || null;
+}
+/* เลือกเสียงตามที่ตั้ง: ถ้าเลือกชื่อเสียงเองใช้ตามนั้น | ไม่เลือก = หาเสียงที่เดาว่าเพศตรงกับ ชาย/หญิง | ไม่มีให้เลือก = ใช้เสียงแรกแล้วปรับโทน (ชายลดโทน) */
+function voPick(l){
+  var list = l === 'th' ? VO.thL : VO.enL, nm = VO.pref[l], g = VO.pref.g, i, v = null, gs, pitch = 1;
+  for (i = 0; i < list.length; i++) if (nm && list[i].name === nm) v = list[i];
+  if (v) return {v: v, p: 1};
+  if (g !== 'a') for (i = 0; i < list.length; i++) if (voGuess(list[i].name) === g){ v = list[i]; break; }
+  if (!v) v = list[0] || null;
+  gs = v ? voGuess(v.name) : '';
+  if (g === 'm' && gs !== 'm') pitch = 0.75;
+  else if (g === 'f' && gs === 'm') pitch = 1.15;
+  return {v: v, p: pitch};
 }
 function voHasTh(){ return !VO.vs.length || !!VO.th; }   /* รายการเสียงว่าง = ยังไม่รู้ (Android บางเครื่องโหลดช้า) ให้ลองพูดไทยไปก่อน */
 function voDuck(on){   /* หรี่เพลงลงระหว่างพูด (เฉพาะเครื่องที่คุมระดับเสียงจากเว็บได้) */
@@ -4460,7 +4490,7 @@ function voStop(){
 function voClean(t){ return String(t || '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '').slice(0, 220); }
 /* parts = [{t: ข้อความ, l: 'th' | 'en'}] | mode: 'new' = ตัดของเดิมแล้วพูดใหม่ | 'add' = ต่อคิวท้าย | force = ไม่สนช่วงเงียบ (ใช้กับปุ่ม SAY) */
 function voSay(parts, mode, force, isSum){
-  var ss, i, u, g, n = 0, rate;
+  var ss, i, u, g, n = 0, rate, pk;
   if (!VO.ok || !CONFIG.voice || !parts || !parts.length) return false;
   if (!force && (isQuiet() || document.hidden)) return false;
   ss = window.speechSynthesis;
@@ -4472,8 +4502,9 @@ function voSay(parts, mode, force, isSum){
     try {
       u = new SpeechSynthesisUtterance(parts[i].t);
       u.lang = parts[i].l === 'th' ? 'th-TH' : 'en-US';
-      if (parts[i].l === 'th' ? VO.th : VO.en) u.voice = parts[i].l === 'th' ? VO.th : VO.en;
-      u.rate = rate; u.volume = 1;
+      pk = voPick(parts[i].l === 'th' ? 'th' : 'en');
+      if (pk.v) u.voice = pk.v;
+      u.rate = rate; u.pitch = pk.p; u.volume = 1;
       (function(u, g){
         var fin = function(e){
           if (g !== VO.gen) return;
@@ -4577,6 +4608,46 @@ function voNews(it){
   parts.push(th ? {t: voClean(it.th), l: 'th'} : {t: voClean(it.ti), l: 'en'});
   voSay(parts, VO.sumN > 0 ? 'add' : 'new', false, false);
 }
+function voShort(n){ return String(n || '').replace(/^(Microsoft|Google)\s+/i, '').replace(/\s*-\s*.*$/, '').slice(0, 14); }
+function voUi(){
+  var e = $('voCtl'), g = VO.pref.g, h, nm;
+  if (!e) return;
+  if (!VO.ok){ e.style.display = 'none'; return; }
+  h = '<button type="button" class="btn" data-v="g">เสียง: ' + (g === 'f' ? 'หญิง' : (g === 'm' ? 'ชาย' : 'AUTO')) + '</button>';
+  if (VO.thL.length > 1) h += '<button type="button" class="btn" data-v="th">TH: ' + esc(VO.pref.th ? voShort(VO.pref.th) : 'AUTO') + '</button>';
+  if (VO.enL.length > 1) h += '<button type="button" class="btn" data-v="en">EN: ' + esc(VO.pref.en ? voShort(VO.pref.en) : 'AUTO') + '</button>';
+  h += '<button type="button" class="btn" data-v="test">TEST</button>';
+  e.innerHTML = h;
+}
+function voTest(){
+  var pk = voPick('th'), t = [{t: 'สวัสดี นี่คือเสียงทดสอบ ทองคำ 4000 ดอลลาร์', l: 'th'}];
+  if (!voHasTh()) t = [{t: 'This is a voice test. Gold is four thousand dollars.', l: 'en'}];
+  VO.unlocked = true; VO.openDone = true;
+  voSay(t, 'new', true, true);
+}
+function voCycle(l){
+  var list = l === 'th' ? VO.thL : VO.enL, i = -1, k;
+  for (k = 0; k < list.length; k++) if (VO.pref[l] && list[k].name === VO.pref[l]) i = k;
+  i++; VO.pref[l] = i >= list.length ? '' : list[i].name;
+  voSave();
+}
+$('voCtl').onclick = function(e){
+  var t = e.target || e.srcElement, v = t && t.getAttribute ? t.getAttribute('data-v') : null;
+  if (!v || !VO.ok) return;
+  voLoad();
+  if (v === 'g'){ VO.pref.g = VO.pref.g === 'a' ? 'f' : (VO.pref.g === 'f' ? 'm' : 'a'); voSave(); }
+  else if (v === 'th' || v === 'en') voCycle(v);
+  if (!CONFIG.voice) CONFIG.voice = true;
+  voTest(); voUi();
+};
+var VO_LQ = 0;
+function voLiq(name, long, usd){
+  var nm = {BTC: 'บิตคอยน์', ETH: 'อีเธอเรียม', XAU: 'ทองคำ'}[name] || name, amt, now = Date.now();
+  if (!VO.ok || !CONFIG.voice || !CONFIG.voiceLiq || !VO.unlocked) return;
+  if (usd < (CONFIG.voiceLiqMinUsd || 1000000) || now - VO_LQ < (CONFIG.voiceLiqGapSec || 20) * 1000) return;
+  amt = usd >= 1e6 ? (usd / 1e6).toFixed(usd >= 1e7 ? 0 : 1) + ' ล้านดอลลาร์' : Math.round(usd / 1000) + ' พันดอลลาร์';
+  if (voSay([{t: 'ล้างพอร์ต ' + nm + ' ฝั่ง' + (long ? 'ลอง' : 'ชอร์ต') + ' ' + amt, l: 'th'}], VO.sumN > 0 ? 'add' : 'new', false, false)) VO_LQ = now;
+}
 function voCfg(k){
   if ((k === 'voice' && !CONFIG.voice) || (k === 'voiceNews' && !CONFIG.voiceNews)) voStop();
   if (k === 'voice' && CONFIG.voice && !VO.unlocked) VO.openDone = true;   /* เปิดจากหน้าตั้งค่า = ไม่ต้องพูดสรุปซ้ำ */
@@ -4589,7 +4660,7 @@ function voCfg(k){
   function go(e){
     var id = e && e.target ? e.target.id : '';
     if (VO.unlocked && (VO.openDone || !CONFIG.voiceOpen)) return;
-    if (!CONFIG.voice || id === 'say' || id === 'sysSay') return;
+    if (!CONFIG.voice || id === 'say' || id === 'sysSay' || ($('voCtl') && e.target && $('voCtl').contains(e.target))) return;
     if (CONFIG.voiceOpen && !VO.openDone){ voOpen(); if (!VO.unlocked) voUnlock(); } else voUnlock();
   }
   for (i = 0; i < ev.length; i++) document.addEventListener(ev[i], go, true);
