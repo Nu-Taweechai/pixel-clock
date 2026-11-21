@@ -554,7 +554,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
     </div>
 
     <div class="panel wide">
-      <div class="lab"><span id="icoNews"></span>NEWS (FOREX FACTORY)<button id="snd" type="button">SOUND OFF</button></div>
+      <div class="lab"><span id="icoNews"></span>NEWS (FOREX FACTORY)<button id="say" class="btn" type="button" style="margin-left:auto">SAY</button><button id="snd" type="button" style="margin-left:6px">SOUND OFF</button></div>
       <div class="val sm" id="nCount">--</div>
       <div class="sub" id="nTitle">LOADING...</div>
       <div id="nList"></div>
@@ -730,6 +730,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
   <div class="panel">
     <div class="lab" id="sndLab">SOUND</div>
     <div class="bk" id="sysSnd">&nbsp;</div>
+    <div class="ctl"><button type="button" class="btn" id="sysSay">SAY NOW</button></div>
   </div>
   <div id="cfgBox"></div>
   <div id="cfgMsg"></div>
@@ -761,7 +762,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.21.3',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.22.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -821,6 +822,13 @@ var CONFIG = {
   headlinesTickerDir: 'RL',           // ทิศทาง: 'RL' = ขวาไปซ้าย (อ่านได้ปกติ) | 'LR' = ซ้ายไปขวา
   headlinesTickerKeyOnly: true,       // true = เฉพาะข่าวที่ติดแท็ก GOLD/USD/FED/BTC | false = ทุกข่าวใหม่
   headlinesTickerMaxAgeMin: 30,       // ข้ามข่าวที่เก่ากว่านี้ (นาที) กันวิ่งข่าวเก่าตอนเปิดแอปหลังปิดไปนาน
+
+  /* --- เสียงพูด (speechSynthesis ของเบราว์เซอร์ ไม่ต้องมีไฟล์เสียง/ไม่เสียค่าใช้จ่าย) --- */
+  voice: true,                        // เปิดระบบเสียงพูดทั้งหมด | false = ปิด (ปุ่ม SAY ก็ไม่พูด) เบราว์เซอร์ห้ามพูดเองก่อนแตะจอ จึงต้องแตะจอ 1 ครั้งหลังเปิดแอป
+  voiceOpen: true,                    // แตะจอครั้งแรกหลังเปิดแอป = พูดเวลา + ราคาทอง + อุณหภูมิ + ข่าวสำคัญถัดไป (ไม่พูดในช่วงเงียบ)
+  voiceBtc: true,                     // รวมราคา BTC ในคำพูดสรุปด้วย
+  voiceNews: true,                    // อ่านออกเสียงหัวข้อข่าวใหม่ตอนวิ่งที่แถบล่างจอ (ต้องเปิด headlinesTicker) ใช้คำแปลไทยถ้ามี ไม่มีก็อ่านอังกฤษ
+  voiceRate: 1,                       // ความเร็วเสียงพูด 0.6 ช้า - 1.5 เร็ว (1 = ปกติ)
   impactKeep: 50,                     // เก็บประวัติกี่ครั้งล่าสุด
   bot: true,                          // หน้า BOT: ดูสถานะ EA Grid บน MT5 (ดูอย่างเดียว) ต้องตั้ง URL+KEY ที่หน้า BOT > SETUP | false = ปิด
   botEverySec: 5,                     // ดึงข้อมูลทุกกี่วินาที (หน้าอื่นดึงแบบย่อ ประหยัดข้อมูล)
@@ -841,6 +849,7 @@ var CONFIG = {
 
 /* ===== ค่าที่ปรับได้จากหน้า SETTINGS (เก็บเฉพาะค่าที่ต่างจากไฟล์ไว้ใน localStorage 'pc_cfg' แล้วทับ CONFIG ตอนเริ่มแอป) =====
    t: b=เปิด/ปิด n=ตัวเลข p=ตัวเลือกสำเร็จรูป | min/max/st=ช่วงที่ปลอดภัยและขนาดก้าว | off=ค่าที่แปลว่าปิด | r=ต้องรีโหลดหน้าถึงจะมีผลเต็มที่ | ck=ตรวจเงื่อนไขข้ามค่า */
+var VOICE_OK = !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
 var SET_DEFS = [
   {s: 'QUIET HOURS', it: [
     {k: 'quietHours', t: 'b', n: 'ช่วงเงียบ (ไม่มีเสียง/สั่น)'},
@@ -873,6 +882,13 @@ var SET_DEFS = [
     {k: 'headlinesTickerThai', t: 'b', n: 'ข่าววิ่งต่อท้ายด้วยคำแปลไทย', show: function(){ return !!CONFIG.headlinesTicker; }},
     {k: 'headlinesTickerThaiPx', t: 'n', n: 'ขนาดตัวหนังสือไทยในข่าววิ่ง', u: 'px', min: 9, max: 24, st: 1, show: function(){ return !!CONFIG.headlinesTicker && !!CONFIG.headlinesTickerThai; }},
     {k: 'headlinesTickerSound', t: 'b', n: 'เสียงเตือนตอนข่าวใหม่วิ่ง', h: 'ต้องกด SOUND ON ก่อน และไม่ดังในช่วงเงียบ', show: function(){ return !!CONFIG.headlinesTicker; }}
+  ]},
+  {s: 'VOICE', it: [
+    {k: 'voice', t: 'b', n: 'เสียงพูด (บอกเวลา/ราคา/อ่านข่าว)', h: 'ต้องแตะจอ 1 ครั้งหลังเปิดแอป เบราว์เซอร์ถึงยอมให้พูด ปุ่ม SAY ในหน้า MARKET ให้พูดซ้ำได้ทุกเมื่อ', show: function(){ return VOICE_OK; }},
+    {k: 'voiceOpen', t: 'b', n: 'พูดสรุปตอนเปิดแอป', h: 'เวลา + ทอง + อุณหภูมิ + ข่าวถัดไป', show: function(){ return VOICE_OK && !!CONFIG.voice; }},
+    {k: 'voiceBtc', t: 'b', n: 'รวมราคา BTC ในคำพูดสรุป', show: function(){ return VOICE_OK && !!CONFIG.voice; }},
+    {k: 'voiceNews', t: 'b', n: 'อ่านข่าวที่วิ่งล่างจอ', h: 'ต้องเปิด ข่าวใหม่วิ่งที่แถบล่างจอ ด้วย | ใช้คำแปลไทยถ้ามี', show: function(){ return VOICE_OK && !!CONFIG.voice; }},
+    {k: 'voiceRate', t: 'n', n: 'ความเร็วเสียงพูด', u: 'x', min: 0.6, max: 1.5, st: 0.1, show: function(){ return VOICE_OK && !!CONFIG.voice; }}
   ]},
   {s: 'BOT ALERTS', it: [
     {k: 'botDdWarn', t: 'n', n: 'DRAWDOWN เตือน (WARN)', u: '%', min: 1, max: 90, st: 1, h: 'DD = (BALANCE - EQUITY) / BALANCE', ck: function(v){ return v >= CONFIG.botDdLimit ? 'WARN ต้องน้อยกว่าเพดาน (' + CONFIG.botDdLimit + '%)' : ''; }},
@@ -1517,7 +1533,7 @@ if (!CONFIG.fngEverySec) $('fngPanel').style.display = 'none';
 else fngRender();
 
 /* ---- เตือนราคา ---- */
-var goldPct = null, gShock = null;   /* ใช้กับตัวละครนั่งบนกล่องทอง: % 24H และเวลาที่ราคาขยับแรงล่าสุด */
+var goldPct = null, gShock = null, btcPct = null;   /* ใช้กับตัวละครนั่งบนกล่องทอง: % 24H และเวลาที่ราคาขยับแรงล่าสุด */
 var alerts = lsGet('pc_alerts') || [], pAlert = null, hist = {gold: [], btc: []}, lastMove = {gold: 0, btc: 0};
 function nameOf(k){ return k === 'gold' ? 'GOLD' : 'BTC'; }
 function dec(k){ return k === 'gold' ? 2 : 0; }
@@ -1686,7 +1702,7 @@ function applyPrices(bu, gu, bc, gc){
     if (curP.btc !== null && bu !== curP.btc) flash($('btcUsd'), bu > curP.btc);
     curP.btc = bu; trackBtc(bu);
     $('btcUsd').textContent = '$ ' + fmt(bu);
-    if (bc !== null && bc !== undefined) chg($('btcChg'), bc);
+    if (bc !== null && bc !== undefined){ chg($('btcChg'), bc); btcPct = bc; }
   }
   if (gu !== null && gu !== undefined && !isNaN(gu)) paxg = gu;
   if (spotOff === null && spotGold !== null && paxg !== null) spotOff = spotGold - paxg;   /* กราฟทองใช้ค่านี้ปรับแท่งเก่า ถ้าว่างแท่งสุดท้ายจะกระโดดจากแท่งอื่น */
@@ -3328,6 +3344,10 @@ function sysRender(){
   /* เสียง */
   t = 'SOUND ' + (soundOn ? sChip(0, 'ON') : sChip(1, 'OFF')) + '  QUIET HOURS ' + (CONFIG.quietHours ? '<b>' + pad(CONFIG.quietStart) + ':00-' + pad(CONFIG.quietEnd) + ':00</b> ' + (isQuiet() ? sChip(1, 'QUIET NOW') : sChip(0, 'ACTIVE')) : sChip(3, 'OFF'));
   t += '<br>เบราว์เซอร์บังคับให้กด SOUND ON ใหม่ทุกครั้งที่เปิดแอป (รวมหลังรีโหลดอัตโนมัติตี ' + (CONFIG.autoReloadHour >= 0 ? CONFIG.autoReloadHour : '-') + ') ถ้าไม่กด เสียงเตือนและเสียงเหรียญจะไม่ดัง';
+  if (typeof VO === 'object'){
+    t += '<br>VOICE ' + (!VO.ok ? sChip(2, 'N/A') : (CONFIG.voice ? sChip(0, 'ON') : sChip(3, 'OFF'))) + (VO.ok ? ' TH ' + (VO.th ? sChip(0, 'OK') : sChip(1, VO.vs.length ? 'NONE' : '?')) + ' EN ' + (VO.en ? sChip(0, 'OK') : sChip(1, VO.vs.length ? 'NONE' : '?')) + ' ' + (VO.unlocked ? sChip(0, 'READY') : sChip(1, 'แตะจอ 1 ครั้ง')) : '');
+    if (VO.ok && VO.vs.length && !VO.th) t += '<br>เครื่องนี้ไม่มีเสียงภาษาไทย (ตั้งค่าเครื่อง > การช่วยเหลือพิเศษ/ภาษา > เสียงพูด) ข่าวจะอ่านเป็นอังกฤษแทน';
+  }
   setH($('sysSnd'), t);
   /* BOT */
   if (!CONFIG.bot) t = 'ปิดอยู่ใน CONFIG (bot: false)';
@@ -3386,7 +3406,7 @@ function cfgRender(){
 }
 function cfgMsg(t){ var e = $('cfgMsg'); e.textContent = t; e.style.display = 'block'; clearTimeout(cfgMsgT); cfgMsgT = setTimeout(function(){ e.style.display = 'none'; }, 3500); }
 function cfgStore(k, v){ var d = CFG_OK[k]; cfgPutV(k, v); if (JSON.stringify(v) === JSON.stringify(CFG_DEF[k])) delete CFG_OV[k]; else CFG_OV[k] = v; lsSet('pc_cfg', CFG_OV); }
-function cfgAfter(k){ if (k.indexOf('news') === 0) newsRefilter(); else showStatus(); if (k === 'headlinesMax' || k === 'headlinesThai') hlRender(); if (k === 'headlinesTicker' && !CONFIG.headlinesTicker) tkStop(); if (sysIsOpen) sysRender(); }
+function cfgAfter(k){ if (k.indexOf('news') === 0) newsRefilter(); else showStatus(); if (k === 'headlinesMax' || k === 'headlinesThai') hlRender(); if (k === 'headlinesTicker' && !CONFIG.headlinesTicker) tkStop(); if (k.indexOf('voice') === 0) voCfg(k); if (sysIsOpen) sysRender(); }
 function cfgFind(k){ var i, j; for (i = 0; i < SET_DEFS.length; i++) for (j = 0; j < SET_DEFS[i].it.length; j++) if (SET_DEFS[i].it[j].k === k) return SET_DEFS[i].it[j]; return null; }
 function cfgRestore(k){ if (CFG_DEF[k] !== null && CFG_DEF[k] !== undefined) cfgPutV(k, JSON.parse(JSON.stringify(CFG_DEF[k]))); delete CFG_OV[k]; }
 function cfgReset(d){ cfgRestore(d.k); if (d.t === 'p') cfgRestore('alertMinutes'); lsSet('pc_cfg', CFG_OV); }
@@ -3615,6 +3635,7 @@ function tkNext(){
   void s.offsetWidth;   /* ให้เริ่มแอนิเมชันใหม่ทุกข่าว */
   s.style.webkitAnimation = an; s.style.animation = an;
   TK.until = Date.now() + dur * loops * 1000 + 2000;
+  try { voNews(it); } catch(e){}   /* อ่านออกเสียงพร้อมตอนเริ่มวิ่ง */
   TK.tm = setTimeout(function(){ tkEnd(id); }, dur * loops * 1000 + 1500);   /* กันกรณีเบราว์เซอร์ไม่ยิง animationend */
 }
 function tkEnd(id){ if (id !== TK.id || TK.ended === id) return; TK.ended = id; tkNext(); }
@@ -3643,7 +3664,7 @@ function tkCheck(a){
 })();
 /* กันค้าง: เลยเวลาที่ควรวิ่งจบแล้วยังแสดงอยู่ (เช่น iOS พักหน้าเว็บแล้วตัวจับเวลาไม่ทำงาน) ให้ปิด/ไปข่าวถัดไป และเมื่อแอปไปอยู่เบื้องหลังให้เลิกวิ่งเลย */
 setInterval(function(){ if (TK.on && Date.now() > TK.until) tkNext(); }, 1000);
-document.addEventListener('visibilitychange', function(){ if (document.hidden) tkStop(); }, false);
+document.addEventListener('visibilitychange', function(){ if (document.hidden){ tkStop(); try { voStop(); } catch(e){} } }, false);
 function hlOpen(){ hlLoad(false); hlRender(); }
 $('hlF').onclick = function(e){ var t = e.target || e.srcElement, v = (t && t.getAttribute) ? t.getAttribute('data-v') : null; if (!v || !HLN[v]) return; HL.f = v; lsSet('pc_hlf', v); hlRender(); };
 $('hlRef').onclick = function(){ hlLoad(true); };
@@ -4408,6 +4429,173 @@ try {   /* ปุ่มควบคุมบนหน้าจอล็อก */
   }
 } catch(e){}
 muRender();
+
+/* ---- เสียงพูด (speechSynthesis): สรุปตอนเปิดแอป + อ่านข่าวที่วิ่งล่างจอ ----
+   เบราว์เซอร์ห้ามพูดเองก่อนผู้ใช้แตะจอ (iOS ต้องสั่ง speak ภายในเหตุการณ์แตะเท่านั้น) จึงรอแตะครั้งแรกหลังเปิดแอปแล้วค่อยพูด
+   ใช้เสียงที่มีในเครื่อง: ภาษาไทย (th-TH) สำหรับคำพูดและคำแปลข่าว, อังกฤษ (en-US) สำหรับหัวข้อข่าวดิบ */
+var MONF = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+var VO = {ok: VOICE_OK, unlocked: false, opening: false, openDone: false, act: 0, sumN: 0, gen: 0, th: null, en: null, vs: [], safeT: null};
+function voLoad(){
+  var a = [], i, v, l;
+  if (!VO.ok) return;
+  try { a = window.speechSynthesis.getVoices() || []; } catch(e){ a = []; }
+  VO.vs = a; VO.th = null; VO.en = null;
+  for (i = 0; i < a.length; i++){
+    v = a[i]; l = String(v.lang || '').replace('_', '-').toLowerCase();
+    if (!VO.th && l.indexOf('th') === 0) VO.th = v;
+    if (!VO.en && l === 'en-us') VO.en = v;
+  }
+  if (!VO.en) for (i = 0; i < a.length; i++) if (String(a[i].lang || '').toLowerCase().indexOf('en') === 0){ VO.en = a[i]; break; }
+}
+function voHasTh(){ return !VO.vs.length || !!VO.th; }   /* รายการเสียงว่าง = ยังไม่รู้ (Android บางเครื่องโหลดช้า) ให้ลองพูดไทยไปก่อน */
+function voDuck(on){   /* หรี่เพลงลงระหว่างพูด (เฉพาะเครื่องที่คุมระดับเสียงจากเว็บได้) */
+  if (typeof mu === 'undefined' || !mu.au || !mu.on || !mu.volOk) return;
+  try { clearTimeout(mu.duckT); if (on) mu.au.volume = Math.max(0.03, mu.vol / 10 * 0.2); else muVolApply(); } catch(e){}
+}
+function voStop(){
+  VO.gen++; VO.act = 0; VO.sumN = 0; clearTimeout(VO.safeT);
+  try { if (VO.ok) window.speechSynthesis.cancel(); } catch(e){}
+  voDuck(false);
+}
+function voClean(t){ return String(t || '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '').slice(0, 220); }
+/* parts = [{t: ข้อความ, l: 'th' | 'en'}] | mode: 'new' = ตัดของเดิมแล้วพูดใหม่ | 'add' = ต่อคิวท้าย | force = ไม่สนช่วงเงียบ (ใช้กับปุ่ม SAY) */
+function voSay(parts, mode, force, isSum){
+  var ss, i, u, g, n = 0, rate;
+  if (!VO.ok || !CONFIG.voice || !parts || !parts.length) return false;
+  if (!force && (isQuiet() || document.hidden)) return false;
+  ss = window.speechSynthesis;
+  if (mode !== 'add'){ try { if (ss.speaking || ss.pending) ss.cancel(); } catch(e){} VO.gen++; VO.act = 0; VO.sumN = 0; }   /* สั่ง cancel เฉพาะตอนมีเสียงค้าง (iOS บางรุ่นทิ้งคำสั่ง speak ที่ตามหลัง cancel ทันที) */
+  g = VO.gen;
+  rate = Math.max(0.5, Math.min(2, Number(CONFIG.voiceRate) || 1));
+  for (i = 0; i < parts.length; i++){
+    if (!parts[i] || !parts[i].t) continue;
+    try {
+      u = new SpeechSynthesisUtterance(parts[i].t);
+      u.lang = parts[i].l === 'th' ? 'th-TH' : 'en-US';
+      if (parts[i].l === 'th' ? VO.th : VO.en) u.voice = parts[i].l === 'th' ? VO.th : VO.en;
+      u.rate = rate; u.volume = 1;
+      (function(u, g){
+        var fin = function(e){
+          if (g !== VO.gen) return;
+          if (e && e.error === 'not-allowed'){ VO.unlocked = false; VO.opening = false; VO.openDone = false; }
+          if (isSum && VO.sumN > 0) VO.sumN--;
+          if (VO.act > 0 && --VO.act === 0) voDuck(false);
+        };
+        u.onend = fin; u.onerror = fin;
+      })(u, g);
+      VO.act++; if (isSum) VO.sumN++;
+      ss.speak(u); n++;
+    } catch(e){}
+  }
+  if (!n) return false;
+  voDuck(true);
+  clearTimeout(VO.safeT); VO.safeT = setTimeout(function(){ VO.act = 0; VO.sumN = 0; voDuck(false); }, 60000);   /* กันค้างถ้าเบราว์เซอร์ไม่ยิง end */
+  return true;
+}
+function thClock(h, m){
+  var s;
+  if (h === 0) s = 'เที่ยงคืน';
+  else if (h < 6) s = 'ตี ' + h;
+  else if (h < 12) s = h + ' โมงเช้า';
+  else if (h === 12) s = 'เที่ยง';
+  else if (h === 13) s = 'บ่ายโมง';
+  else if (h < 16) s = 'บ่าย ' + (h - 12) + ' โมง';
+  else if (h < 19) s = (h - 12) + ' โมงเย็น';
+  else s = (h - 18) + ' ทุ่ม';
+  if (m === 30) s += 'ครึ่ง'; else if (m > 0) s += ' ' + m + ' นาที';
+  return s;
+}
+function thDur(ms){
+  var m = Math.max(1, Math.ceil(ms / 60000)), h, d;
+  if (m < 60) return m + ' นาที';
+  if (m < 1440){ h = Math.floor(m / 60); m -= h * 60; return h + ' ชั่วโมง' + (m ? ' ' + m + ' นาที' : ''); }
+  d = Math.floor(m / 1440); return d + ' วัน';
+}
+function voHello(){
+  var d = new Date(), h = d.getHours(), g = h >= 5 && h < 12 ? 'สวัสดีตอนเช้า' : (h >= 12 && h < 16 ? 'สวัสดีตอนบ่าย' : (h >= 16 && h < 19 ? 'สวัสดีตอนเย็น' : 'สวัสดี'));
+  return [{t: g + ' ตอนนี้ ' + thClock(h, d.getMinutes()) + ' วัน' + DAYS[d.getDay()] + 'ที่ ' + d.getDate() + ' ' + MONF[d.getMonth()], l: 'th'}];
+}
+function voData(){
+  var o = [], now = Date.now(), s, d, i, n = null;
+  if (curP.gold !== null && curP.gold !== undefined){
+    s = 'ทองคำ ' + Math.round(curP.gold) + ' ดอลลาร์';
+    if (goldPct !== null && goldPct !== undefined && isFinite(goldPct) && goldPct > -99){
+      d = curP.gold - curP.gold / (1 + goldPct / 100);
+      s += Math.abs(d) >= 0.5 ? (d > 0 ? ' ขึ้น ' : ' ลง ') + Math.round(Math.abs(d)) + ' ดอลลาร์ ใน 24 ชั่วโมง' : ' ทรงตัว';
+    }
+    o.push({t: s, l: 'th'});
+  }
+  if (CONFIG.voiceBtc && curP.btc !== null && curP.btc !== undefined){
+    s = 'บิตคอยน์ ' + Math.round(curP.btc) + ' ดอลลาร์';
+    if (btcPct !== null && btcPct !== undefined && isFinite(btcPct)) s += (btcPct >= 0 ? ' ขึ้น ' : ' ลง ') + Math.abs(btcPct).toFixed(1) + ' เปอร์เซ็นต์';
+    o.push({t: s, l: 'th'});
+  }
+  if (SKY.temp !== null && SKY.temp !== undefined && isFinite(SKY.temp)) o.push({t: 'อุณหภูมิ ' + Math.round(SKY.temp) + ' องศา', l: 'th'});
+  for (i = 0; i < news.length; i++) if (news[i].t >= now - 120000){ n = news[i]; break; }
+  if (n){
+    o.push({t: n.t <= now ? 'ข่าวสำคัญเพิ่งออก' : 'ข่าวสำคัญถัดไป อีก ' + thDur(n.t - now), l: 'th'});
+    o.push({t: voClean(n.cur + ' ' + n.title), l: 'en'});
+  }
+  return o;
+}
+function voUnlock(){   /* ปลดล็อกการพูดด้วยเสียงเงียบ 1 ครั้งภายในการแตะ (กรณีไม่ได้พูดทันที เช่นช่วงเงียบ) */
+  var u;
+  if (!VO.ok || VO.unlocked) return;
+  VO.unlocked = true;
+  try { u = new SpeechSynthesisUtterance(' '); u.volume = 0; window.speechSynthesis.speak(u); } catch(e){ VO.unlocked = false; }
+}
+function voOpen(){
+  var tries = 0;
+  if (VO.openDone || VO.opening) return;
+  VO.opening = true;
+  if (!voSay(voHello(), 'new', false, true)){ VO.opening = false; return; }
+  VO.unlocked = true; VO.openDone = true; VO.opening = false;
+  (function wait(){   /* รอราคาทองมาก่อน (สูงสุด 7 วินาที) แล้วต่อคิวคำพูดรอบสอง */
+    if (!VO.openDone) return;
+    if (curP.gold === null && ++tries < 14){ setTimeout(wait, 500); return; }
+    voSay(voData(), 'add', false, true);
+  })();
+}
+function voManual(btn){
+  var o, t;
+  if (!VO.ok || !CONFIG.voice){
+    if (btn){ t = btn.textContent; btn.textContent = VO.ok ? 'VOICE OFF' : 'N/A'; setTimeout(function(){ btn.textContent = t; }, 1500); }
+    return;
+  }
+  voLoad(); VO.unlocked = true; VO.openDone = true;
+  o = voHello().concat(voData());
+  voSay(o, 'new', true, true);
+}
+function voNews(it){
+  var tg = 'ข่าวใหม่', th = !!(it.th && voHasTh()), parts = [];
+  if (!VO.ok || !CONFIG.voice || !CONFIG.voiceNews || !VO.unlocked) return;
+  if (it.k.indexOf('G') >= 0) tg = 'ข่าวทองคำ';
+  else if (it.k.indexOf('U') >= 0) tg = 'ข่าวดอลลาร์';
+  else if (it.k.indexOf('F') >= 0) tg = 'ข่าวเฟด';
+  else if (it.k.indexOf('B') >= 0) tg = 'ข่าวบิตคอยน์';
+  if (voHasTh()) parts.push({t: tg, l: 'th'});
+  parts.push(th ? {t: voClean(it.th), l: 'th'} : {t: voClean(it.ti), l: 'en'});
+  voSay(parts, VO.sumN > 0 ? 'add' : 'new', false, false);
+}
+function voCfg(k){
+  if ((k === 'voice' && !CONFIG.voice) || (k === 'voiceNews' && !CONFIG.voiceNews)) voStop();
+  if (k === 'voice' && CONFIG.voice && !VO.unlocked) VO.openDone = true;   /* เปิดจากหน้าตั้งค่า = ไม่ต้องพูดสรุปซ้ำ */
+}
+(function(){
+  var ev = ['touchend', 'click', 'keydown'], i;
+  if (!VO.ok){ $('say').style.display = 'none'; $('sysSay').style.display = 'none'; return; }
+  voLoad();
+  try { window.speechSynthesis.onvoiceschanged = function(){ voLoad(); if (sysIsOpen) sysRender(); }; } catch(e){}
+  function go(e){
+    var id = e && e.target ? e.target.id : '';
+    if (VO.unlocked && (VO.openDone || !CONFIG.voiceOpen)) return;
+    if (!CONFIG.voice || id === 'say' || id === 'sysSay') return;
+    if (CONFIG.voiceOpen && !VO.openDone){ voOpen(); if (!VO.unlocked) voUnlock(); } else voUnlock();
+  }
+  for (i = 0; i < ev.length; i++) document.addEventListener(ev[i], go, true);
+  $('say').onclick = function(){ voManual(this); };
+  $('sysSay').onclick = function(){ voManual(this); };
+})();
 
 renderAlerts(); renderSess();
 loadPrice(); loadWeather(); connectWS(); connectGoldWS(); liqConnect(); loadSpot(); locate();
