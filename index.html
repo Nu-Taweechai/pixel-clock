@@ -761,7 +761,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.21.2',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.21.3',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -3381,7 +3381,7 @@ function cfgRender(){
     h += '<div class="panel cfp"><div class="lab cfh" data-s="' + i + '">' + sc.s + '<span class="cfx">' + (ch ? '* ' + ch + '  ' : '') + (CFG_UI[i] ? '[-]' : '[+]') + '</span></div>' + rows + '</div>';
   }
   h += '<div class="panel"><div class="lab">SETTINGS</div><div class="bk">ค่าที่ปรับจากหน้านี้เก็บในเครื่องนี้เท่านั้น (ไม่ซิงก์ข้ามเครื่อง) * = ต่างจากค่าในไฟล์ แตะ * เพื่อคืนค่าเดิม</div><div class="ctl">' +
-    (cfgNeedsReload() ? '<button type="button" class="btn" data-x="reload">RELOAD TO APPLY</button>' : '') + '<button type="button" class="btn x" data-x="reset">' + (any ? 'RESET ALL' : 'RESET ALL (ไม่มีค่าที่เปลี่ยน)') + '</button></div></div>';
+    (cfgNeedsReload() ? '<button type="button" class="btn" data-x="reload">RELOAD TO APPLY</button>' : '<button type="button" class="btn" data-x="refresh">REFRESH NOW</button>') + '<button type="button" class="btn x" data-x="reset">' + (any ? 'RESET ALL' : 'RESET ALL (ไม่มีค่าที่เปลี่ยน)') + '</button></div></div>';
   setH($('cfgBox'), h);
 }
 function cfgMsg(t){ var e = $('cfgMsg'); e.textContent = t; e.style.display = 'block'; clearTimeout(cfgMsgT); cfgMsgT = setTimeout(function(){ e.style.display = 'none'; }, 3500); }
@@ -3422,6 +3422,7 @@ $('cfgBox').onclick = function(e){
       a = t.getAttribute('data-a'); if (a){ cfgAct(t.getAttribute('data-k'), a); return; }
       x = t.getAttribute('data-x');
       if (x === 'reload'){ location.reload(); return; }
+      if (x === 'refresh'){ if (confirm('รีเฟรชหน้าจอตอนนี้เลยไหม?\n(เบราว์เซอร์จะให้กด SOUND ON ใหม่)')) location.reload(); return; }
       if (x === 'reset'){
         if (!confirm('คืนค่าทุกอย่างในหน้านี้ตามที่ตั้งไว้ในไฟล์?')) return;
         for (a in CFG_OV) cfgRestore(a);
