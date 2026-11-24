@@ -1709,7 +1709,7 @@
     "status": "scheduled",
     "moved_from": "",
     "period": "2026-07",
-    "confidence": "official",
+    "confidence": "sources_agree",
     "date": "2026-11-30T13:30:00Z",
     "country": "CAD"
   },
@@ -1743,7 +1743,7 @@
     "status": "scheduled",
     "moved_from": "",
     "period": "2026-09",
-    "confidence": "official",
+    "confidence": "sources_agree",
     "date": "2026-11-30T13:30:00Z",
     "country": "CAD"
   },
@@ -2060,7 +2060,7 @@
     "impact": "medium",
     "title": "Jibun Bank Manufacturing PMI",
     "forecast": "",
-    "previous": "",
+    "previous": "53.7",
     "actual": "",
     "id": "jpy-manufacturing-pmi.20261201T0030",
     "status": "scheduled",
@@ -3199,7 +3199,7 @@
     "impact": "medium",
     "title": "Jibun Bank Services PMI",
     "forecast": "",
-    "previous": "",
+    "previous": "50.5",
     "actual": "",
     "id": "jpy-services-pmi.20261203T0030",
     "status": "scheduled",
@@ -3885,7 +3885,7 @@
     "status": "scheduled",
     "moved_from": "",
     "period": "2026-11",
-    "confidence": "official",
+    "confidence": "sources_agree",
     "date": "2026-12-04T13:30:00Z",
     "country": "CAD"
   },
@@ -3902,7 +3902,7 @@
     "status": "scheduled",
     "moved_from": "",
     "period": "2026-11",
-    "confidence": "official",
+    "confidence": "sources_agree",
     "date": "2026-12-04T13:30:00Z",
     "country": "CAD"
   },
@@ -3919,7 +3919,7 @@
     "status": "scheduled",
     "moved_from": "",
     "period": "2026-11",
-    "confidence": "official",
+    "confidence": "sources_agree",
     "date": "2026-12-04T13:30:00Z",
     "country": "CAD"
   },
@@ -3936,7 +3936,7 @@
     "status": "scheduled",
     "moved_from": "",
     "period": "2026-11",
-    "confidence": "official",
+    "confidence": "sources_agree",
     "date": "2026-12-04T13:30:00Z",
     "country": "CAD"
   },
