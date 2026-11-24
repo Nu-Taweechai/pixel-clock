@@ -763,7 +763,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.22.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.22.2',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -788,8 +788,9 @@ var CONFIG = {
   snowTempC: 18,         // อุณหภูมิ (°C) ที่ถือว่าหนาวจัด: ต่ำกว่าหรือเท่ากับค่านี้หิมะเริ่มตก และหยุดเมื่อสูงกว่า +1 องศา (กันสลับไปมา)
   liveLiq: true,         // ระเบิดพิกเซลเมื่อมี Liquidation (การบังคับปิดสถานะ) รายการใหญ่ จาก Binance Futures forceOrder: BTC / ETH / ทอง XAUUSDT | false = ปิด
   liqMinUsd: 250000,     // มูลค่าต่อรายการ (USD) ที่ถือว่า "ใหญ่" พอให้ระเบิด ยังไม่มีเกณฑ์มาตรฐานที่ยืนยันได้ ลองดูข้อมูลจริงสักวันแล้วปรับ
+  liqMinUsdBy: {XAU: 50000},  // เกณฑ์ระเบิดเฉพาะสินทรัพย์ (ทับ liqMinUsd) ทองมีสภาพคล่องน้อยกว่า BTC/ETH มาก รายการจึงเล็กกว่า | ไม่ใส่/ลบ = ใช้ liqMinUsd (ค่าเริ่มต้นนี้เป็นการเดา ดูข้อมูลจริงจาก LIQ.log ใน console แล้วปรับ)
   liqSound: true,        // เสียงตูมสั้นๆ ตอนระเบิด (ต้องกด SOUND ON และไม่ดังในช่วงเงียบ)
-  spiderAfterSec: 600,   // ไม่แตะหน้าจอเกินกี่วินาที แมงมุมจะเกาะใยลงมา (0 = ปิด) แตะจอเมื่อไหร่ก็ไต่กลับขึ้นไป
+  spiderAfterSec: 900,   // ไม่แตะหน้าจอเกินกี่วินาที แมงมุมจะเกาะใยลงมา (0 = ปิด) แตะจอเมื่อไหร่ก็ไต่กลับขึ้นไป
 
   /* --- เตือนราคา / ช่วงเงียบ / รีโหลด --- */
   moveAlerts: {                       // เตือนเมื่อราคาขยับแรง: ขยับเกิน usd ดอลลาร์ ภายใน minutes นาที
@@ -831,6 +832,7 @@ var CONFIG = {
   voiceNews: true,                    // อ่านออกเสียงหัวข้อข่าวใหม่ตอนวิ่งที่แถบล่างจอ (ต้องเปิด headlinesTicker) ใช้คำแปลไทยถ้ามี ไม่มีก็อ่านอังกฤษ
   voiceLiq: true,                     // พูดตอน Liquidation ใหญ่ เช่น "ล้างพอร์ต บิตคอยน์ ฝั่งลอง 1.2 ล้านดอลลาร์" (ต้องเปิด liveLiq) ไม่พูดในช่วงเงียบ และเว้นอย่างน้อย voiceLiqGapSec วินาทีระหว่างครั้ง
   voiceLiqMinUsd: 1000000,            // พูดเฉพาะรายการที่ใหญ่ตั้งแต่เท่านี้ (USD) ต่ำกว่านี้ยังระเบิดพิกเซลตามปกติแต่ไม่พูด (กันพูดรัว)
+  voiceLiqMinUsdBy: {XAU: 250000},    // เกณฑ์พูดเฉพาะสินทรัพย์ (ทับ voiceLiqMinUsd) เช่น ทอง XAU
   voiceLiqGapSec: 20,                 // เว้นระหว่างพูด Liquidation อย่างน้อยกี่วินาที
   voiceRate: 1,                       // ความเร็วเสียงพูด 0.6 ช้า - 1.5 เร็ว (1 = ปกติ)
   impactKeep: 50,                     // เก็บประวัติกี่ครั้งล่าสุด
@@ -893,6 +895,7 @@ var SET_DEFS = [
     {k: 'voiceBtc', t: 'b', n: 'รวมราคา BTC ในคำพูดสรุป', show: function(){ return VOICE_OK && !!CONFIG.voice; }},
     {k: 'voiceNews', t: 'b', n: 'อ่านข่าวที่วิ่งล่างจอ', h: 'ต้องเปิด ข่าวใหม่วิ่งที่แถบล่างจอ ด้วย | ใช้คำแปลไทยถ้ามี', show: function(){ return VOICE_OK && !!CONFIG.voice; }},
     {k: 'voiceLiq', t: 'b', n: 'พูดตอน Liquidation ใหญ่', h: 'ต้องเปิดระเบิดพิกเซลตอน Liquidation ด้วย', show: function(){ return VOICE_OK && !!CONFIG.voice && !!CONFIG.liveLiq; }},
+    {k: 'voiceLiqMinUsdBy.XAU', t: 'n', n: 'ทอง: พูดเฉพาะรายการใหญ่ตั้งแต่', u: 'USD', min: 50000, max: 10000000, st: 50000, show: function(){ return VOICE_OK && !!CONFIG.voice && !!CONFIG.liveLiq && !!CONFIG.voiceLiq; }},
     {k: 'voiceLiqMinUsd', t: 'n', n: 'พูดเฉพาะรายการใหญ่ตั้งแต่', u: 'USD', min: 250000, max: 10000000, st: 250000, show: function(){ return VOICE_OK && !!CONFIG.voice && !!CONFIG.liveLiq && !!CONFIG.voiceLiq; }},
     {k: 'voiceRate', t: 'n', n: 'ความเร็วเสียงพูด', u: 'x', min: 0.6, max: 1.5, st: 0.1, show: function(){ return VOICE_OK && !!CONFIG.voice; }}
   ]},
@@ -915,6 +918,7 @@ var SET_DEFS = [
   {s: 'LIQUIDATION', it: [
     {k: 'liveLiq', t: 'b', n: 'ระเบิดพิกเซลเมื่อมี Liquidation ใหญ่', r: 1, h: 'ข้อมูลจาก Binance Futures (BTC/ETH/ทอง) ตัวเลขที่เห็นคือเท่าที่สตรีมส่งมา ไม่ใช่ยอดรวมจริง และไม่ใช่สัญญาณเทรด'},
     {k: 'liqMinUsd', t: 'n', n: 'ใหญ่แค่ไหนถึงระเบิด (ต่อรายการ)', u: 'USD', min: 50000, max: 10000000, st: 50000, show: function(){ return !!CONFIG.liveLiq; }},
+    {k: 'liqMinUsdBy.XAU', t: 'n', n: 'ทอง: ใหญ่แค่ไหนถึงระเบิด', u: 'USD', min: 10000, max: 10000000, st: 10000, h: 'ทอง (XAUUSDT) รายการมักเล็กกว่า BTC/ETH จึงแยกเกณฑ์', show: function(){ return !!CONFIG.liveLiq; }},
     {k: 'liqSound', t: 'b', n: 'เสียงตูมตอนระเบิด', h: 'ต้องกด SOUND ON ก่อน และไม่ดังในช่วงเงียบ', show: function(){ return !!CONFIG.liveLiq; }}
   ]},
   {s: 'SCREEN & RELOAD', it: [
@@ -1202,8 +1206,9 @@ function liqHandle(o){
   long = o.S === 'SELL';   /* ตามหลักตลาด futures: long ที่โดนบังคับปิด = คำสั่ง SELL (เอกสาร Binance ไม่ได้อธิบายความหมายของฟิลด์ S ตรงนี้) */
   LIQ.log.push({t: Date.now(), s: o.s, side: o.S, usd: usd, p: p});
   if (LIQ.log.length > 50) LIQ.log.shift();
-  if (CONFIG.liveLiq === false || usd < CONFIG.liqMinUsd) return;
-  liqBoom(LIQ_NAME[o.s] || o.s, long, usd);
+  var nm = LIQ_NAME[o.s] || o.s, mn = (CONFIG.liqMinUsdBy && CONFIG.liqMinUsdBy[nm]) || CONFIG.liqMinUsd;   /* เกณฑ์แยกตามสินทรัพย์ */
+  if (CONFIG.liveLiq === false || usd < mn) return;
+  liqBoom(nm, long, usd);
 }
 function beepLiq(tier){   /* เสียงระเบิด: เสียงซู่ (noise) + โทนไล่ลงช่วง 700→90Hz ที่ลำโพงมือถือได้ยินจริง ยาวประมาณ 1-1.6 วินาที ยิ่งรายการใหญ่ยิ่งยาว/ดัง (เคารพ SOUND ON/OFF และช่วงเงียบ) */
   if (!CONFIG.liqSound || !soundOn || !audioCtx || isQuiet()) return;
@@ -4644,7 +4649,7 @@ var VO_LQ = 0;
 function voLiq(name, long, usd){
   var nm = {BTC: 'บิตคอยน์', ETH: 'อีเธอเรียม', XAU: 'ทองคำ'}[name] || name, amt, now = Date.now();
   if (!VO.ok || !CONFIG.voice || !CONFIG.voiceLiq || !VO.unlocked) return;
-  if (usd < (CONFIG.voiceLiqMinUsd || 1000000) || now - VO_LQ < (CONFIG.voiceLiqGapSec || 20) * 1000) return;
+  if (usd < ((CONFIG.voiceLiqMinUsdBy && CONFIG.voiceLiqMinUsdBy[name]) || CONFIG.voiceLiqMinUsd || 1000000) || now - VO_LQ < (CONFIG.voiceLiqGapSec || 20) * 1000) return;
   amt = usd >= 1e6 ? (usd / 1e6).toFixed(usd >= 1e7 ? 0 : 1) + ' ล้านดอลลาร์' : Math.round(usd / 1000) + ' พันดอลลาร์';
   if (voSay([{t: 'ล้างพอร์ต ' + nm + ' ฝั่ง' + (long ? 'ลอง' : 'ชอร์ต') + ' ' + amt, l: 'th'}], VO.sumN > 0 ? 'add' : 'new', false, false)) VO_LQ = now;
 }
