@@ -314,7 +314,7 @@
   {
     "title": "German 10-y Bond Auction",
     "country": "EUR",
-    "date": "2026-11-25T05:42:00-05:00",
+    "date": "2026-11-25T05:32:00-05:00",
     "impact": "Low",
     "forecast": "",
     "previous": "3.37|1.1"
@@ -390,6 +390,14 @@
     "impact": "Low",
     "forecast": "201K",
     "previous": "203K"
+  },
+  {
+    "title": "Monetary Policy Report Hearings",
+    "country": "GBP",
+    "date": "2026-11-25T09:15:00-05:00",
+    "impact": "Medium",
+    "forecast": "",
+    "previous": ""
   },
   {
     "title": "New Home Sales",
@@ -2935,7 +2943,7 @@
     "impact": "low",
     "title": "MBA Mortgage Applications",
     "forecast": "",
-    "previous": "",
+    "previous": "6.1%",
     "actual": "",
     "id": "usd-mba-mortgage-applications.20261202T1200",
     "status": "scheduled",
@@ -3513,7 +3521,7 @@
     "impact": "medium",
     "title": "Continuing Jobless Claims",
     "forecast": "",
-    "previous": "",
+    "previous": "1.697M",
     "actual": "",
     "id": "usd-continuing-jobless-claims.20261203T1330",
     "status": "scheduled",
@@ -3530,7 +3538,7 @@
     "impact": "medium",
     "title": "Initial Jobless Claims",
     "forecast": "",
-    "previous": "",
+    "previous": "189K",
     "actual": "",
     "id": "usd-initial-jobless-claims.20261203T1330",
     "status": "scheduled",
@@ -3547,7 +3555,7 @@
     "impact": "low",
     "title": "Initial Jobless Claims 4-week average",
     "forecast": "",
-    "previous": "",
+    "previous": "196K",
     "actual": "",
     "id": "usd-initial-jobless-claims-4-week-average.20261203T1330",
     "status": "scheduled",
@@ -3700,7 +3708,7 @@
     "impact": "low",
     "title": "4-Week Bill Auction",
     "forecast": "",
-    "previous": "",
+    "previous": "4.115%",
     "actual": "",
     "id": "usd-4-week-bill-auction.20261203T1630",
     "status": "scheduled",
