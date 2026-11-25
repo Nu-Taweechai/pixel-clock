@@ -3405,23 +3405,6 @@
     "country": "EUR"
   },
   {
-    "ts": 1796289300,
-    "time": "2026-12-03T09:15:00Z",
-    "currency": "GBP",
-    "impact": "medium",
-    "title": "BoE Monetary Policy Report Hearings",
-    "forecast": "",
-    "previous": "",
-    "actual": "",
-    "id": "gbp-boe-monetary-policy-report-hearings.20261203T0915",
-    "status": "scheduled",
-    "moved_from": "",
-    "period": "",
-    "confidence": "single_source",
-    "date": "2026-12-03T09:15:00Z",
-    "country": "GBP"
-  },
-  {
     "ts": 1796290200,
     "time": "2026-12-03T09:30:00Z",
     "currency": "GBP",
