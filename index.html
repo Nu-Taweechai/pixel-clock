@@ -764,7 +764,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.22.3',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.22.4',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -807,9 +807,9 @@ var CONFIG = {
   newsEverySec: 1800,                 // ดึงปฏิทินข่าวทุกกี่วินาที (อย่าถี่เกินไป ไม่งั้นโดน rate limit)
   newsCurrencies: {USD:1},            // สกุลที่สนใจ เช่น {USD:1, EUR:1, GBP:1, JPY:1}
   newsImpacts: {High:1},              // ระดับข่าว: High = แดง, Medium = ส้ม ({High:1, Medium:1})
-  newsMt5High: true,                  // ถ้า BOT เชื่อมอยู่ (Reporter v1.22+): ข่าวที่ Forex Factory ให้ส้มแต่ปฏิทิน MT5 ให้ HIGH (แดง) จะแสดงเป็นแดง = อันไหนอันหนึ่งแดงก็แดง (ไม่ลดข่าวที่ FF ให้แดง) | ชื่อข่าวต้องตรงกับ FF จึงควรตั้ง MT5 เป็นภาษาอังกฤษ | false = ตาม Forex Factory อย่างเดียว
+  newsMt5High: true,                  // ถ้า BOT เชื่อมอยู่ (Reporter v1.22+): ข่าวที่ปฏิทิน MT5 ให้ HIGH (แดง) จะแสดงเป็นแดงเสมอ แม้ Forex Factory ให้ส้ม/เหลือง/ไม่มีข่าวนี้ (กันซ้ำด้วยการจับคู่ชื่อ) = อันไหนอันหนึ่งแดงก็แดง (ไม่ลดข่าวที่ FF ให้แดง) | ชื่อข่าวต้องตรงกับ FF จึงควรตั้ง MT5 เป็นภาษาอังกฤษ | false = ตาม Forex Factory อย่างเดียว
   newsMt5MaxAgeH: 12,                 // ข้อมูลข่าวจาก MT5 เก่ากว่านี้ (ชั่วโมง) ถือว่าไม่เชื่อมแล้ว กลับไปใช้สีตาม Forex Factory
-  newsMt5Sim: 0.6,                   // ชื่อข่าวต้องคล้ายกันอย่างน้อยเท่านี้ (0-1) และเวลาต้องตรงกันภายใน 5 นาที ถึงถือว่าเป็นข่าวเดียวกัน (ต่ำลง = จับคู่ง่ายขึ้น เสี่ยงยกผิดข่าว)
+  newsMt5Sim: 0.75,                   // ชื่อข่าวต้องคล้ายกันอย่างน้อยเท่านี้ (0-1) และเวลาต้องตรงกันภายใน 5 นาที ถึงถือว่าเป็นข่าวเดียวกัน (ต่ำลง = จับคู่ง่ายขึ้น เสี่ยงยกผิดข่าว)
   alertMinutes: 15,                   // เตือนล่วงหน้าไกลสุดกี่นาที (ต้องไม่น้อยกว่าค่าสูงสุดใน alertSteps) และเตือนอีกครั้งตอนข่าวออก
   alertSteps: [15, 5, 1],             // เตือนล่วงหน้าหลายรอบ (นาทีก่อนข่าวออก) เสียงจะถี่/สูงขึ้นเมื่อใกล้เวลา | [] = ใช้แค่ alertMinutes รอบเดียว
   impact: true,                       // News Impact Log: จดว่าข่าวแต่ละตัวทำให้ทอง/BTC วิ่งกี่ดอลลาร์หลังข่าวออก (ดูที่หน้า NEWS) false = ปิด
@@ -880,7 +880,7 @@ var SET_DEFS = [
     {k: 'newsCurrencies.GBP', t: 'b', n: 'ข่าวสกุล GBP', ck: function(v){ return cfgLastCur('GBP', v); }},
     {k: 'newsCurrencies.JPY', t: 'b', n: 'ข่าวสกุล JPY', ck: function(v){ return cfgLastCur('JPY', v); }},
     {k: 'newsImpacts.Medium', t: 'b', n: 'รวมข่าวสีส้ม (Medium)', h: 'ปิด = เฉพาะข่าวแดง (High)'},
-    {k: 'newsMt5High', t: 'b', n: 'ข่าวส้มที่ MT5 ให้แดง = แสดงเป็นแดง', h: 'ต้องเชื่อม BOT + Reporter v1.22 ขึ้นไป | ปิด = ตาม Forex Factory อย่างเดียว'},
+    {k: 'newsMt5High', t: 'b', n: 'ข่าวที่ MT5 ให้แดง = แสดงเป็นแดง', h: 'ต้องเชื่อม BOT + Reporter v1.22 ขึ้นไป | ปิด = ตาม Forex Factory อย่างเดียว'},
     {k: 'alertSteps', t: 'p', n: 'เตือนล่วงหน้า (นาทีก่อนข่าว)', o: [
       {l: '15·5·1', v: [15, 5, 1], x: {alertMinutes: 15}}, {l: '30·10·5·1', v: [30, 10, 5, 1], x: {alertMinutes: 30}},
       {l: '10·1', v: [10, 1], x: {alertMinutes: 10}}, {l: '5', v: [5], x: {alertMinutes: 5}}]},
@@ -1848,6 +1848,7 @@ function saveState(){
 }
 var nc = lsGet('pc_news2');   /* ข่าวที่เก็บไว้ในเครื่อง กันโดน rate limit เวลาเปิด/รีโหลดบ่อย */
 if (nc && nc.news && nc.news.length !== undefined){ news = nc.news; lastNews = new Date(nc.at); newsMax = nc.max || 0; }
+var lowEv = (nc && nc.low && nc.low.length !== undefined) ? nc.low : [];   /* ข่าว Low (เหลือง) ของ FF: ไม่แสดง ใช้จับคู่กับปฏิทิน MT5 เท่านั้น */
 var allEv = (nc && nc.all && nc.all.length !== undefined) ? nc.all : [];   /* ข่าวทุกสกุล High+Medium สำหรับหน้า NEWS */
 function parseFF(str){
   var m = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(?:\.\d+)?(Z|([+-])(\d\d):?(\d\d))?$/.exec(str || '');
@@ -1868,15 +1869,15 @@ function fetchNewsOne(url, cb){
 }
 function loadNews(){
   newsDiag = '';
-  var pending = NEWS_URLS.length, all = [], seen = {}, allx = [], seenx = {}, anyOk = false, maxT = 0, i;
+  var pending = NEWS_URLS.length, all = [], seen = {}, allx = [], seenx = {}, lowx = [], anyOk = false, maxT = 0, i;
   function done(){
     if (--pending > 0) return;
     if (anyOk){
       all.sort(function(a, b){ return a.t - b.t; });
-      allx.sort(function(a, b){ return a.t - b.t; }); allEv = allx;
+      allx.sort(function(a, b){ return a.t - b.t; }); allEv = allx; lowEv = lowx;
       news = all; newsMax = maxT; newsOk = true; lastNews = new Date();
       newsRefilter(true);   /* ยกข่าวส้มที่ MT5 ให้แดง (ถ้ามีข้อมูล) แล้วคัดข่าวที่ใช้เตือนใหม่ */
-      lsSet('pc_news2', {at: lastNews.getTime(), news: all, all: allx, max: maxT});
+      lsSet('pc_news2', {at: lastNews.getTime(), news: all, all: allx, low: lowx, max: maxT});
     } else {
       newsOk = false;   /* ลองใหม่ใน 5 นาที ระหว่างนั้นใช้ข่าวที่เก็บไว้ถ้ามี */
       if (!newsRetry) newsRetry = setTimeout(function(){ newsRetry = null; loadNews(); }, 300000);
@@ -1891,6 +1892,7 @@ function loadNews(){
           var e = j[k], t = parseFF(e.date), im = String(e.impact || '').toLowerCase(), cu = e.country || e.currency;
           im = im.charAt(0).toUpperCase() + im.slice(1);   /* showmytrades ส่ง high/medium ตัวเล็ก, Forex Factory ส่ง High/Medium */
           if (t !== null && t > maxT) maxT = t;
+          if (t !== null && im === 'Low' && lowx.length < 600) lowx.push({t: t, key: t + '|' + cu + '|' + e.title, cur: cu, title: e.title, impact: 'Low', fc: e.forecast, pv: e.previous});
           if (t !== null && (im === 'High' || im === 'Medium')){
             var kx = t + '|' + cu + '|' + e.title;
             if (!seenx[kx]){ seenx[kx] = 1; allx.push({t: t, key: kx, cur: cu, title: e.title, impact: im, im0: im, fc: e.forecast, pv: e.previous}); }
@@ -1935,13 +1937,53 @@ function mtCalHit(e){
   return false;
 }
 function mtCalApply(){   /* ตั้งสีข่าวทุกตัวใหม่จากสีเดิมของ FF + ปฏิทิน MT5 (ไม่คัด/ไม่วาดหน้าจอ) */
-  var i, e, b, up, on = mtCalOk();
+  var i, j, k, e, b, c, up, f, s, al, key, on = mtCalOk(), min = CONFIG.newsMt5Sim || 0.75, loose = Math.min(0.5, min), claimed = {}, miss = [], have = {};
+  for (i = allEv.length - 1; i >= 0; i--) if (allEv[i].syn) allEv.splice(i, 1);   /* ข่าวที่เคยเติมจาก MT5 เอาออกก่อน แล้วคำนวณใหม่ */
   for (i = 0; i < allEv.length; i++){
     e = allEv[i]; if (!e.im0) e.im0 = e.impact;
-    b = e.im0;
-    up = (on && b === 'Medium' && mtCalHit(e)) ? 'High' : b;
+    b = e.im0; have[e.key] = 1;
+    up = (on && b === 'Medium' && mtCalHit(e)) ? 'High' : b;   /* ส้มที่ MT5 ให้แดง -> แดง */
     e.impact = up; e.mt = (up !== b) ? 1 : 0;
   }
+  if (!on) return;
+  /* 1) จับคู่ข่าวแดงของ MT5 กับข่าว FF ตามชื่อ (สกุลเดียวกัน เวลาห่างไม่เกิน 5 นาที) */
+  for (j = 0; j < mtCal.ev.length; j++){
+    c = mtCal.ev[j]; f = 0;
+    for (i = 0; i < allEv.length; i++){
+      e = allEv[i];
+      if (e.cur === c.c && Math.abs(e.t - c.t) <= 300000 && mtSim(c.n, e.title) >= min){ claimed[e.key] = 1; f = 1; }
+    }
+    if (!f) miss.push(c);
+  }
+  /* 2) ข่าวแดงของ MT5 ที่ยังไม่มีคู่ = เติมเป็นข่าวแดงเสมอ (ไม่ขึ้นกับว่า FF มีข่าวนี้ในฟีดหรือไม่) ยกเว้นเป็นข่าวเดียวกันที่ FF ตั้งชื่อต่าง */
+  for (j = 0; j < miss.length; j++){
+    c = miss[j]; f = null; al = 0;
+    for (i = 0; i < allEv.length && !al; i++){   /* ชื่อคล้ายพอสมควร = ข่าวเดียวกัน (ส้มยกเป็นแดง) */
+      e = allEv[i];
+      if (e.cur === c.c && Math.abs(e.t - c.t) <= 300000 && mtSim(c.n, e.title) >= loose){
+        if (e.im0 === 'Medium'){ e.impact = 'High'; e.mt = 1; }
+        claimed[e.key] = 1; al = 1;
+      }
+    }
+    if (al) continue;
+    for (k = 0; k < lowEv.length && !f; k++){   /* ข่าวเดียวกันที่ FF ให้เหลือง: ใช้ชื่อ/ค่าคาดการณ์ของ FF */
+      e = lowEv[k];
+      if (e.cur === c.c && Math.abs(e.t - c.t) <= 300000 && mtSim(c.n, e.title) >= loose) f = e;
+    }
+    if (!f){
+      for (i = 0; i < allEv.length && !al; i++){   /* FF แดงเวลาเดียวกันที่ไม่มี MT5 ตัวไหนจับคู่ชื่อได้ = น่าจะเป็นข่าวเดียวกันคนละชื่อ (เช่น Non-Farm Employment Change กับ Nonfarm Payrolls) */
+        e = allEv[i];
+        if (e.cur === c.c && Math.abs(e.t - c.t) <= 300000 && e.im0 === 'High' && !claimed[e.key]){ claimed[e.key] = 1; al = 1; }
+      }
+      if (al) continue;
+      f = {t: c.t, cur: c.c, title: c.n};
+    }
+    key = f.t + '|' + f.cur + '|' + f.title;
+    if (have[key]) continue;
+    have[key] = 1;
+    allEv.push({t: f.t, key: key, cur: f.cur, title: f.title, impact: 'High', im0: 'High', fc: f.fc, pv: f.pv, mt: 1, syn: 1});
+  }
+  allEv.sort(function(x, y){ return x.t - y.t; });
 }
 function mtCalFeed(sn){   /* เรียกเมื่อ BOT ได้ข้อมูลชุดใหม่ */
   var a = sn && sn.cal, o = [], i, x, sig, now = Date.now();
@@ -1956,7 +1998,7 @@ function mtCalFeed(sn){   /* เรียกเมื่อ BOT ได้ข้�
   }
   mtCal = {at: now, sig: sig, ev: o}; mtCalSaved = now; lsSet('pc_mtcal', mtCal);
   newsRefilter();
-  if (allEv.length) lsSet('pc_news2', {at: lastNews ? lastNews.getTime() : now, news: news, all: allEv, max: newsMax});
+  if (allEv.length) lsSet('pc_news2', {at: lastNews ? lastNews.getTime() : now, news: news, all: allEv, low: lowEv, max: newsMax});
 }
 function newsStale(){
   return newsMax > 0 && Date.now() - newsMax > CONFIG.newsStaleDays * 86400000;
@@ -3332,7 +3374,7 @@ function sChip(l, t){ return '<span class="bs ' + (['ok', 'wn', 'er', ''][l] || 
 function sAge(ms){ return ms === null ? null : (Date.now() - ms) / 1000; }
 function sRow(n, l, t, a, d){ return {n: n, l: l, t: t, a: a, d: d || ''}; }
 function sysRows(){
-  var r = [], a, x, lk, b, ea, fa;
+  var r = [], a, x, y, lk, b, ea, fa;
   /* เครือข่าย */
   r.push(navigator.onLine === false ? sRow('NETWORK', 2, 'OFFLINE', null, 'ไม่มีอินเทอร์เน็ต') : sRow('NETWORK', 0, 'ONLINE', null));
   /* ราคาสด WebSocket (BTC + PAXG) */
@@ -3365,7 +3407,7 @@ function sysRows(){
   else r.push(a <= CONFIG.newsEverySec * 3 ? sRow('NEWS', 0, 'OK', a) : sRow('NEWS', 1, 'STALE', a));
   /* ข่าว HIGH จากปฏิทิน MT5 (ยกข่าวส้มของ FF เป็นแดง) */
   if (CONFIG.newsMt5High && Bcfg && Bcfg.k){
-    if (mtCalOk()){ x = 0; for (b = 0; b < allEv.length; b++) if (allEv[b].mt) x++; r.push(sRow('NEWS MT5 HIGH', 0, 'OK', (Date.now() - mtCal.at) / 1000, mtCal.ev.length + ' ข่าวแดงจาก MT5 ยกเป็นแดง ' + x)); }
+    if (mtCalOk()){ x = 0; y = 0; for (b = 0; b < allEv.length; b++){ if (allEv[b].mt) x++; if (allEv[b].syn) y++; } r.push(sRow('NEWS MT5 HIGH', 0, 'OK', (Date.now() - mtCal.at) / 1000, mtCal.ev.length + ' ข่าวแดงจาก MT5 ยกเป็นแดง ' + x + ' (เติมจาก MT5 ' + y + ')')); }
     else r.push(sRow('NEWS MT5 HIGH', 3, 'NO DATA', null, 'ยังไม่ได้ข้อมูลจาก Reporter (ต้อง v1.22+ และ InpSendCal=true)'));
   }
   /* หัวข้อข่าว (Worker -> ฟีด RSS ของ FXStreet) */
@@ -3452,8 +3494,9 @@ function cfgLastCur(c, v){   /* ต้องเหลืออย่างน้
 }
 function newsRefilter(noUi){   /* คัดข่าวที่ใช้เตือนใหม่จากข่าวดิบที่เก็บไว้ (ไม่ต้องดึงจากเน็ต) */
   var i, e, a = [];
-  if (!allEv || !allEv.length) return;
-  mtCalApply();
+  if (!allEv) return;
+  mtCalApply();   /* ยกสี/เติมข่าวแดงจากปฏิทิน MT5 ก่อนคัด (ทำงานแม้ news.json โหลดไม่ได้) */
+  if (!allEv.length) return;
   for (i = 0; i < allEv.length; i++){ e = allEv[i]; if (CONFIG.newsCurrencies[e.cur] && CONFIG.newsImpacts[e.impact]) a.push(e); }
   news = a;
   if (!noUi) showStatus();
@@ -4738,7 +4781,7 @@ function voCfg(k){
 
 renderAlerts(); renderSess();
 loadPrice(); loadWeather(); connectWS(); connectGoldWS(); liqConnect(); loadSpot(); locate();
-if (allEv.length) newsRefilter(true);
+newsRefilter(true);
 if (!nc || !allEv.length || Date.now() - nc.at > CONFIG.newsEverySec * 1000) loadNews(); else showStatus();
 setInterval(loadPrice, CONFIG.priceEverySec * 1000);
 setInterval(loadWeather, CONFIG.weatherEverySec * 1000);
