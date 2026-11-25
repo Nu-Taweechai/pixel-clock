@@ -404,7 +404,7 @@
     "country": "USD",
     "date": "2026-11-25T10:30:00-05:00",
     "impact": "Low",
-    "forecast": "",
+    "forecast": "2.0M",
     "previous": "3.4M"
   },
   {
@@ -1717,7 +1717,7 @@
     "status": "scheduled",
     "moved_from": "",
     "period": "2026-07",
-    "confidence": "sources_agree",
+    "confidence": "official",
     "date": "2026-11-30T13:30:00Z",
     "country": "CAD"
   },
@@ -1744,14 +1744,14 @@
     "currency": "CAD",
     "impact": "high",
     "title": "Gross Domestic Product MoM",
-    "forecast": "",
+    "forecast": "-0.1%",
     "previous": "0%",
     "actual": "",
     "id": "cad-gdp-mom.20261127T1330",
     "status": "scheduled",
     "moved_from": "",
     "period": "2026-09",
-    "confidence": "sources_agree",
+    "confidence": "official",
     "date": "2026-11-30T13:30:00Z",
     "country": "CAD"
   },
@@ -3876,7 +3876,7 @@
     "status": "scheduled",
     "moved_from": "",
     "period": "2026-11",
-    "confidence": "sources_agree",
+    "confidence": "official",
     "date": "2026-12-04T13:30:00Z",
     "country": "CAD"
   },
@@ -3893,7 +3893,7 @@
     "status": "scheduled",
     "moved_from": "",
     "period": "2026-11",
-    "confidence": "sources_agree",
+    "confidence": "official",
     "date": "2026-12-04T13:30:00Z",
     "country": "CAD"
   },
@@ -3910,7 +3910,7 @@
     "status": "scheduled",
     "moved_from": "",
     "period": "2026-11",
-    "confidence": "sources_agree",
+    "confidence": "official",
     "date": "2026-12-04T13:30:00Z",
     "country": "CAD"
   },
@@ -3927,7 +3927,7 @@
     "status": "scheduled",
     "moved_from": "",
     "period": "2026-11",
-    "confidence": "sources_agree",
+    "confidence": "official",
     "date": "2026-12-04T13:30:00Z",
     "country": "CAD"
   },
