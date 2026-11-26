@@ -275,6 +275,7 @@ input.num{width:120px}
 .hc .ic2{height:20px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;margin:2px 0}
 .rbar{height:4px;margin:3px 4px 0;background:#2a2457}
 .rbar i{display:block;height:4px;background:#6ac3ff}
+.rbar i.d{background:#4a5a8a}
 .dr{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;margin-top:6px;padding:5px 8px;background:#0b0820;border:3px solid #000;font-size:9px;line-height:1.6;color:var(--text)}
 .dr .dn{-webkit-flex:3;flex:3;min-width:0}
 .dr .ic{-webkit-flex:2;flex:2;display:-webkit-flex;display:flex;-webkit-justify-content:center;justify-content:center}
@@ -518,7 +519,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
     <div class="panel wide">
       <div class="lab"><span id="icoHr"></span>NEXT 12H</div>
       <div class="hrs" id="wxHrs"></div>
-      <div class="sub">เส้นฟ้า = โอกาสฝนตก</div>
+      <div class="sub" id="wxRcNote">เส้นฟ้า = โอกาสฝนตก</div>
     </div>
     <div class="panel wide">
       <div class="lab"><span id="icoAq"></span>AIR HP</div>
@@ -764,7 +765,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.22.4',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.23.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -778,6 +779,10 @@ var CONFIG = {
   liveWS: true,          // ราคา BTC/ทอง realtime ผ่าน WebSocket (Binance) ตั้ง false ถ้าอยากใช้แบบดึงทุก priceEverySec เท่านั้น
   priceEverySec: 90,     // ดึงราคาสำรอง + อัตราแลกเปลี่ยน USD/THB (ใช้คำนวณราคาบาท)
   weatherEverySec: 900,  // อัปเดตอุณหภูมิ/PM2.5
+  rainModels: 'ecmwf_ifs025,gfs_seamless,icon_seamless',  // โมเดลที่ใช้โหวตฝน (ขอใน request เดียว) ใส่ '' เพื่อกลับไปใช้ % โอกาสฝนของโมเดลเดียวแบบเดิม
+  rainNeed: 2,           // ต้องมีกี่โมเดลเห็นฝนตรงกัน ถึงจะเตือนฝน/โชว์ไอคอนฝน (ถ้าโมเดลตอบมาน้อยกว่านี้ ใช้เท่าที่มี)
+  rainMinMm: 0.2,        // โมเดลที่ให้ฝนตั้งแต่กี่ มม./ชม. ถือว่า "เห็นฝน" (0.1 ไวเกิน ทำให้เตือนผิดบ่อย)
+  rainTolH: 1,           // ยอมให้เวลาของแต่ละโมเดลคลาดเคลื่อนกี่ชั่วโมง (0 = ต้องตรงชั่วโมงเป๊ะ)
   fngEverySec: 3600,     // Fear & Greed Index (alternative.me) ดึงทุกกี่วินาที ค่าจริงอัปเดตวันละครั้ง (0 = ปิดแผงนี้)
   hlSeed: true,          // เติม H/L ของทองจากแท่งเทียน PAXG ย้อนหลังถึงเที่ยงคืน กรณีเปิดหน้าสายหรือปิดเครื่องไปนาน (false = นับเฉพาะตอนเปิดหน้านี้)
   staleSec: 300,         // ราคาไม่อัปเดตเกินกี่วินาที (หรือเน็ตหลุด) ให้ขึ้นป้ายแดงเตือนบนจอ (0 = ปิด)
@@ -1100,7 +1105,7 @@ $('icoFng').innerHTML = sprite('therm', 3);
 })();
 
 /* ---- ท้องฟ้าตามสภาพอากาศ: weather_code (WMO) + PM2.5 ---- */
-var SKY = {code:null, pm:null, temp:null, force:null, pmForce:null, tempForce:null, cold:false, kind:''};
+var SKY = {code:null, code0:null, t0:'', pm:null, temp:null, force:null, pmForce:null, tempForce:null, cold:false, kind:''};
 var SKYK = ['clr','part','ovc','fog','drz','rain','hvy','snow','storm'];
 var SKY_SUN = {clr:1, part:1, ovc:.5, fog:.35, drz:.35, rain:.25, hvy:.15, snow:.3, storm:.1};
 var SKY_STAR = {clr:1, part:.85, ovc:.25, fog:0, drz:.15, rain:0, hvy:0, snow:0, storm:0};
@@ -2199,6 +2204,99 @@ function locate(){
 $('city').onclick = function(){ gpsTries = 0; gpsState = ''; locate(); };   // แตะชื่อเมืองเพื่อลองหาตำแหน่งใหม่
 
 
+/* ---- ฝนแบบโหวตหลายโมเดล ----
+   ขอ precipitation + cloud_cover จากหลายโมเดลใน request เดียว (&models=...) แล้วเตือนฝนเมื่อโมเดลเห็นตรงกันอย่างน้อย CONFIG.rainNeed ตัว
+   โหวตจากปริมาณฝน (มม./ชม.) ไม่ใช่ precipitation_probability เพราะค่า % คำนวณจาก ensemble และอาจไม่มีครบทุกโมเดล */
+var RC = null, RC_AT = 0, RC_BUSY = false, RC_Q = [];
+function rcModels(){
+  var a = String(CONFIG.rainModels || '').split(','), o = [], i;
+  for (i = 0; i < a.length; i++){ a[i] = a[i].replace(/\s+/g, ''); if (a[i]) o.push(a[i]); }
+  return o;
+}
+function rcKey(){ return loc.lat + ',' + loc.lon; }
+function rcNeed(m){ return Math.min(CONFIG.rainNeed || 2, m); }
+function rcSeries(H, base, models, mi){
+  var a = H[base + '_' + models[mi]] || (models.length === 1 ? H[base] : null), i;   /* ขอโมเดลเดียว Open-Meteo จะไม่ใส่ suffix */
+  if (!a) return null;
+  for (i = 0; i < a.length; i++){ if (typeof a[i] === 'number') return a; }
+  return null;   /* โมเดลนี้ไม่มีข้อมูลเลย (null ทั้งแถว) ไม่นำมานับ */
+}
+function rcBuild(j, models){
+  var H = j && j.hourly, ser = [], cs = [], names = [], mi, a, i, k, s, v, x, cnt, nm, tot, cl, cc, o,
+      tol = typeof CONFIG.rainTolH === 'number' ? CONFIG.rainTolH : 1, mn = typeof CONFIG.rainMinMm === 'number' ? CONFIG.rainMinMm : 0.2;
+  if (!H || !H.time) return null;
+  for (mi = 0; mi < models.length; mi++){
+    a = rcSeries(H, 'precipitation', models, mi);
+    if (a){ ser.push(a); names.push(models[mi]); }
+    a = rcSeries(H, 'cloud_cover', models, mi);
+    if (a) cs.push(a);
+  }
+  if (!ser.length) return null;
+  o = {key: rcKey(), time: H.time, idx: {}, v: [], n: [], mm: [], rain: [], cloud: [], m: ser.length, names: names};
+  for (i = 0; i < H.time.length; i++){
+    cnt = 0; nm = 0; tot = 0; cl = 0; cc = 0;
+    for (s = 0; s < ser.length; s++){
+      v = ser[s][i];
+      if (typeof v !== 'number') continue;   /* โมเดลนี้ไม่มีค่าชั่วโมงนี้: ข้าม ไม่นับเป็น "ไม่มีฝน" */
+      nm++; tot += v;
+      for (k = -tol; k <= tol; k++){ x = ser[s][i + k]; if (typeof x === 'number' && x >= mn){ cnt++; break; } }
+    }
+    for (s = 0; s < cs.length; s++){ v = cs[s][i]; if (typeof v === 'number'){ cl += v; cc++; } }
+    o.v[i] = cnt; o.n[i] = nm; o.mm[i] = nm ? tot / nm : null;
+    o.rain[i] = nm > 0 && cnt >= rcNeed(nm);
+    o.cloud[i] = cc ? cl / cc : null;
+    o.idx[H.time[i]] = i;
+  }
+  return o;
+}
+function rcIdx(t){
+  if (!RC || !t || RC.key !== rcKey()) return -1;
+  var i = RC.idx[String(t).substring(0, 13) + ':00'];
+  return i === undefined ? -1 : i;
+}
+function rcWet(c){ return (c >= 51 && c <= 67) || (c >= 80 && c <= 82) || c >= 95; }
+/* ปรับ weather_code ของโมเดลเดี่ยวให้ตรงกับผลโหวต: โหวตว่าไม่มีฝนแต่ code เป็นฝน -> ใช้ cloud_cover เลือกโปร่ง/บางส่วน/ครึ้ม | โหวตว่ามีฝนแต่ code ไม่ใช่ฝน -> ใช้ปริมาณฝนเลือกระดับ */
+function rcCode(code, t){
+  var i = rcIdx(t), mm, cl;
+  if (i < 0 || !RC.n[i] || code === null || code === undefined) return code;
+  if (RC.rain[i] && !rcWet(code)){ mm = RC.mm[i] || 0; return mm >= 5 ? 65 : (mm >= 0.5 ? 61 : 51); }
+  if (!RC.rain[i] && rcWet(code)){ cl = RC.cloud[i]; return cl === null ? 3 : (cl < 25 ? 1 : (cl < 60 ? 2 : 3)); }
+  return code;
+}
+function rcMsg(today, nowT){
+  if (!RC || RC.key !== rcKey()) return null;
+  var T = RC.time, i, f = -1, l = -1, sum = 0, nowH = nowT ? String(nowT).substring(0, 13) : '', t;
+  for (i = 0; i < T.length; i++){
+    if (T[i].substring(0, 10) !== today) continue;
+    if (typeof RC.mm[i] === 'number') sum += RC.mm[i];
+    if (nowH && T[i].substring(0, 13) < nowH) continue;   /* ชั่วโมงที่ผ่านไปแล้วไม่นับเป็นการเตือน */
+    if (RC.rain[i]){ if (f < 0) f = i; l = i; }
+  }
+  t = f < 0 ? 'ฝนที่เหลือวันนี้: โมเดลส่วนใหญ่ไม่เห็นฝน' :
+    'ฝนวันนี้ ' + T[f].substring(11, 16) + (l > f ? '-' + T[l].substring(11, 16) : '') + ' (' + rcNeed(RC.m) + '+/' + RC.m + ' โมเดล)';
+  return t + ' | ฝนรวมวันนี้ ~' + sum.toFixed(1) + ' มม.';
+}
+function rcLoad(cb){
+  var models = rcModels(), q, fin;
+  if (!models.length){ cb(null); return; }
+  if (RC && RC.key === rcKey() && Date.now() - RC_AT < 600000){ cb(RC); return; }
+  RC_Q.push(cb);
+  if (RC_BUSY) return;   /* หน้าหลักกับหน้า WEATHER ขอพร้อมกัน แชร์ request เดียว */
+  RC_BUSY = true;
+  q = 'latitude=' + loc.lat + '&longitude=' + loc.lon;
+  fin = function(){
+    var f = RC_Q, i; RC_Q = []; RC_BUSY = false;
+    for (i = 0; i < f.length; i++){ try { f[i](RC); } catch(e){} }
+  };
+  get('https://api.open-meteo.com/v1/forecast?' + q + '&hourly=precipitation,cloud_cover&models=' + models.join(',') + '&forecast_days=2&timezone=auto',
+    function(j){
+      var r = rcBuild(j, models);
+      if (r){ RC = r; RC_AT = Date.now(); } else if (RC && RC.key !== rcKey()) RC = null;
+      fin();
+    },
+    function(){ if (RC && (RC.key !== rcKey() || Date.now() - RC_AT > 7200000)) RC = null; fin(); });
+}
+
 function loadWeather(){
   var q = 'latitude=' + loc.lat + '&longitude=' + loc.lon;
 
@@ -2215,7 +2313,10 @@ function loadWeather(){
       var c = j && j.current;
       if (c){
         if (c.temperature_2m !== null && c.temperature_2m !== undefined) SKY.temp = c.temperature_2m;
-        if (c.weather_code !== null && c.weather_code !== undefined) SKY.code = c.weather_code;
+        if (c.weather_code !== null && c.weather_code !== undefined){
+          SKY.code0 = c.weather_code; SKY.t0 = c.time || '';
+          if (!rcModels().length) SKY.code = c.weather_code;   /* ปิดโหวต: ใช้ code ของโมเดลเดียวเหมือนเดิม */
+        }
         wxApply();
       }
 
@@ -2298,6 +2399,10 @@ function loadWeather(){
         msg += ' | ขึ้น ' + sunrise + ' ตก ' + sunset;
 
         $('wx2').textContent = msg;
+        rcLoad(function(){
+          var rm = rcMsg(dl.time[0], c ? c.time : '');
+          if (rm) $('wx2').textContent = rm + ' | ขึ้น ' + sunrise + ' ตก ' + sunset;
+        });
 
         // Hourly rain details
         var hourlyText = [];
@@ -2326,6 +2431,10 @@ function loadWeather(){
             : 'ไม่มีข้อมูลรายชั่วโมง';
         }
       }
+
+      rcLoad(function(){   /* ท้องฟ้าตามผลโหวตหลายโมเดล (ไม่มีผลโหวต = ใช้ code เดิม) */
+        if (SKY.code0 !== null && SKY.code0 !== undefined){ SKY.code = rcCode(SKY.code0, SKY.t0); wxApply(); }
+      });
 
       lastWeather = new Date();
       wxOk = true;
@@ -3427,6 +3536,10 @@ function sysRows(){
   if (wxErr) r.push(sRow('FORECAST', 1, 'ERROR', WX ? (Date.now() - WX.at) / 1000 : null));
   else if (!WX) r.push(sRow('FORECAST', 3, 'IDLE', null, 'โหลดเมื่อเปิดหน้า WEATHER'));
   else r.push(sRow('FORECAST', 0, 'OK', (Date.now() - WX.at) / 1000));
+  if (rcModels().length){   /* โหวตฝนหลายโมเดล: ดูว่าโมเดลไหนตอบข้อมูลมาจริง */
+    if (RC) r.push(sRow('RAIN MODELS', RC.m >= 2 ? 0 : 1, RC.m + '/' + rcModels().length + ' OK', (Date.now() - RC_AT) / 1000, RC.names.join(' ')));
+    else r.push(sRow('RAIN MODELS', 3, 'IDLE', null, 'ยังไม่ได้ข้อมูล ใช้ % โมเดลเดียวแทน'));
+  }
   /* ตำแหน่ง */
   r.push(gpsState === 'GPS' ? sRow('LOCATION', 0, 'GPS', null) : (gpsState === 'NO GPS' ? sRow('LOCATION', 1, 'NO GPS', null, 'ใช้ตำแหน่งที่จำไว้') : (gpsState ? sRow('LOCATION', 3, gpsState, null) : sRow('LOCATION', 3, 'SAVED', null, 'ตำแหน่งที่จำไว้'))));
   /* Fear & Greed */
@@ -3839,8 +3952,8 @@ function wxRender(){
     setT($('wxD'), wxErr ? 'โหลดสภาพอากาศไม่ได้ ลองใหม่อัตโนมัติ' : 'LOADING...');
     return;
   }
-  var c = WX.current, H = WX.hourly, D = WX.daily, inf, i, k, h = '', pp, key, i0 = 0, day, dt, nm, sr, ss, fr, full;
-  day = wxDayAt(c.time); inf = wxInfo(c.weather_code, day);
+  var c = WX.current, H = WX.hourly, D = WX.daily, inf, i, k, h = '', pp, key, i0 = 0, day, dt, nm, sr, ss, fr, full, ri, lbl, bw, bc;
+  day = wxDayAt(c.time); inf = wxInfo(rcCode(c.weather_code, c.time), day);
   setH($('wxIc'), spr(inf.s, 5));
   setT($('wxT'), rd(c.temperature_2m) + '°C');
   setT($('wxD'), inf.t);
@@ -3851,12 +3964,16 @@ function wxRender(){
   for (i = 0; i < H.time.length; i++){ if (H.time[i].substring(0, 13) >= key){ i0 = i; break; } }
   for (k = 0; k < 6; k++){
     i = i0 + k * 2; if (i >= H.time.length) break;
-    inf = wxInfo(H.weather_code[i], wxDayAt(H.time[i])); pp = H.precipitation_probability[i];
+    inf = wxInfo(rcCode(H.weather_code[i], H.time[i]), wxDayAt(H.time[i])); pp = H.precipitation_probability[i];
+    ri = rcIdx(H.time[i]);
+    if (ri >= 0 && RC.n[ri]){ lbl = RC.v[ri] + '/' + RC.n[ri]; bw = Math.round(RC.v[ri] / RC.n[ri] * 100); bc = RC.rain[ri] ? '' : ' class="d"'; }
+    else { lbl = (pp === null || pp === undefined ? '--' : pp) + '%'; bw = pp || 0; bc = ''; }   /* ยังไม่มีผลโหวต: โชว์ % ของโมเดลเดียวเหมือนเดิม */
     h += '<div class="hc"><b>' + (k === 0 ? 'NOW' : H.time[i].substring(11, 16)) + '</b><div class="ic2">' + spr(inf.s, 2) + '</div>' +
-      '<b class="temp">' + rd(H.temperature_2m[i]) + '°</b>' + (pp === null || pp === undefined ? '--' : pp) + '%' +
-      '<div class="rbar"><i style="width:' + (pp || 0) + '%"></i></div></div>';
+      '<b class="temp">' + rd(H.temperature_2m[i]) + '°</b>' + lbl +
+      '<div class="rbar"><i' + bc + ' style="width:' + bw + '%"></i></div></div>';
   }
   setH($('wxHrs'), h);
+  setT($('wxRcNote'), rcIdx(c.time) >= 0 ? 'ตัวเลข = จำนวนโมเดลที่เห็นฝน (เตือนเมื่อ ≥' + rcNeed(RC.m) + '/' + RC.m + ') เส้นฟ้าสว่าง = เตือนฝน' : 'เส้นฟ้า = โอกาสฝนตก (โมเดลเดียว)');
   /* แสงแดด: เวลาปัจจุบันของพื้นที่ = เวลาตอนดึงข้อมูล + เวลาที่ผ่านไป */
   nm = hmin(c.time) + (Date.now() - WX.at) / 60000; sr = hmin(D.sunrise[0]); ss = hmin(D.sunset[0]);
   fr = Math.max(0, Math.min(1, (nm - sr) / (ss - sr))); full = Math.round(fr * 10);
@@ -3899,6 +4016,7 @@ function loadWx2(){
     function(j){
       if (!j || !j.current || !j.hourly || !j.daily || !j.daily.sunrise || !j.daily.sunrise[0]){ wxBad(); return; }
       j.at = Date.now(); WX = j; wxErr = false; wxRender();
+      rcLoad(function(){ if (WX) wxRender(); });   /* ผลโหวตมาทีหลัง/จากแคช: วาดใหม่ */
     }, wxBad);
   get('https://air-quality-api.open-meteo.com/v1/air-quality?' + q + '&current=pm2_5,pm10,us_aqi&timezone=auto',
     function(j){ if (j && j.current){ AQ = j.current; aqRender(); } else wxBad(); }, wxBad);
@@ -3967,20 +4085,24 @@ function heroRows(o){
 }
 var heroBlink = false;
 function heroState(){
-  var o = {lv: 1, rain: false, rainNow: false, hot: false, cold: false, shade: false, night: false}, i, k, c, H, D, key, i0 = 0, day, code, t, ap;
+  var o = {lv: 1, rain: false, rainNow: false, hot: false, cold: false, shade: false, night: false}, i, k, c, H, D, key, i0 = 0, day, code, t, ap, ri;
   if (AQ && AQ.pm2_5 !== null && AQ.pm2_5 !== undefined && !isNaN(AQ.pm2_5)){
     o.lv = LV.length - 1;
     for (i = 0; i < LV.length; i++){ if (AQ.pm2_5 <= LV[i].max){ o.lv = i; break; } }
   }
   if (WX){
-    c = WX.current; H = WX.hourly; D = WX.daily; day = wxDayAt(c.time); code = c.weather_code;
+    c = WX.current; H = WX.hourly; D = WX.daily; day = wxDayAt(c.time); code = rcCode(c.weather_code, c.time);
     t = c.temperature_2m; ap = c.apparent_temperature;
     o.night = !day; o.hot = t >= 35 || ap >= 38; o.cold = t <= 22;
     o.rainNow = (code >= 51 && code <= 67) || (code >= 80 && code <= 82) || code >= 95;
     key = c.time.substring(0, 13);
     for (i = 0; i < H.time.length; i++){ if (H.time[i].substring(0, 13) >= key){ i0 = i; break; } }
     o.rain = o.rainNow;
-    for (k = 0; k < 4 && i0 + k < H.time.length; k++){ if (H.precipitation_probability[i0 + k] >= 60) o.rain = true; }
+    for (k = 0; k < 4 && i0 + k < H.time.length; k++){
+      ri = rcIdx(H.time[i0 + k]);
+      if (ri >= 0 && RC.n[ri]){ if (RC.rain[ri]) o.rain = true; }   /* ผลโหวตหลายโมเดล */
+      else if (H.precipitation_probability[i0 + k] >= 60) o.rain = true;   /* สำรอง: % โมเดลเดียว */
+    }
     o.shade = day && D.uv_index_max[0] >= 8 && !o.rain;
   }
   return o;
