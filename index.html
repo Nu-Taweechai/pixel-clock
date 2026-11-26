@@ -235,8 +235,8 @@ input.num{width:120px}
 .tb:last-child{margin-right:0}
 .tb.on{background:#2a2457;color:var(--gold);box-shadow:inset 0 -4px 0 var(--gold)}
 #pager{overflow:hidden;position:relative;padding:0 8px 8px 0;-ms-touch-action:pan-y;touch-action:pan-y}
-#track{display:-webkit-flex;display:flex;-webkit-align-items:flex-start;align-items:flex-start;width:600%;will-change:transform}
-.pg{-webkit-flex:none;flex:none;width:16.6667%;min-width:0}
+#track{display:-webkit-flex;display:flex;-webkit-align-items:flex-start;align-items:flex-start;width:700%;will-change:transform}
+.pg{-webkit-flex:none;flex:none;width:14.2857%;min-width:0}
 .pg.off{visibility:hidden;max-height:0;overflow:hidden}
 .ctl{display:-webkit-flex;display:flex;margin-bottom:6px}
 .ctl .btn{margin-right:4px}
@@ -282,11 +282,34 @@ input.num{width:120px}
 .dr .tt{-webkit-flex:3;flex:3;text-align:center;color:#6ac3ff}
 .dr .rn{-webkit-flex:2;flex:2;text-align:right;color:#6ac3ff}
 @media (max-width:599px){ .cr,.dh,.dr{font-size:8px} .say{font-size:8px;line-height:1.6} }
-@media (min-width:600px){ .say{font-size:11px} .cr,.dh,.dr{font-size:11px} .hc{font-size:10px} .tb{font-size:10px} }
+@media (min-width:600px){ .say{font-size:11px} .cr,.dh,.dr{font-size:11px} .hc{font-size:10px} .tb{font-size:9px} }
 /* ===== หน้า MUSIC ===== */
 #muList .btn{margin-bottom:4px}
 #muBar .seg{height:20px}
-@media (max-width:599px){ .tb{font-size:7px;margin-right:3px} }
+@media (max-width:599px){ .tb{font-size:6px;margin-right:3px} }
+
+/* ===== หน้า SCAN ===== */
+.sxh,.sxr{display:-webkit-flex;display:flex;-webkit-align-items:stretch;align-items:stretch}
+.sxh{font-size:7px;color:var(--dim);margin:6px 0 4px;line-height:1.4}
+.sxh>div,.sxr>div{-webkit-flex:1 1 0;flex:1 1 0;min-width:0}
+.sxh>div:first-child,.sxr>div:first-child{-webkit-flex:1.15 1 0;flex:1.15 1 0}
+.sxh>div+div{margin-left:4px}
+.sxr{margin-bottom:5px;padding:4px;background:#0b0820;border:3px solid #000}
+.sxr.al{border-color:var(--gold)}
+.sxr.old{opacity:.5}
+.sxp{font-size:8px;line-height:1.5;padding-right:4px;overflow-wrap:anywhere}
+.sxp b{display:block;font-weight:normal;color:var(--text)}
+.sxp span{display:block;font-size:7px;color:var(--dim)}
+.sxp em{display:block;font-style:normal;font-size:6px;line-height:1.4;color:var(--gold)}
+.sxp em.o{color:var(--dim)}
+.sxc{margin-left:4px;padding:4px 2px;border:2px solid var(--edge);text-align:center;line-height:1.5;min-width:0}
+.sxc b{display:block;font-weight:normal;font-size:7px}
+.sxc span{display:block;font-size:6px;color:var(--dim)}
+.sxc.up{border-color:var(--up);color:var(--up)}
+.sxc.dn{border-color:var(--down);color:var(--down)}
+.sxc.sd{border-color:#6ec6ff;color:#6ec6ff}
+.sxc.wk{border-color:var(--gold2);color:var(--gold)}
+.sxc.na{color:var(--dim)}
 @media (orientation:landscape) and (max-height:500px){
   #pagerbox{grid-column:2;grid-row:1 / span 2;min-width:0;min-height:0;height:100%;
     display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column}
@@ -478,7 +501,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
   </div>
 
   <div id="pagerbox">
-  <div class="tabs" id="tabs"><button type="button" class="tb" data-p="0">MUSIC</button><button type="button" class="tb" data-p="1">WEATHER</button><button type="button" class="tb on" data-p="2">MARKET</button><button type="button" class="tb" data-p="3">CHART</button><button type="button" class="tb" data-p="4">NEWS</button><button type="button" class="tb" data-p="5">BOT</button></div>
+  <div class="tabs" id="tabs"><button type="button" class="tb" data-p="0">MUSIC</button><button type="button" class="tb" data-p="1">WEATHER</button><button type="button" class="tb on" data-p="2">MARKET</button><button type="button" class="tb" data-p="3">CHART</button><button type="button" class="tb" data-p="4">NEWS</button><button type="button" class="tb" data-p="5">BOT</button><button type="button" class="tb" data-p="6">SCAN</button></div>
   <div id="pager"><div id="track">
     <div class="pg off" id="pg0">
   <div class="grid">
@@ -710,6 +733,23 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
     </div>
   </div>
   </div>
+  <div class="pg off" id="pg6">
+  <div class="grid">
+    <div class="panel wide">
+      <div class="lab"><span id="icoScan"></span>FOREX SCANNER<button type="button" class="btn" id="sxRef">REFRESH</button></div>
+      <div class="ctl wr" id="sxF"><button type="button" class="btn" data-v="A">ALL</button><button type="button" class="btn" data-v="T">TREND</button><button type="button" class="btn" data-v="S">SIDEWAY</button><button type="button" class="btn" data-v="M">ALIGN</button></div>
+      <div class="sub" id="sxSum">&nbsp;</div>
+      <div id="sxList"></div>
+      <div class="sub" id="sxSt">&nbsp;</div>
+    </div>
+    <div class="panel wide">
+      <div class="lab">HOW IT WORKS</div>
+      <div class="sub">UP/DN TREND = ADX และ ER สูงพอ + EMA20/50 กับ +DI/-DI ชี้ทางเดียวกัน | SIDEWAY = ADX ต่ำ หรือราคาแกว่งไปมา | WEAK = กลางๆ หรือสัญญาณขัดกัน | กรอบทอง ALIGN = M5 กับ M15 เทรนทางเดียวกัน</div>
+      <div class="sub">ตัวเลขใต้ป้าย = ADX / ER ใช้เฉพาะแท่งที่ปิดแล้ว M15 รวมจากแท่ง M5 ข้อมูลจาก Yahoo Finance ผ่าน Worker อาจต่างจากราคาโบรกเกอร์เล็กน้อยและหน่วงได้</div>
+      <div class="sub">เป็นการจัดกลุ่มสภาพตลาดเท่านั้น ไม่ใช่สัญญาณซื้อขาย | ปรับเกณฑ์ที่ SET > FOREX SCAN | ตลาดปิดสุดสัปดาห์แถวจะจาง</div>
+    </div>
+  </div>
+  </div>
   </div></div>
   </div>
 </div>
@@ -765,7 +805,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.23.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.24.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -855,6 +895,15 @@ var CONFIG = {
   botMlCrit: 150,                     // ต่ำกว่ากี่ % เตือน CRITICAL
   botGridNear: 2,                     // เหลือไม้อีกกี่ไม้ก่อนถึง max grid ให้เตือน (ต้องตั้ง InpMaxGrid ใน Reporter)
   botRows: 60,                        // แสดงรายการไม้สูงสุดกี่แถว
+
+  /* --- หน้า SCAN: สแกนคู่เงิน Forex ว่าเป็นเทรนหรือไซด์เวย์ ใน M5 และ M15 (ดูอย่างเดียว ไม่ใช่สัญญาณเทรด) --- */
+  scan: true,                         // เปิดหน้า SCAN | false = ซ่อนแท็บ (ต้องตั้ง BOT: URL+KEY และใช้ worker.js เวอร์ชันที่มี route /candles)
+  scanPairs: ['EURUSD','GBPUSD','USDJPY','USDCHF','AUDUSD','USDCAD','NZDUSD','EURJPY','GBPJPY','EURGBP','AUDJPY','EURAUD','EURCHF','XAUUSD'],   // คู่ที่สแกน (อักษร 6 ตัว) ยิ่งเยอะยิ่งโหลดนาน | XAUUSD ใช้ฟิวเจอร์สทอง GC=F
+  scanEverySec: 60,                   // โหลดข้อมูลใหม่ทุกกี่วินาที (เฉพาะตอนเปิดหน้า SCAN อยู่)
+  scanAdxTrend: 25,                   // ADX(14) ตั้งแต่เท่านี้ (และ ER ผ่านเกณฑ์ + ทิศทางตรงกัน) = เทรน
+  scanAdxSide: 20,                    // ADX(14) ต่ำกว่านี้ = ไซด์เวย์ | ระหว่างสองค่า = WEAK (หรือไซด์เวย์ถ้า ER ต่ำ)
+  scanEr: 0.25,                       // Efficiency Ratio(20) ขั้นต่ำของเทรน (1 = วิ่งตรง, ใกล้ 0 = แกว่ง)
+  scanStaleMin: 20,                   // แท่งล่าสุดเก่ากว่านี้ (นาที) ถือว่าตลาดปิด/ไม่มีข้อมูลใหม่ แถวจะจางและไม่นับในสรุป
   botTpFx: true,                      // BOT ปิดกำไร (take profit): แมวมานั่งตัก 5 วิ + ตัวเลขกำไรลอย 3 วิ + เสียงเหรียญ | false = ปิด
   botTpMin: 0,                        // ฉลองเมื่อกำไรจริงตั้งแต่เท่านี้ขึ้นไป (หน่วยเงินบัญชี) 0 = ทุกครั้งที่ปิดเป็นบวก
   botTpFresh: 90,                     // ฉลองเฉพาะเหตุการณ์ที่เพิ่งเกิดภายในกี่วินาที (กันฉลองของเก่าตอนเปิดแอปใหม่)
@@ -930,6 +979,13 @@ var SET_DEFS = [
     {k: 'liqMinUsd', t: 'n', n: 'ใหญ่แค่ไหนถึงระเบิด (ต่อรายการ)', u: 'USD', min: 50000, max: 10000000, st: 50000, show: function(){ return !!CONFIG.liveLiq; }},
     {k: 'liqMinUsdBy.XAU', t: 'n', n: 'ทอง: ใหญ่แค่ไหนถึงระเบิด', u: 'USD', min: 10000, max: 10000000, st: 10000, h: 'ทอง (XAUUSDT) รายการมักเล็กกว่า BTC/ETH จึงแยกเกณฑ์', show: function(){ return !!CONFIG.liveLiq; }},
     {k: 'liqSound', t: 'b', n: 'เสียงตูมตอนระเบิด', h: 'ต้องกด SOUND ON ก่อน และไม่ดังในช่วงเงียบ', show: function(){ return !!CONFIG.liveLiq; }}
+  ]},
+  {s: 'FOREX SCAN', it: [
+    {k: 'scan', t: 'b', n: 'หน้า SCAN (เทรน/ไซด์เวย์ M5 M15)', r: 1, h: 'ต้องตั้ง BOT และเพิ่ม route /candles ที่ Worker | แก้รายชื่อคู่เงินที่ CONFIG.scanPairs ในไฟล์'},
+    {k: 'scanEverySec', t: 'n', n: 'โหลดข้อมูลใหม่ทุก', u: 'วิ', min: 30, max: 600, st: 30, h: 'โหลดเฉพาะตอนเปิดหน้า SCAN'},
+    {k: 'scanAdxTrend', t: 'n', n: 'ADX ตั้งแต่เท่านี้ = เทรน', u: '', min: 15, max: 45, st: 1, ck: function(v){ return v <= CONFIG.scanAdxSide ? 'ต้องมากกว่าเกณฑ์ไซด์เวย์ (' + CONFIG.scanAdxSide + ')' : ''; }},
+    {k: 'scanAdxSide', t: 'n', n: 'ADX ต่ำกว่านี้ = ไซด์เวย์', u: '', min: 8, max: 35, st: 1, ck: function(v){ return v >= CONFIG.scanAdxTrend ? 'ต้องน้อยกว่าเกณฑ์เทรน (' + CONFIG.scanAdxTrend + ')' : ''; }},
+    {k: 'scanEr', t: 'n', n: 'ER ขั้นต่ำของเทรน', u: '', min: 0.1, max: 0.7, st: 0.05, h: '1 = วิ่งตรง | ใกล้ 0 = แกว่งไปมา'}
   ]},
   {s: 'SCREEN & RELOAD', it: [
     {k: 'spiderAfterSec', t: 'n', n: 'แมงมุมลงมาเมื่อไม่แตะจอ', u: 'วิ', min: 0, max: 3600, st: 60, off: 0, r: 1, h: 'ถ้าเดิมปิดอยู่ ต้องรีโหลดถึงจะเริ่มทำงาน'},
@@ -2540,8 +2596,8 @@ document.addEventListener('visibilitychange', keepAwake);
 document.addEventListener('click', keepAwake);
 keepAwake();
 
-/* ---- หน้าสลับ: ปัดซ้าย = หน้าถัดไป (MUSIC < WEATHER < MARKET > CHART > NEWS > BOT), ปัดขวา = ย้อนกลับ ---- */
-var NPG = 6, pg = 2, pgW = 0, drag = null, offT = null;
+/* ---- หน้าสลับ: ปัดซ้าย = หน้าถัดไป (MUSIC < WEATHER < MARKET > CHART > NEWS > BOT > SCAN), ปัดขวา = ย้อนกลับ ---- */
+var NPG = CONFIG.scan ? 7 : 6, pg = 2, pgW = 0, drag = null, offT = null;
 function trk(x, anim){
   var st = $('track').style;
   st.webkitTransition = anim ? '-webkit-transform .24s steps(6,end)' : 'none';
@@ -2558,7 +2614,7 @@ function setPage(n, anim){
   clearTimeout(offT);
   offT = setTimeout(function(){ for (var j = 0; j < NPG; j++){ if (j !== n) pgEl(j).className = 'pg off'; } }, anim ? 300 : 0);   // หน้าที่ไม่ได้ดูหดความสูง ไม่ให้เลื่อนยาวเกินจริง
   lsSet('pc_page', n);
-  if (n === 3) chartOpen(); else if (n === 4) calOpen(); else if (n === 1) wxOpen(); else if (n === 5) botOpenPage();
+  if (n === 3) chartOpen(); else if (n === 4) calOpen(); else if (n === 1) wxOpen(); else if (n === 5) botOpenPage(); else if (n === 6) scanOpen();
 }
 function relayout(){ pgW = pageW(); trk(-pg * pgW, false); if (pg === 3) drawChart(); }
 (function(){
@@ -4900,6 +4956,204 @@ function voCfg(k){
   $('say').onclick = function(){ voManual(this); };
   $('sysSay').onclick = function(){ voManual(this); };
 })();
+
+/* ---- หน้า SCAN: สแกนคู่เงิน Forex ว่าเป็นเทรนหรือไซด์เวย์ ใน M5 และ M15
+   ข้อมูล: แท่ง 5 นาทีจาก Worker (route /candles ดึงจาก Yahoo Finance) แล้วรวมเป็น M15 ในเครื่อง | ใช้เฉพาะแท่งที่ปิดแล้ว
+   เกณฑ์ (ค่ามาตรฐานทั่วไป ยังไม่ได้ทดสอบย้อนหลังกับกลยุทธ์ของคุณ ปรับได้ที่ SET > FOREX SCAN):
+     เทรน    = ADX(14) >= scanAdxTrend และ ER(20) >= scanEr และ EMA20/EMA50, +DI/-DI, ราคา ชี้ทางเดียวกัน
+     ไซด์เวย์ = ADX < scanAdxSide หรือ (ADX ยังไม่ถึงเกณฑ์เทรน และ ER ต่ำกว่า scanEr)
+     WEAK    = นอกเหนือจากนั้น (ADX กลางๆ หรือสัญญาณขัดกัน)
+   ดูอย่างเดียว ไม่ใช่สัญญาณซื้อขาย ---- */
+var SX = {d: {}, at: 0, tried: 0, busy: false, q: [], act: 0, ok: 0, bad: 0, n: 0, err: '', f: 'A'}, sxs0 = lsGet('pc_scan');
+if (sxs0 && /^[ATSM]$/.test(String(sxs0.f))) SX.f = sxs0.f;   // A ทั้งหมด | T มีเทรน | S มีไซด์เวย์ | M เทรนทางเดียวกันทั้ง M5 และ M15
+var SXN = {U: ['up', 'UP TREND'], D: ['dn', 'DN TREND'], S: ['sd', 'SIDEWAY'], W: ['wk', 'WEAK']};
+$('icoScan').innerHTML = sprite('bar', 3);
+if (!CONFIG.scan){ $('tabs').getElementsByTagName('button')[6].style.display = 'none'; $('pg6').style.display = 'none'; }
+
+function sxList(){
+  var a = [], seen = {}, src = CONFIG.scanPairs, i, p;
+  if (!(src instanceof Array)) return a;
+  for (i = 0; i < src.length && a.length < 30; i++){
+    p = String(src[i]).toUpperCase().replace(/[^A-Z]/g, '');
+    if (/^[A-Z]{6}$/.test(p) && !seen[p]){ seen[p] = 1; a.push(p); }
+  }
+  return a;
+}
+function sxYf(p){ return p === 'XAUUSD' ? 'GC=F' : p + '=X'; }   // ทอง = ฟิวเจอร์ส GC=F (ราคาต่างจาก spot เล็กน้อย แต่ดูเทรนได้)
+function sxNm(p){ return p.substring(0, 3) + '/' + p.substring(3); }
+function sxDg(p){ return p.indexOf('JPY') >= 0 ? 3 : (p === 'XAUUSD' ? 2 : 5); }
+
+function sxEma(c, n){
+  var k = 2 / (n + 1), e = 0, i;
+  for (i = 0; i < n; i++) e += c[i];
+  e /= n;
+  for (i = n; i < c.length; i++) e = c[i] * k + e * (1 - k);
+  return e;
+}
+function sxAdx(h, l, c, n){   /* ADX แบบ Wilder: คืน {adx, pdi, mdi} หรือ null ถ้าแท่งไม่พอ */
+  var len = c.length, i, tr, pd, md, up, dn, st = 0, sp = 0, sm = 0, pdi = 0, mdi = 0, dx, dxs = [], adx = null, s;
+  if (len < n * 2 + 1) return null;
+  for (i = 1; i < len; i++){
+    up = h[i] - h[i - 1]; dn = l[i - 1] - l[i];
+    pd = (up > dn && up > 0) ? up : 0;
+    md = (dn > up && dn > 0) ? dn : 0;
+    tr = Math.max(h[i] - l[i], Math.abs(h[i] - c[i - 1]), Math.abs(l[i] - c[i - 1]));
+    if (i <= n){ st += tr; sp += pd; sm += md; }
+    else { st = st - st / n + tr; sp = sp - sp / n + pd; sm = sm - sm / n + md; }
+    if (i >= n){
+      if (st > 0){ pdi = 100 * sp / st; mdi = 100 * sm / st; } else { pdi = 0; mdi = 0; }
+      dx = (pdi + mdi) > 0 ? 100 * Math.abs(pdi - mdi) / (pdi + mdi) : 0;
+      dxs.push(dx);
+      if (dxs.length === n){ s = 0; for (var k = 0; k < n; k++) s += dxs[k]; adx = s / n; }
+      else if (dxs.length > n) adx = (adx * (n - 1) + dx) / n;
+    }
+  }
+  return adx === null ? null : {adx: adx, pdi: pdi, mdi: mdi};
+}
+function sxEr(c, n){   /* Efficiency Ratio ของ Kaufman: 1 = วิ่งทางเดียวตรงๆ, ใกล้ 0 = แกว่งไปมา */
+  var last = c.length - 1, net = Math.abs(c[last] - c[last - n]), s = 0, i;
+  for (i = last - n + 1; i <= last; i++) s += Math.abs(c[i] - c[i - 1]);
+  return s > 0 ? net / s : 0;
+}
+function sxClass(b){   /* b = {h, l, c} ของแท่งที่ปิดแล้ว -> {s: U|D|S|W, adx, er} หรือ null ถ้าแท่งไม่พอ */
+  var n = b.c.length, a, e20, e50, er, px, up, dn, st;
+  if (n < 60) return null;
+  a = sxAdx(b.h, b.l, b.c, 14);
+  if (!a) return null;
+  e20 = sxEma(b.c, 20); e50 = sxEma(b.c, 50); er = sxEr(b.c, 20); px = b.c[n - 1];
+  up = e20 > e50 && a.pdi > a.mdi && px > e50;
+  dn = e20 < e50 && a.pdi < a.mdi && px < e50;
+  if (a.adx < CONFIG.scanAdxSide || (a.adx < CONFIG.scanAdxTrend && er < CONFIG.scanEr)) st = 'S';
+  else if (a.adx >= CONFIG.scanAdxTrend && er >= CONFIG.scanEr && (up || dn)) st = up ? 'U' : 'D';
+  else st = 'W';
+  return {s: st, adx: a.adx, er: er};
+}
+function sxAgg(d, sec, ref){   /* รวมแท่ง 5 นาทีเป็นแท่งยาว sec วินาที เก็บเฉพาะแท่งที่จบแล้ว ณ เวลา ref (วินาที) */
+  var o = {h: [], l: [], c: []}, cur = null, i, b;
+  function fin(){ if (cur && (cur.b + 1) * sec <= ref){ o.h.push(cur.h); o.l.push(cur.l); o.c.push(cur.c); } }
+  for (i = 0; i < d.t.length; i++){
+    b = Math.floor(d.t[i] / sec);
+    if (!cur || cur.b !== b){ fin(); cur = {b: b, h: d.h[i], l: d.l[i], c: d.c[i]}; }
+    else { if (d.h[i] > cur.h) cur.h = d.h[i]; if (d.l[i] < cur.l) cur.l = d.l[i]; cur.c = d.c[i]; }
+  }
+  fin();
+  return o;
+}
+function sxParse(j){   /* ตรวจข้อมูลจาก Worker ทุกจุดก่อนใช้ ผิดรูปแบบ = null */
+  var ks = ['t', 'h', 'l', 'c'], k, n, i, at, ref;
+  if (!j || j.ok !== true) return null;
+  for (k = 0; k < ks.length; k++) if (!(j[ks[k]] instanceof Array)) return null;
+  n = j.t.length;
+  if (n < 80 || n > 1500 || j.h.length !== n || j.l.length !== n || j.c.length !== n) return null;
+  for (i = 0; i < n; i++){
+    if (typeof j.t[i] !== 'number' || typeof j.h[i] !== 'number' || typeof j.l[i] !== 'number' || typeof j.c[i] !== 'number') return null;
+    if (j.c[i] <= 0 || j.l[i] <= 0 || j.h[i] < j.l[i]) return null;
+    if (i && j.t[i] <= j.t[i - 1]) return null;
+  }
+  at = (typeof j.at === 'number' && j.at > 0 && j.at <= Date.now() + 60000) ? j.at : Date.now();
+  ref = at / 1000 - 10;
+  return {m5: sxClass(sxAgg(j, 300, ref)), m15: sxClass(sxAgg(j, 900, ref)), px: j.c[n - 1], end: j.t[n - 1] + 300, at: at};
+}
+
+function sxLoad(force){
+  var n = Date.now();
+  if (!CONFIG.scan || SX.busy || !Bcfg || !Bcfg.k) return;
+  if (!force && SX.at && n - SX.at < CONFIG.scanEverySec * 1000) return;
+  if (n - SX.tried < (force ? 5000 : 20000)) return;   /* กันกดถี่ / ลองซ้ำถี่เมื่อพลาด */
+  SX.tried = n; SX.q = sxList(); SX.n = SX.q.length; SX.ok = 0; SX.bad = 0; SX.act = 0; SX.err = '';
+  if (!SX.n) return;
+  SX.busy = true;
+  sxPump();
+}
+function sxPump(){
+  while (SX.act < 3 && SX.q.length) sxOne(SX.q.shift());   /* ดึงพร้อมกันไม่เกิน 3 คู่ */
+  if (!SX.act && !SX.q.length){
+    SX.busy = false;
+    if (SX.ok > 0) SX.at = Date.now();
+  }
+  if (pg === 6) sxRender();
+}
+function sxOne(p){
+  SX.act++;
+  bGet('/candles?s=' + encodeURIComponent(sxYf(p)), function(j){
+    var r = sxParse(j);
+    SX.act--;
+    if (r){ SX.d[p] = r; SX.ok++; } else { SX.bad++; SX.err = SX.err || 'ข้อมูลจาก Worker ไม่ถูกต้อง'; }
+    sxPump();
+  }, function(e){
+    SX.act--; SX.bad++;
+    if (e === 401 || e === 403){ SX.err = 'KEY ไม่ถูกต้อง'; SX.q = []; }
+    else if (e === 404){ SX.err = 'Worker ยังไม่มี route /candles'; SX.q = []; }
+    else SX.err = SX.err || ('เชื่อม Worker ไม่ได้ (' + e + ')');
+    sxPump();
+  });
+}
+function sxIsT(x){ return !!x && (x.s === 'U' || x.s === 'D'); }
+function sxCell(x, old){
+  var m;
+  if (!x) return '<div class="sxc na"><b>N/A</b><span>แท่งไม่พอ</span></div>';
+  m = SXN[x.s];
+  return '<div class="sxc ' + m[0] + '"><b>' + m[1] + '</b><span>' + x.adx.toFixed(0) + ' / ' + x.er.toFixed(2) + '</span></div>';
+}
+function sxRender(){
+  var P = sxList(), rows = [], c5 = {T: 0, S: 0, W: 0}, c15 = {T: 0, S: 0, W: 0}, al = 0, h = '', i, p, d, x, now = Date.now(), btns, vis, st, s5, s15, age;
+  if (!CONFIG.scan) return;
+  btns = $('sxF').getElementsByTagName('button');
+  for (i = 0; i < btns.length; i++) btns[i].className = 'btn' + (btns[i].getAttribute('data-v') === SX.f ? ' on' : '');
+  if (!Bcfg || !Bcfg.k){
+    setT($('sxSum'), 'ต้องตั้งค่า BOT (WORKER URL + READ KEY ที่ SET > BOT) ก่อน ข้อมูลแท่งเทียนมาจาก Worker เดียวกัน และต้องเพิ่ม route /candles ที่ Worker');
+    setH($('sxList'), ''); setT($('sxSt'), '\u00a0');
+    return;
+  }
+  for (i = 0; i < P.length; i++){
+    p = P[i]; d = SX.d[p];
+    x = {p: p, d: d, old: false, al: false, sc: -1, why: ''};
+    if (d){
+      age = Math.max(0, d.at / 1000 - d.end);
+      if (age > CONFIG.scanStaleMin * 60){ x.old = true; x.why = 'ตลาดปิด/ไม่มีแท่งใหม่ ' + bAgeT(age); }
+      else if (now - d.at > 600000){ x.old = true; x.why = 'ข้อมูลเก่า ' + bAgeT((now - d.at) / 1000); }
+      x.al = !x.old && sxIsT(d.m5) && !!d.m15 && d.m5.s === d.m15.s;
+      s5 = d.m5 ? d.m5.adx : 0; s15 = d.m15 ? d.m15.adx : 0;
+      x.sc = (x.al ? 3000 : (sxIsT(d.m5) && sxIsT(d.m15) ? 2000 : ((sxIsT(d.m5) || sxIsT(d.m15)) ? 1000 : ((d.m5 && d.m5.s === 'W') || (d.m15 && d.m15.s === 'W') ? 500 : 0)))) + s5 + s15;
+      if (x.old) x.sc -= 10000;
+      if (!x.old){
+        if (d.m5) c5[sxIsT(d.m5) ? 'T' : (d.m5.s === 'S' ? 'S' : 'W')]++;
+        if (d.m15) c15[sxIsT(d.m15) ? 'T' : (d.m15.s === 'S' ? 'S' : 'W')]++;
+        if (x.al) al++;
+      }
+    }
+    rows.push(x);
+  }
+  rows.sort(function(a, b){ return b.sc - a.sc || (a.p < b.p ? -1 : 1); });
+  for (i = 0; i < rows.length; i++){
+    x = rows[i]; d = x.d;
+    if (SX.f === 'T') vis = d && !x.old && (sxIsT(d.m5) || sxIsT(d.m15));
+    else if (SX.f === 'S') vis = d && !x.old && ((d.m5 && d.m5.s === 'S') || (d.m15 && d.m15.s === 'S'));
+    else if (SX.f === 'M') vis = x.al;
+    else vis = true;
+    if (!vis) continue;
+    h += '<div class="sxr' + (x.al ? ' al' : '') + (x.old ? ' old' : '') + '"><div class="sxp"><b>' + esc(sxNm(x.p)) + '</b>' +
+      (d ? '<span>' + esc(fmt(d.px, sxDg(x.p))) + '</span>' : '<span>' + (SX.busy ? 'LOADING' : '---') + '</span>') +
+      (x.al ? '<em>M5 = M15</em>' : '') + (x.old ? '<em class="o">' + esc(x.why) + '</em>' : '') + '</div>' +
+      (d ? sxCell(d.m5) + sxCell(d.m15) : '<div class="sxc na"><b>--</b></div><div class="sxc na"><b>--</b></div>') + '</div>';
+  }
+  if (!h) h = '<div class="sub">' + (SX.busy ? 'กำลังโหลด...' : (SX.at ? 'ไม่มีคู่ที่ตรงเงื่อนไขตอนนี้' : 'ยังไม่มีข้อมูล')) + '</div>';
+  else h = '<div class="sxh"><div>PAIR</div><div>M5 &nbsp;ADX/ER</div><div>M15 &nbsp;ADX/ER</div></div>' + h;
+  setH($('sxList'), h);
+  setH($('sxSum'), SX.at ? ('M5 &nbsp;TREND ' + c5.T + ' &nbsp;SIDE ' + c5.S + ' &nbsp;WEAK ' + c5.W + '<br>M15 TREND ' + c15.T + ' &nbsp;SIDE ' + c15.S + ' &nbsp;WEAK ' + c15.W + '<br>ALIGN (เทรนทางเดียวกัน M5+M15) ' + al) : '\u00a0');
+  st = SX.busy ? 'กำลังโหลด ' + (SX.ok + SX.bad) + '/' + SX.n + '...' : (SX.at ? 'อัปเดต ' + hhmm(SX.at) + '  ' + SX.ok + '/' + SX.n + ' คู่' : 'ยังไม่มีข้อมูล');
+  if (SX.err) st += '  |  ' + SX.err;
+  setT($('sxSt'), st);
+}
+$('sxF').onclick = function(e){
+  var t = e.target || e.srcElement, v = t && t.getAttribute ? t.getAttribute('data-v') : null;
+  if (!v || !/^[ATSM]$/.test(v)) return;
+  SX.f = v; lsSet('pc_scan', {f: v}); sxRender();
+};
+$('sxRef').onclick = function(){ sxLoad(true); sxRender(); };
+function scanOpen(){ if (!CONFIG.scan) return; sxRender(); sxLoad(false); }
+setInterval(function(){ if (CONFIG.scan && pg === 6 && !(drag && drag.lock === 1)){ sxLoad(false); sxRender(); } }, 5000);   /* โหลดเฉพาะตอนเปิดหน้านี้ (ประหยัด request ของ Worker/Yahoo) */
+/* ---- end SCAN ---- */
 
 renderAlerts(); renderSess();
 loadPrice(); loadWeather(); connectWS(); connectGoldWS(); liqConnect(); loadSpot(); locate();
