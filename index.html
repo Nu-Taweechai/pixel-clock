@@ -474,6 +474,41 @@ body:not(.day) #clouds.cl-ovc .cloud{opacity:.4}
 body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 @media (prefers-reduced-motion:reduce){#skyP{display:none}#skyF,.wb{-webkit-animation:none!important;animation:none!important}}
 
+/* ---- นกตอนเช้า + ดาวตกตอนกลางคืน ---- */
+#skyFx{position:fixed;left:0;top:0;right:0;height:46%;z-index:1;pointer-events:none;overflow:hidden;contain:paint}
+.bird{position:absolute;left:-40px;line-height:0;
+  -webkit-animation-name:birdgo;animation-name:birdgo;-webkit-animation-timing-function:linear;animation-timing-function:linear;
+  -webkit-animation-iteration-count:1;animation-iteration-count:1;-webkit-animation-fill-mode:both;animation-fill-mode:both}
+.bird.rl{left:auto;right:-40px;-webkit-animation-name:birdgoL;animation-name:birdgoL}
+.bob{position:relative;-webkit-animation:birdbob .6s steps(1,end) infinite;animation:birdbob .6s steps(1,end) infinite}
+.bf1,.bf2{line-height:0}
+.bf2{position:absolute;left:0;top:0}
+.bf1{-webkit-animation:bfa .6s steps(1,end) infinite;animation:bfa .6s steps(1,end) infinite}
+.bf2{-webkit-animation:bfb .6s steps(1,end) infinite;animation:bfb .6s steps(1,end) infinite}
+@-webkit-keyframes birdgo{from{-webkit-transform:translate3d(0,0,0)}to{-webkit-transform:translate3d(120vw,0,0)}}
+@keyframes birdgo{from{transform:translate3d(0,0,0)}to{transform:translate3d(120vw,0,0)}}
+@-webkit-keyframes birdgoL{from{-webkit-transform:translate3d(0,0,0)}to{-webkit-transform:translate3d(-120vw,0,0)}}
+@keyframes birdgoL{from{transform:translate3d(0,0,0)}to{transform:translate3d(-120vw,0,0)}}
+@-webkit-keyframes birdbob{0%{-webkit-transform:translate3d(0,0,0)}50%{-webkit-transform:translate3d(0,-4px,0)}}
+@keyframes birdbob{0%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-4px,0)}}
+@-webkit-keyframes bfa{0%{opacity:1}50%{opacity:0}}
+@keyframes bfa{0%{opacity:1}50%{opacity:0}}
+@-webkit-keyframes bfb{0%{opacity:0}50%{opacity:1}}
+@keyframes bfb{0%{opacity:0}50%{opacity:1}}
+.met{position:absolute;width:4px;height:4px;background:#fff;opacity:0;
+  -webkit-animation-iteration-count:1,1;animation-iteration-count:1,1;-webkit-animation-fill-mode:both,both;animation-fill-mode:both,both}
+.met.ml{box-shadow:4px -4px 0 rgba(255,255,255,.7),8px -8px 0 rgba(255,255,255,.5),12px -12px 0 rgba(255,255,255,.34),16px -16px 0 rgba(255,255,255,.2),20px -20px 0 rgba(255,255,255,.1);
+  -webkit-animation-name:metL,metfd;animation-name:metL,metfd}
+.met.mr{box-shadow:-4px -4px 0 rgba(255,255,255,.7),-8px -8px 0 rgba(255,255,255,.5),-12px -12px 0 rgba(255,255,255,.34),-16px -16px 0 rgba(255,255,255,.2),-20px -20px 0 rgba(255,255,255,.1);
+  -webkit-animation-name:metR,metfd;animation-name:metR,metfd}
+@-webkit-keyframes metL{from{-webkit-transform:translate3d(0,0,0)}to{-webkit-transform:translate3d(-170px,170px,0)}}
+@keyframes metL{from{transform:translate3d(0,0,0)}to{transform:translate3d(-170px,170px,0)}}
+@-webkit-keyframes metR{from{-webkit-transform:translate3d(0,0,0)}to{-webkit-transform:translate3d(170px,170px,0)}}
+@keyframes metR{from{transform:translate3d(0,0,0)}to{transform:translate3d(170px,170px,0)}}
+@-webkit-keyframes metfd{0%{opacity:0}10%{opacity:1}65%{opacity:1}100%{opacity:0}}
+@keyframes metfd{0%{opacity:0}10%{opacity:1}65%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){#skyFx{display:none}}
+
 /* ---- LIQUIDATION: ระเบิดพิกเซล ---- */
 #liqfx{position:fixed;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:19;overflow:hidden}
 #liqfx div{position:absolute}
@@ -487,6 +522,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 <div id="stars"></div>
 <div id="clouds"></div>
 <div id="sky"><div id="skyT"></div><div id="skyHz"></div><div id="skyP"></div><div id="skyF"></div></div>
+<div id="skyFx"></div>
 <div class="alert" id="alert"></div>
 <div class="wrap">
   <div class="hud">
@@ -813,7 +849,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.26.1',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.27.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -845,6 +881,12 @@ var CONFIG = {
   liqMinUsdBy: {XAU: 50000},  // เกณฑ์ระเบิดเฉพาะสินทรัพย์ (ทับ liqMinUsd) ทองมีสภาพคล่องน้อยกว่า BTC/ETH มาก รายการจึงเล็กกว่า | ไม่ใส่/ลบ = ใช้ liqMinUsd (ค่าเริ่มต้นนี้เป็นการเดา ดูข้อมูลจริงจาก LIQ.log ใน console แล้วปรับ)
   liqSound: true,        // เสียงตูมสั้นๆ ตอนระเบิด (ต้องกด SOUND ON และไม่ดังในช่วงเงียบ)
   spiderAfterSec: 900,   // ไม่แตะหน้าจอเกินกี่วินาที แมงมุมจะเกาะใยลงมา (0 = ปิด) แตะจอเมื่อไหร่ก็ไต่กลับขึ้นไป
+  birds: true,           // นกบินผ่านท้องฟ้าตอนเช้า (false = ปิด) ไม่โผล่ตอนฝน/พายุ/หมอก/หิมะ ทดสอบได้ด้วย ?fx=bird (ไม่สนเวลา)
+  birdFrom: 6, birdTo: 9,   // ช่วงเวลา (ชั่วโมง 0-23) ที่นกมีสิทธิ์โผล่ | ในช่วงนี้จะสุ่มจังหวะเอง
+  birdEverySec: [90, 300],  // สุ่มห่างกันกี่วินาที [น้อยสุด, มากสุด] เช่น [90,300] = ราว 1.5-5 นาทีต่อฝูง
+  meteors: true,         // ดาวตกตอนกลางคืน (false = ปิด) โผล่เฉพาะฟ้าโปร่ง/มีดาว ทดสอบได้ด้วย ?fx=meteor (ไม่สนเวลา)
+  meteorFrom: 19, meteorTo: 5,   // ช่วงเวลา (ชั่วโมง 0-23) ข้ามเที่ยงคืนได้ เช่น 19 ถึง 5
+  meteorEverySec: [240, 720],    // สุ่มห่างกันกี่วินาที [น้อยสุด, มากสุด] เช่น [240,720] = ราว 4-12 นาที (บางครั้งมาเป็นชุด 2-3 ดวง)
 
   /* --- เตือนราคา / ช่วงเงียบ / รีโหลด --- */
   moveAlerts: {                       // เตือนเมื่อราคาขยับแรง: ขยับเกิน usd ดอลลาร์ ภายใน minutes นาที
@@ -1251,6 +1293,86 @@ function wxApply(){
   if (p) SKY.pmForce = +p[1];
   if (tt) SKY.tempForce = +tt[1];
   wxApply();
+})();
+
+/* ---- นกตอนเช้า + ดาวตกตอนกลางคืน ----
+   หลักคิด: "กำหนดช่วงเวลา" (birdFrom-birdTo / meteorFrom-meteorTo) แล้ว "สุ่มจังหวะ" ภายในช่วงนั้น
+   นกไม่โผล่เมื่อฝน/พายุ/หมอก/หิมะ | ดาวตกโผล่เฉพาะฟ้าที่เห็นดาว (clr/part) | แท็บถูกซ่อนอยู่ก็ข้าม */
+PAL.n = '#14224a';
+SPR.bird1 = ["n.......n", ".n.....n.", "..nn.nn..", "....n...."];
+SPR.bird2 = ["....n....", "..nnnnn..", ".nn...nn.", "n.......n"];
+function fxRand(a, b){ return a + Math.random() * (b - a); }
+function fxIn(a, b){
+  var h = new Date().getHours();
+  return a > b ? (h >= a || h < b) : (h >= a && h < b);
+}
+function fxStill(){
+  try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch(e){ return false; }
+}
+function fxOk(kind){
+  var k = SKY.kind;
+  if (kind === 'bird') return !(k === 'rain' || k === 'hvy' || k === 'storm' || k === 'fog' || k === 'drz' || k === 'snow');
+  return !k || SKY_STAR[k] >= .85;
+}
+function fxBusy(){ return $('skyFx').childNodes.length > 40; }
+function birdSpawn(){
+  var box = $('skyFx'), n, px, base, dur, i, k, side, el, d, fl, rl, out = '', els = [], maxEnd = 0;
+  if (!box || fxBusy()) return;
+  n = Math.random() < .35 ? 1 : 2 + Math.floor(Math.random() * 4);   /* 1 ตัว หรือฝูง 2-5 ตัว */
+  px = Math.random() < .5 ? 2 : 3;                                     /* ตัวเล็ก = ไกล บินช้ากว่า */
+  base = 6 + Math.random() * 62;
+  dur = px === 3 ? fxRand(14, 22) : fxRand(19, 30);
+  rl = Math.random() < .5;
+  for (i = 0; i < n; i++){
+    k = Math.ceil(i / 2); side = i % 2 ? 1 : -1;
+    d = k * fxRand(.6, 1);
+    fl = fxRand(.5, .7).toFixed(2);
+    el = document.createElement('div');
+    el.className = 'bird' + (rl ? ' rl' : '');
+    el.style.top = Math.max(2, Math.min(90, base + (i ? side * k * 9 : 0) + fxRand(-2, 2))) + '%';
+    el.style.webkitAnimationDuration = el.style.animationDuration = dur.toFixed(1) + 's';
+    el.style.webkitAnimationDelay = el.style.animationDelay = d.toFixed(2) + 's';
+    el.innerHTML = '<div class="bob" style="-webkit-animation-duration:' + fl + 's;animation-duration:' + fl + 's;-webkit-animation-delay:-' + (Math.random() * fl).toFixed(2) + 's;animation-delay:-' + (Math.random() * fl).toFixed(2) + 's">' +
+      '<div class="bf1" style="-webkit-animation-duration:' + fl + 's;animation-duration:' + fl + 's">' + sprite('bird1', px) + '</div>' +
+      '<div class="bf2" style="-webkit-animation-duration:' + fl + 's;animation-duration:' + fl + 's">' + sprite('bird2', px) + '</div></div>';
+    box.appendChild(el); els.push(el);
+    if (d + dur > maxEnd) maxEnd = d + dur;
+  }
+  setTimeout(function(){
+    for (var q = 0; q < els.length; q++){ if (els[q].parentNode) els[q].parentNode.removeChild(els[q]); }
+  }, (maxEnd + 1.5) * 1000);
+}
+function meteorOne(){
+  var box = $('skyFx'), left = Math.random() < .5, el, dur;
+  if (!box || fxBusy()) return;
+  dur = fxRand(.7, 1.2);
+  el = document.createElement('div');
+  el.className = 'met ' + (left ? 'ml' : 'mr');
+  el.style.left = (left ? fxRand(30, 98) : fxRand(2, 70)).toFixed(1) + '%';
+  el.style.top = fxRand(2, 50).toFixed(1) + '%';
+  el.style.webkitAnimationDuration = el.style.animationDuration = dur.toFixed(2) + 's,' + dur.toFixed(2) + 's';
+  el.style.webkitAnimationTimingFunction = el.style.animationTimingFunction = 'steps(17,end),linear';
+  box.appendChild(el);
+  setTimeout(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, dur * 1000 + 300);
+}
+function meteorSpawn(){
+  var n = Math.random() < .15 ? 2 + Math.floor(Math.random() * 2) : 1, i;   /* 15% มาเป็นชุด 2-3 ดวง */
+  for (i = 0; i < n; i++) setTimeout(meteorOne, i * fxRand(250, 900));
+}
+function fxLoop(first, every, test, fire, on, from, to, kind){
+  var iv = CONFIG[every] || [90, 300], s = first ? fxRand(8, 25) : fxRand(iv[0], iv[1]);
+  setTimeout(function(){
+    if (CONFIG[on] !== false && fxIn(CONFIG[from], CONFIG[to]) && fxOk(kind) && !document.hidden && !fxStill()) fire();
+    fxLoop(false, every, test, fire, on, from, to, kind);
+  }, s * 1000);
+}
+fxLoop(true, 'birdEverySec', 0, birdSpawn, 'birds', 'birdFrom', 'birdTo', 'bird');
+fxLoop(true, 'meteorEverySec', 0, meteorSpawn, 'meteors', 'meteorFrom', 'meteorTo', 'meteor');
+(function(){   /* โหมดทดสอบ: ?fx=bird หรือ ?fx=meteor (ไม่สนเวลา/สภาพอากาศ) */
+  var m = /[?&]fx=(\w+)/.exec(location.search);
+  if (!m) return;
+  if (m[1] === 'bird'){ setTimeout(birdSpawn, 1200); setInterval(birdSpawn, 9000); }
+  if (m[1] === 'meteor'){ setTimeout(meteorSpawn, 1200); setInterval(meteorSpawn, 3500); }
 })();
 
 /* ---- LIQUIDATION: ฟัง <symbol>@forceOrder ของ Binance USDⓈ-M Futures (endpoint /market) แล้วระเบิดพิกเซลเมื่อมีรายการใหญ่ ----
