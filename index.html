@@ -813,7 +813,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.25.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.26.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -920,6 +920,8 @@ var CONFIG = {
   holidayAheadDays: 1,                // เตือนล่วงหน้ากี่วัน (นับตามวันที่นิวยอร์ก/ลอนดอน) 0 = เตือนเฉพาะวันนั้น
   holidayVoice: true,                 // พูดเตือนวันหยุดด้วย (ต้องเปิด voice และแตะจอ 1 ครั้งหลังเปิดแอป)
   holidayListDays: 45,                // แผง MARKET HOLIDAYS แสดงวันหยุดล่วงหน้ากี่วัน
+  holidayLive: true,                  // ดึงตารางวันหยุดจริงจาก Worker (ต้องตั้ง BOT: WORKER URL + READ KEY) | false = ใช้กฎปฏิทินที่ฝังในไฟล์อย่างเดียว
+  holidayLiveEverySec: 21600,         // ดึงตารางจริงใหม่ทุกกี่วินาที (Worker แคชไว้อีกชั้น ปฏิทินไม่ค่อยเปลี่ยน)
   newsStaleDays: 2                    // ถ้าข่าวล่าสุดในไฟล์เก่ากว่านี้ (วัน) ให้ขึ้นเตือนว่าข้อมูลค้าง
 };
 
@@ -964,7 +966,8 @@ var SET_DEFS = [
     {k: 'holidayAlert', t: 'b', n: 'เตือนวันหยุดตลาด (สหรัฐฯ/อังกฤษ)', h: 'สภาพคล่องบางลง ราคากระชากง่าย | ป้ายเตือนขึ้นเมื่อแอปเปิดอยู่ ต้องกด SOUND ON ถึงมีเสียง'},
     {k: 'holidayAheadDays', t: 'n', n: 'เตือนล่วงหน้า', u: 'วัน', min: 0, max: 7, st: 1, h: '0 = เตือนเฉพาะวันนั้น', show: function(){ return !!CONFIG.holidayAlert; }},
     {k: 'holidayVoice', t: 'b', n: 'พูดเตือนวันหยุดด้วย', show: function(){ return VOICE_OK && !!CONFIG.voice && !!CONFIG.holidayAlert; }},
-    {k: 'holidayListDays', t: 'n', n: 'แผงวันหยุดดูล่วงหน้า', u: 'วัน', min: 14, max: 120, st: 7}
+    {k: 'holidayListDays', t: 'n', n: 'แผงวันหยุดดูล่วงหน้า', u: 'วัน', min: 14, max: 120, st: 7},
+    {k: 'holidayLive', t: 'b', n: 'ดึงตารางวันหยุดจริงจาก Worker', h: 'ต้องตั้ง BOT ก่อน | อังกฤษจาก gov.uk | สหรัฐฯต้องตั้ง FINNHUB_KEY ที่ Worker ไม่งั้นใช้กฎปฏิทิน', r: 1}
   ]},
   {s: 'VOICE', it: [
     {k: 'voice', t: 'b', n: 'เสียงพูด (บอกเวลา/ราคา/อ่านข่าว)', h: 'ต้องแตะจอ 1 ครั้งหลังเปิดแอป เบราว์เซอร์ถึงยอมให้พูด ปุ่ม SAY ในหน้า MARKET ให้พูดซ้ำได้ทุกเมื่อ', show: function(){ return VOICE_OK; }},
@@ -1453,6 +1456,7 @@ var DAYMS = 86400000, HOL_C = {}, HOLF = lsGet('pc_hol') || {};
 var HOL_WD = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 var HOL_MO = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 var HOL_NY = 'America/New_York', HOL_LN = 'Europe/London';
+var HOL_R = {}, HOLX = {}, HOLW = lsGet('pc_holw'), HOLL = {busy: false, tried: 0, got: 0, err: ''};   /* HOL_R = กฎปฏิทินล้วน | HOLX = ตารางจริงจาก Worker แยกตลาด {c0,c1,ev} | HOLW = ผลล่าสุดจาก Worker (แคชใน localStorage 'pc_holw') */
 function hDate(y, m, d){ return Date.UTC(y, m - 1, d); }
 function hWd(t){ return new Date(t).getUTCDay(); }
 function hKey(t){ var d = new Date(t); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); }
@@ -1497,34 +1501,44 @@ function hUk(y){
   u(hDate(y, 12, 26), 'Boxing Day');
   return r;
 }
-function holYear(y){
+function holRuleYear(y){   /* วันหยุดจากกฎปฏิทินล้วน ใช้เป็นตัวสำรอง และไว้เทียบกับตารางจริง */
   var a, b, r, i;
-  if (!HOL_C[y]){
+  if (!HOL_R[y]){
     a = hUs(y); b = hUk(y); r = [];
-    for (i = 0; i < a.length; i++) r.push({t: a[i].t, n: a[i].n, f: a[i].f, m: 'US'});
-    for (i = 0; i < b.length; i++) r.push({t: b[i].t, n: b[i].n, f: b[i].f, m: 'UK'});
-    HOL_C[y] = r;
+    for (i = 0; i < a.length; i++) r.push({t: a[i].t, n: a[i].n, f: a[i].f, m: 'US', h: ''});
+    for (i = 0; i < b.length; i++) r.push({t: b[i].t, n: b[i].n, f: b[i].f, m: 'UK', h: ''});
+    HOL_R[y] = r;
   }
-  return HOL_C[y];
+  return HOL_R[y];
+}
+function holYear(y){   /* ช่วงวันที่ที่ตารางจริงครอบคลุม (c0..c1) ใช้ตารางจริงแทนกฎ นอกช่วงนั้นใช้กฎ */
+  var r, out = [], i, c, m, x;
+  if (HOL_C[y]) return HOL_C[y];
+  r = holRuleYear(y);
+  for (i = 0; i < r.length; i++){ c = HOLX[r[i].m]; if (c && r[i].t >= c.c0 && r[i].t <= c.c1) continue; out.push(r[i]); }
+  for (m in HOLX) for (i = 0; i < HOLX[m].ev.length; i++){ x = HOLX[m].ev[i]; if (new Date(x.t).getUTCFullYear() === y) out.push(x); }
+  HOL_C[y] = out;
+  return out;
 }
 function hToday(tz, now){   /* วันที่ปัจจุบันในเมืองนั้น (นิวยอร์ก/ลอนดอน) ไม่ใช่วันที่ของเครื่อง */
   var p = new Intl.DateTimeFormat('en-US', {timeZone: tz, year: 'numeric', month: 'numeric', day: 'numeric'}).formatToParts(new Date(now)), r = {}, i;
   for (i = 0; i < p.length; i++) r[p[i].type] = p[i].value;
   return hDate(parseInt(r.year, 10), parseInt(r.month, 10), parseInt(r.day, 10));
 }
-function holNext(now, days){   /* วันหยุดตั้งแต่วันนี้ถึง days วันข้างหน้า dd = อีกกี่วัน (นับตามวันที่ของตลาดนั้น) */
+function holNextFrom(fn, now, days){   /* วันหยุดตั้งแต่วันนี้ถึง days วันข้างหน้า dd = อีกกี่วัน (นับตามวันที่ของตลาดนั้น) | fn = holYear (ผสมตารางจริง) หรือ holRuleYear (กฎล้วน) */
   var us = hToday(HOL_NY, now), uk = hToday(HOL_LN, now), lo = Math.min(us, uk), hi = Math.max(us, uk) + days * DAYMS,
       y, i, a, b, dd, r = [];
   for (y = new Date(lo).getUTCFullYear(); y <= new Date(hi).getUTCFullYear(); y++){
-    a = holYear(y);
+    a = fn(y);
     for (i = 0; i < a.length; i++){
       b = a[i].m === 'US' ? us : uk; dd = Math.round((a[i].t - b) / DAYMS);
-      if (dd >= 0 && dd <= days) r.push({t: a[i].t, n: a[i].n, f: a[i].f, m: a[i].m, dd: dd});
+      if (dd >= 0 && dd <= days) r.push({t: a[i].t, n: a[i].n, f: a[i].f, m: a[i].m, h: a[i].h || '', dd: dd});
     }
   }
   r.sort(function(p, q){ return p.t - q.t || (p.m < q.m ? -1 : (p.m > q.m ? 1 : 0)); });
   return r;
 }
+function holNext(now, days){ return holNextFrom(holYear, now, days); }
 function holToday(now){
   var l = holNext(now || Date.now(), 0), r = {us: null, uk: null}, i;
   for (i = 0; i < l.length; i++){ if (l[i].m === 'US') r.us = l[i]; else r.uk = l[i]; }
@@ -1543,8 +1557,12 @@ function zMs(tz, y, mo, d, h, mi){   /* เวลาผนังของ tz -> 
   return r;
 }
 function holWin(it){   /* ช่วงที่บางจริง เป็นเวลาของเครื่อง: เต็มวัน = ช่วงเซสชัน 08:00-17:00 ของเมืองนั้น (ตรงกับ SESS) | ปิดเร็ว = 13:00-17:00 */
-  var tz = it.m === 'US' ? HOL_NY : HOL_LN, d = new Date(it.t), y = d.getUTCFullYear(), mo = d.getUTCMonth() + 1, dy = d.getUTCDate();
-  return hhmm(zMs(tz, y, mo, dy, it.f ? 8 : 13, 0)) + '-' + hhmm(zMs(tz, y, mo, dy, 17, 0));
+  var tz = it.m === 'US' ? HOL_NY : HOL_LN, d = new Date(it.t), y = d.getUTCFullYear(), mo = d.getUTCMonth() + 1, dy = d.getUTCDate(), hh = 8, mi = 0;
+  if (!it.f){   /* ปิดเร็ว: บางตั้งแต่เวลาปิดจริงในตารางจริง (เช่น 09:30-13:00 -> 13:00) ไม่มีก็ใช้ 13:00 */
+    hh = 13;
+    if (it.h){ hh = parseInt(it.h.slice(6, 8), 10); mi = parseInt(it.h.slice(9, 11), 10); if (isNaN(hh) || isNaN(mi) || hh >= 17){ hh = 13; mi = 0; } }
+  }
+  return hhmm(zMs(tz, y, mo, dy, hh, mi)) + '-' + hhmm(zMs(tz, y, mo, dy, 17, 0));
 }
 function hLab(t){ var d = new Date(t); return HOL_WD[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + HOL_MO[d.getUTCMonth()]; }
 function hIn(dd){ return dd === 0 ? 'วันนี้' : (dd === 1 ? 'พรุ่งนี้' : 'อีก ' + dd + ' วัน'); }
@@ -1574,13 +1592,90 @@ function holCheck(now, l){   /* เตือนครั้งเดียวต
   try { if (CONFIG.voice && CONFIG.holidayVoice && VO && VO.ok) voSay([{t: vs.join(' '), l: 'th'}], 'new', false, false); } catch(e){}
   try { if (news) checkAlerts(); } catch(e){}
 }
+/* ---- ตารางจริงจาก Worker (GET /holidays) ----
+   อังกฤษ: gov.uk | สหรัฐฯ: Finnhub (ต้องตั้ง FINNHUB_KEY ที่ Worker) | ฝั่งไหนไม่มีข้อมูล ใช้กฎปฏิทินฝั่งนั้นต่อ | ชื่อจากแหล่งข้อมูลถูกล้างอักขระพิเศษและแปลเป็นไทยถ้ารู้จัก */
+var HOL_TH = [[/day after thanksgiving|black friday/i, 'วันศุกร์หลังขอบคุณพระเจ้า'], [/thanksgiving/i, 'วันขอบคุณพระเจ้า'], [/christmas eve/i, 'วันก่อนคริสต์มาส'], [/christmas/i, 'วันคริสต์มาส'],
+  [/boxing/i, 'Boxing Day'], [/new year/i, 'วันขึ้นปีใหม่'], [/martin luther|mlk/i, 'วัน MLK'], [/washington|president/i, 'วันประธานาธิบดี'], [/good friday/i, 'วันศุกร์ประเสริฐ'],
+  [/easter monday/i, 'วันจันทร์อีสเตอร์'], [/early may/i, 'Early May'], [/spring bank/i, 'Spring Bank'], [/summer bank/i, 'Summer Bank'], [/memorial/i, 'Memorial Day'],
+  [/juneteenth/i, 'Juneteenth'], [/independence/i, 'วันชาติสหรัฐฯ'], [/labou?r/i, 'Labor Day'], [/mourning|funeral/i, 'วันไว้อาลัย (ปิดพิเศษ)']];
+function holTh(n){
+  var s = String(n).replace(/[<>&"'`]/g, '').slice(0, 60), i;
+  for (i = 0; i < HOL_TH.length; i++) if (HOL_TH[i][0].test(s)) return HOL_TH[i][1];
+  return s;
+}
+function holIndex(w){
+  var by = {US: [], UK: []}, i, x, t, m, c0, c1, a, ad;
+  HOLX = {}; HOL_C = {};
+  if (!w || !(w.items instanceof Array)) return;
+  for (i = 0; i < w.items.length; i++){
+    x = w.items[i];
+    if (!x || (x.m !== 'US' && x.m !== 'UK') || typeof x.d !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(x.d) || typeof x.n !== 'string') continue;
+    t = hDate(parseInt(x.d.slice(0, 4), 10), parseInt(x.d.slice(5, 7), 10), parseInt(x.d.slice(8, 10), 10));
+    by[x.m].push({t: t, n: holTh(x.n) + (x.x ? ' (ชดเชย)' : ''), f: x.f ? 1 : 0, m: x.m, h: (typeof x.h === 'string' && /^\d{2}:\d{2}-\d{2}:\d{2}$/.test(x.h)) ? x.h : ''});
+  }
+  for (m in by){
+    if (by[m].length < 5) continue;   /* น้อยเกินไป = ข้อมูลไม่น่าเชื่อ ใช้กฎปฏิทินฝั่งนั้นแทน */
+    c0 = Infinity; c1 = -Infinity;
+    for (i = 0; i < by[m].length; i++){ if (by[m][i].t < c0) c0 = by[m][i].t; if (by[m][i].t > c1) c1 = by[m][i].t; }
+    a = w.src && w.src[m] && typeof w.src[m].at === 'number' ? w.src[m].at : (w.got || Date.now());
+    ad = new Date(a);
+    c0 = Math.min(c0, hDate(ad.getUTCFullYear(), ad.getUTCMonth() + 1, ad.getUTCDate()) - DAYMS);   /* ถ้าแหล่งข้อมูลให้เฉพาะวันหยุดข้างหน้า วันตั้งแต่ตอนดึงเป็นต้นมานับว่าครอบคลุมแล้ว */
+    HOLX[m] = {c0: c0, c1: c1, ev: by[m]};
+  }
+}
+function holApply(j){
+  var items = [], i, x;
+  for (i = 0; i < j.items.length && items.length < 200; i++){
+    x = j.items[i];
+    if (x && typeof x.d === 'string' && typeof x.n === 'string' && (x.m === 'US' || x.m === 'UK')) items.push({m: x.m, d: x.d, n: x.n.slice(0, 60), f: x.f ? 1 : 0, h: typeof x.h === 'string' ? x.h : '', x: x.x ? 1 : 0});
+  }
+  HOLW = {got: Date.now(), items: items, src: j.src || {}, key: j.key !== false, err: j.err || null, off: !!j.off};
+  lsSet('pc_holw', HOLW);
+  holIndex(HOLW);
+}
+function holLoad(force){
+  var n = Date.now();
+  if (!CONFIG.holidayLive || HOLL.busy || !Bcfg || !Bcfg.k) return;
+  if (!force && HOLL.got && n - HOLL.got < (CONFIG.holidayLiveEverySec || 21600) * 1000) return;
+  if (n - HOLL.tried < (force ? 15000 : 60000)) return;   /* กันลองซ้ำถี่เมื่อพลาด */
+  HOLL.busy = true; HOLL.tried = n;
+  bGet('/holidays', function(j){
+    HOLL.busy = false;
+    if (!j || j.ok !== true || !(j.items instanceof Array)){ HOLL.err = 'ข้อมูลจาก Worker ไม่ถูกต้อง'; renderHol(); return; }
+    HOLL.err = ''; HOLL.got = Date.now();
+    try { holApply(j); } catch(e){ HOLL.err = 'อ่านตารางวันหยุดไม่ได้'; }
+    renderHol();
+  }, function(r){
+    HOLL.busy = false;
+    HOLL.err = (r === 401 || r === 403) ? 'KEY ไม่ถูกต้อง' : (r === 404 ? 'Worker ยังไม่มี route /holidays (อัปเดต worker.js)' : 'เชื่อม Worker ไม่ได้ (' + r + ')');
+    renderHol();
+  });
+}
+function holDiff(now, days){   /* ตารางจริงต่างจากกฎปฏิทินตรงไหนบ้างในช่วงที่ตารางจริงครอบคลุม (เช่น ปิดพิเศษ หรือกฎผิด) */
+  var a = holNextFrom(holRuleYear, now, days), b = holNextFrom(holYear, now, days), ka = {}, kb = {}, i, k, r = [], x;
+  function key(z){ return z.m + hKey(z.t) + z.f; }
+  for (i = 0; i < a.length; i++) if (HOLX[a[i].m]) ka[key(a[i])] = a[i];
+  for (i = 0; i < b.length; i++) if (HOLX[b[i].m]) kb[key(b[i])] = b[i];
+  for (k in kb) if (!ka[k]){ x = kb[k]; r.push('จริงมี ' + x.m + ' ' + hLab(x.t) + (x.f ? '' : ' (ปิดเร็ว)')); }
+  for (k in ka) if (!kb[k]){ x = ka[k]; r.push('จริงไม่มี ' + x.m + ' ' + hLab(x.t) + (x.f ? '' : ' (ปิดเร็ว)')); }
+  return r;
+}
+function holSrcTxt(now){
+  var w = HOLW, p, e;
+  if (!CONFIG.holidayLive) return 'ข้อมูล: กฎปฏิทิน (ปิดการดึงตารางจริงไว้ใน SETTINGS)';
+  if (!Bcfg || !Bcfg.k) return 'ข้อมูล: กฎปฏิทิน (ตั้งค่า BOT ที่ SET > BOT เพื่อดึงตารางจริงจาก Worker)';
+  if (w && w.off) return 'ข้อมูล: กฎปฏิทิน (Worker ปิดไว้ HOL_OFF)';
+  p = ['สหรัฐฯ ' + (HOLX.US ? 'ตารางจริง' : 'กฎปฏิทิน' + (w && w.key === false ? ' (Worker ยังไม่มี FINNHUB_KEY)' : '')), 'อังกฤษ ' + (HOLX.UK ? 'ตารางจริง' : 'กฎปฏิทิน')];
+  e = HOLL.err ? ' | ' + HOLL.err : ((w && w.err) ? ' | Worker ดึงบางฝั่งไม่สำเร็จ ใช้ข้อมูลเก่า/กฎแทน' : '');
+  return 'ข้อมูล: ' + p.join(', ') + (w && w.got ? ' | อัปเดต ' + bAgeT(Math.max(0, (now - w.got) / 1000)) + ' ที่แล้ว' : (HOLL.busy ? ' | กำลังโหลด...' : '')) + e;
+}
 function renderHol(){
-  var now = Date.now(), l, td, us, uk, big = 'NORMAL', cls = 'ok', lines = [], i, g = [], x, rows = '', nm, tg, full, days = CONFIG.holidayListDays || 45, wd;
+  var now = Date.now(), l, td, us, uk, big = 'NORMAL', cls = 'ok', lines = [], i, j, g = [], x, rows = '', nm, tg, full, days = CONFIG.holidayListDays || 45, wd, df;
   try {
     if (!$('holNow')) return;
     l = holNext(now, days); td = holToday(now); us = td.us; uk = td.uk;
-    if (us) lines.push(us.f ? 'ตลาดสหรัฐฯ หยุด: ' + us.n + ' ช่วงบางตามเวลาเครื่อง ' + holWin(us) : 'ตลาดสหรัฐฯ ปิดเร็ว: ' + us.n + ' บางตั้งแต่ ' + holWin(us).split('-')[0]);
-    if (uk) lines.push('ตลาดลอนดอนหยุด: ' + uk.n + ' ช่วงบางตามเวลาเครื่อง ' + holWin(uk));
+    if (us) lines.push(us.f ? 'ตลาดสหรัฐฯ หยุด: ' + esc(us.n) + ' ช่วงบางตามเวลาเครื่อง ' + holWin(us) : 'ตลาดสหรัฐฯ ปิดเร็ว: ' + esc(us.n) + ' บางตั้งแต่ ' + holWin(us).split('-')[0]);
+    if (uk) lines.push('ตลาดลอนดอนหยุด: ' + esc(uk.n) + ' ช่วงบางตามเวลาเครื่อง ' + holWin(uk));
     if (us && us.f && uk && uk.f){ big = 'VERY LOW'; cls = 'low'; }
     else if ((us && us.f) || (uk && uk.f)){ big = 'LOW'; cls = 'low'; }
     else if (us){ big = 'EARLY CLOSE'; cls = 'mid'; }
@@ -1590,6 +1685,9 @@ function renderHol(){
       else lines.push('วันนี้ไม่มีวันหยุดตลาดสหรัฐฯ/อังกฤษ สภาพคล่องปกติ');
     }
     lines.push('นับตามวันที่ของนิวยอร์ก/ลอนดอน');
+    lines.push(esc(holSrcTxt(now)));
+    df = holDiff(now, days);
+    if (df.length) lines.push('ตารางจริงต่างจากกฎปฏิทิน ' + df.length + ' รายการ: ' + esc(df.slice(0, 3).join(', ')));
     $('holNow').className = 'val sm hv ' + cls;
     setT($('holNow'), big);
     setH($('holTxt'), lines.join('<br>'));
@@ -1600,7 +1698,7 @@ function renderHol(){
     }
     for (i = 0; i < g.length && i < 6; i++){
       x = g[i]; full = false; tg = []; nm = x.its[0].n;
-      for (var j = 0; j < x.its.length; j++){ if (x.its[j].f) full = true; tg.push(x.its[j].m); if (j && x.its[j].n !== nm) nm += ' / ' + x.its[j].n; }
+      for (j = 0; j < x.its.length; j++){ if (x.its[j].f) full = true; tg.push(x.its[j].m); if (j && x.its[j].n !== nm) nm += ' / ' + x.its[j].n; }
       rows += '<div class="ev"><span class="imp" style="background:' + (full ? '#ff5f6d' : '#ff9d57') + '"></span><span class="tm">' + hLab(x.t) + '</span> ' + tg.join('+') + ' ' + esc(nm) + (full ? '' : ' (ปิดเร็ว)') + ' <span class="tm">' + hIn(x.its[0].dd) + '</span></div>';
     }
     if (!rows) rows = '<div class="sub">ไม่มีวันหยุดใน ' + days + ' วันข้างหน้า</div>';
@@ -1608,6 +1706,8 @@ function renderHol(){
     holCheck(now, l);
   } catch(e){ try { setT($('holTxt'), 'คำนวณวันหยุดไม่ได้ (เบราว์เซอร์ไม่รองรับเวลาเขตอื่น)'); } catch(e2){} }
 }
+try { if (CONFIG.holidayLive) holIndex(HOLW); } catch(e){ HOLX = {}; }   /* ใช้ตารางจริงที่แคชไว้ทันทีตั้งแต่เปิดแอป แม้ออฟไลน์ */
+setInterval(function(){ holLoad(false); }, 60000);   /* holLoad คุมช่วงห่างด้วย holidayLiveEverySec เอง */
 
 /* ---- GOLD H/L ของวัน ---- */
 var hl = lsGet('pc_hl');
@@ -5336,7 +5436,7 @@ function scanOpen(){ if (!CONFIG.scan) return; sxRender(); sxLoad(false); }
 setInterval(function(){ if (CONFIG.scan && pg === 6 && !(drag && drag.lock === 1)){ sxLoad(false); sxRender(); } }, 5000);   /* โหลดเฉพาะตอนเปิดหน้านี้ (ประหยัด request ของ Worker/Yahoo) */
 /* ---- end SCAN ---- */
 
-renderAlerts(); renderSess(); renderHol();
+renderAlerts(); renderSess(); renderHol(); holLoad(false);
 loadPrice(); loadWeather(); connectWS(); connectGoldWS(); liqConnect(); loadSpot(); locate();
 newsRefilter(true);
 if (!nc || !allEv.length || Date.now() - nc.at > CONFIG.newsEverySec * 1000) loadNews(); else showStatus();
