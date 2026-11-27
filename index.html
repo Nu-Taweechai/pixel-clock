@@ -813,7 +813,7 @@ body:not(.day) #clouds.cl-wet .cloud{opacity:.5}
 <script>
 /* ===== ตั้งค่า (แก้ตรงนี้) ===== */
 var CONFIG = {
-  version: 'v2.26.0',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
+  version: 'v2.26.1',       // เลขเวอร์ชัน แสดงต่อท้ายปี พ.ศ. แก้เลขนี้ทุกครั้งที่อัปโหลดไฟล์ใหม่ จะได้รู้ว่าอัปเดตขึ้นหรือยัง
   city: 'BANGKOK',
   lat: 13.75, lon: 100.52,   // พิกัดสำรอง ใช้เมื่อไม่ได้เปิด GPS หรือยังไม่เคยได้ตำแหน่ง
   useGPS: true,          // ใช้ตำแหน่งจริงของเครื่อง (ต้องเปิดผ่าน HTTPS และกดอนุญาตตำแหน่ง)
@@ -1603,6 +1603,13 @@ function holTh(n){
   for (i = 0; i < HOL_TH.length; i++) if (HOL_TH[i][0].test(s)) return HOL_TH[i][1];
   return s;
 }
+function holThEarly(n){   /* Finnhub ตั้งชื่อวันปิดเร็วซ้ำกับวันหยุดจริง (เช่น ศุกร์หลังขอบคุณพระเจ้าชื่อ Thanksgiving Day) จึงแปลงให้ชัดเจน */
+  var s = String(n);
+  if (/thanksgiving/i.test(s)) return 'วันศุกร์หลังขอบคุณพระเจ้า';
+  if (/christmas/i.test(s)) return 'วันก่อนคริสต์มาส';
+  if (/independence/i.test(s)) return 'ก่อนวันชาติสหรัฐฯ';
+  return holTh(s);
+}
 function holIndex(w){
   var by = {US: [], UK: []}, i, x, t, m, c0, c1, a, ad;
   HOLX = {}; HOL_C = {};
@@ -1611,7 +1618,7 @@ function holIndex(w){
     x = w.items[i];
     if (!x || (x.m !== 'US' && x.m !== 'UK') || typeof x.d !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(x.d) || typeof x.n !== 'string') continue;
     t = hDate(parseInt(x.d.slice(0, 4), 10), parseInt(x.d.slice(5, 7), 10), parseInt(x.d.slice(8, 10), 10));
-    by[x.m].push({t: t, n: holTh(x.n) + (x.x ? ' (ชดเชย)' : ''), f: x.f ? 1 : 0, m: x.m, h: (typeof x.h === 'string' && /^\d{2}:\d{2}-\d{2}:\d{2}$/.test(x.h)) ? x.h : ''});
+    by[x.m].push({t: t, n: (x.f ? holTh(x.n) : holThEarly(x.n)) + (x.x ? ' (ชดเชย)' : ''), f: x.f ? 1 : 0, m: x.m, h: (typeof x.h === 'string' && /^\d{2}:\d{2}-\d{2}:\d{2}$/.test(x.h)) ? x.h : ''});
   }
   for (m in by){
     if (by[m].length < 5) continue;   /* น้อยเกินไป = ข้อมูลไม่น่าเชื่อ ใช้กฎปฏิทินฝั่งนั้นแทน */
